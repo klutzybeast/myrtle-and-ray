@@ -1,6 +1,6 @@
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../../lib/auth";
-import { Waves, LayoutDashboard, Package, Users, FileText, Settings, Inbox, Mail, Image, Sparkles, LogOut, Send, Download, Layers, PenSquare } from "lucide-react";
+import { Waves, LayoutDashboard, Package, Users, FileText, Settings, Inbox, Mail, Image, Sparkles, LogOut, Send, Download, Layers, PenSquare, ExternalLink, Home } from "lucide-react";
 
 const ITEMS = [
   { to: "/admin", end: true, label: "Dashboard", icon: LayoutDashboard },
@@ -21,7 +21,7 @@ const ITEMS = [
 export default function AdminLayout() {
   const { user, logout } = useAuth();
   const nav = useNavigate();
-  const onLogout = async () => { await logout(); nav("/admin/login"); };
+  const onLogout = async () => { await logout(); nav("/"); };
 
   return (
     <div className="min-h-screen bg-[#f8fafc] flex" data-testid="admin-layout">
@@ -37,8 +37,9 @@ export default function AdminLayout() {
             </NavLink>
           ))}
         </nav>
-        <div className="p-3 border-t border-[#f4e4c6]">
-          <div className="text-xs text-[#6b7280] mb-2 truncate">{user?.email}</div>
+        <div className="p-3 border-t border-[#f4e4c6] space-y-2">
+          <a href="/" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 px-3 py-2 rounded-2xl text-sm font-semibold bg-[#eef9fb] text-[#5a8a6f] hover:bg-[#dff3f6]" data-testid="admin-view-site"><Home className="w-4 h-4" />View website<ExternalLink className="w-3 h-3" /></a>
+          <div className="text-xs text-[#6b7280] truncate">{user?.email}</div>
           <button onClick={onLogout} className="btn-ghost text-sm w-full justify-center" data-testid="admin-logout"><LogOut className="w-4 h-4" />Sign out</button>
         </div>
       </aside>

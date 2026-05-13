@@ -1,9 +1,20 @@
 import { useEffect, useState } from "react";
 import { api } from "../../lib/api";
 import { toast } from "sonner";
-import { Save } from "lucide-react";
+import { Save, ExternalLink } from "lucide-react";
 import SchemaForm from "./SchemaForm";
 import { PAGE_SCHEMAS } from "./schemas";
+
+// Map system-page keys to where they appear on the public site
+const PAGE_PREVIEW_PATH = {
+  homepage_hero: "/",
+  sand_banner: "/",
+  wave_values: "/",
+  about: "/about",
+  for_camps: "/for-camps",
+  read_aloud: "/read-aloud",
+  contact: "/contact",
+};
 
 export default function AdminPages() {
   const [pages, setPages] = useState([]);
@@ -51,8 +62,15 @@ export default function AdminPages() {
           {!active && <div className="text-[#5a6b76]">Select a page on the left to edit.</div>}
           {active && schema && (
             <>
-              <h2 className="font-accent text-2xl font-bold">{schema.title}</h2>
-              {schema.description && <p className="text-[#5a6b76] text-sm mb-4">{schema.description}</p>}
+              <div className="flex items-start justify-between gap-3 flex-wrap mb-2">
+                <div>
+                  <h2 className="font-accent text-2xl font-bold">{schema.title}</h2>
+                  {schema.description && <p className="text-[#5a6b76] text-sm">{schema.description}</p>}
+                </div>
+                {PAGE_PREVIEW_PATH[active.key] && (
+                  <a href={PAGE_PREVIEW_PATH[active.key]} target="_blank" rel="noopener noreferrer" className="btn-secondary text-sm" data-testid="page-view-on-site"><ExternalLink className="w-4 h-4" />View on site</a>
+                )}
+              </div>
               <SchemaForm fields={schema.fields} value={content} onChange={setContent} />
               <button onClick={save} disabled={busy} className="btn-primary mt-5" data-testid="page-save"><Save className="w-4 h-4" />{busy ? "Saving..." : "Save"}</button>
             </>

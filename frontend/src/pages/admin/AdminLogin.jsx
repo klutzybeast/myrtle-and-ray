@@ -22,7 +22,8 @@ export default function AdminLogin() {
   };
 
   return (
-    <main className="min-h-screen grid place-items-center bg-foam-grad p-6" data-testid="admin-login">
+    <main className="min-h-screen grid place-items-center bg-foam-grad p-6 relative" data-testid="admin-login">
+      <Link to="/" className="absolute top-6 left-6 btn-ghost text-sm" data-testid="login-back-to-site"><ArrowLeft className="w-4 h-4" />Back to website</Link>
       <div className="card-soft max-w-md w-full p-8">
         <div className="text-center mb-6">
           <div className="w-14 h-14 rounded-full gradient-wave grid place-items-center mx-auto"><Waves className="w-7 h-7 text-white" /></div>

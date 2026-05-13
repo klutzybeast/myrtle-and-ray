@@ -2,7 +2,8 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { api } from "../../lib/api";
 import { toast } from "sonner";
-import { Save, Trash2, GripVertical, Plus, Heading1, Type, Image as ImageIcon, Images, Film, MousePointer, Quote, Code, Minus, Eye, Upload, ExternalLink } from "lucide-react";
+import { Save, Trash2, GripVertical, Plus, Heading1, Type, Image as ImageIcon, Images, Film, MousePointer, Quote, Code, Minus, Eye, EyeOff, Upload, ExternalLink } from "lucide-react";
+import BlockPreview from "./BlockPreview";
 
 let blockId = 0;
 const nextId = () => `b_${Date.now()}_${blockId++}`;
@@ -27,6 +28,7 @@ export default function AdminCustomPageEditor() {
   const [overIdx, setOverIdx] = useState(null);
   const fileInputRef = useRef(null);
   const [uploadTarget, setUploadTarget] = useState(null); // { blockIdx, galleryIdx? }
+  const [showPreview, setShowPreview] = useState(true);
 
   useEffect(() => {
     api.get(`/admin/custom-pages/${slug}`).then(({ data }) => {
@@ -120,12 +122,15 @@ export default function AdminCustomPageEditor() {
           <div className="text-xs text-[#5a6b76]">/p/{page.slug}</div>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <a href={`/p/${page.slug}`} target="_blank" rel="noopener noreferrer" className="btn-secondary text-sm"><Eye className="w-4 h-4" />Preview</a>
+          <button onClick={() => setShowPreview((v) => !v)} className="btn-ghost text-sm" data-testid="toggle-preview">
+            {showPreview ? <><EyeOff className="w-4 h-4" />Hide preview</> : <><Eye className="w-4 h-4" />Show preview</>}
+          </button>
+          <a href={`/p/${page.slug}`} target="_blank" rel="noopener noreferrer" className="btn-secondary text-sm"><ExternalLink className="w-4 h-4" />Open live</a>
           <button onClick={save} className="btn-primary" data-testid="custom-page-save"><Save className="w-4 h-4" />Save</button>
         </div>
       </header>
 
-      <div className="grid lg:grid-cols-[1fr,260px] gap-6">
+      <div className={`grid gap-6 ${showPreview ? "lg:grid-cols-[1fr,1fr,240px]" : "lg:grid-cols-[1fr,260px]"}`}>
         {/* Main editor column */}
         <div>
           <section className="card-soft p-5 mb-4">
@@ -175,6 +180,17 @@ export default function AdminCustomPageEditor() {
             })}
           </div>
         </div>
+
+        {/* Live preview column */}
+        {showPreview && (
+          <aside className="lg:sticky lg:top-20 lg:max-h-[calc(100vh-100px)] overflow-hidden" data-testid="live-preview">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-accent font-bold text-sm uppercase tracking-wider text-[#5a6b76]">Live preview</h3>
+              <span className="text-[10px] text-[#5a6b76]">Updates as you type</span>
+            </div>
+            <BlockPreview page={page} />
+          </aside>
+        )}
 
         {/* Sidebar: add block */}
         <aside className="card-soft p-4 h-fit sticky top-20">
