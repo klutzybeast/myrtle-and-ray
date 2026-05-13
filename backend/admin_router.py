@@ -449,9 +449,34 @@ def make_admin_router(db, require_admin):
         item = await db.email_outbox.find_one({"id": email_id}, {"_id": 0})
         if not item:
             raise HTTPException(status_code=404, detail="Not found")
-        from email_service import queue_email as _send
-        await _send(db, to=item["to"], subject=item["subject"], html=item.get("html", ""), purpose=item.get("purpose", "retry"))
+        api_key = os.environ.get("RESEND_API_KEY", "").strip()
+        if not api_key:
+            raise HTTPException(status_code=400, detail="RESEND_API_KEY not set")
+        try:
+            import resend  # type: ignore
+            resend.api_key = api_key
+            resend.Emails.send({
+                "from": item.get("from_email") or os.environ.get("RESEND_FROM_EMAIL", ""),
+                "to": [item["to"]],
+                "subject": item["subject"],
+                "html": item.get("html", ""),
+                "reply_to": item.get("reply_to") or os.environ.get("RESEND_REPLY_TO", ""),
+            })
+            await db.email_outbox.update_one({"id": email_id}, {"$set": {"status": "sent", "sent_at": _now(), "error": ""}})
+            return {"ok": True, "status": "sent"}
+        except Exception as exc:  # noqa: BLE001
+            await db.email_outbox.update_one({"id": email_id}, {"$set": {"status": "failed", "error": str(exc)}})
+            raise HTTPException(status_code=500, detail=str(exc))
+
+    @router.delete("/email-outbox/{email_id}")
+    async def admin_delete_email(email_id: str):
+        await db.email_outbox.delete_one({"id": email_id})
         return {"ok": True}
+
+    @router.post("/email-outbox/clear-sent")
+    async def admin_clear_sent_emails():
+        result = await db.email_outbox.delete_many({"status": "sent"})
+        return {"ok": True, "deleted": result.deleted_count}
 
     # ---------------- Media ----------------
     @router.get("/media")
