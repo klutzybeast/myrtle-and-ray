@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSite } from "../lib/site";
 import { api } from "../lib/api";
 import { Facebook, Instagram, Youtube, Twitter, Linkedin } from "lucide-react";
@@ -8,6 +8,13 @@ export default function Footer() {
   const site = useSite();
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
+  const [customPages, setCustomPages] = useState([]);
+
+  useEffect(() => {
+    import("../lib/api").then(({ api }) => {
+      api.get("/custom-pages").then(({ data }) => setCustomPages(data.filter((p) => p.show_in_footer))).catch(() => {});
+    });
+  }, []);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -59,6 +66,9 @@ export default function Footer() {
             <li><a className="hover:text-[#5a8a6f]" href="/downloads">Free Downloads</a></li>
             <li><a className="hover:text-[#5a8a6f]" href="/for-camps">For Camp Directors</a></li>
             <li><a className="hover:text-[#5a8a6f]" href="/contact">Contact</a></li>
+            {customPages.map((p) => (
+              <li key={p.slug}><a className="hover:text-[#5a8a6f]" href={`/p/${p.slug}`}>{p.title}</a></li>
+            ))}
           </ul>
         </div>
       </div>

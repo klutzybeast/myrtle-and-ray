@@ -98,6 +98,17 @@ class BulkDownloadBody(BaseModel):
     value: Optional[str] = None
 
 
+class CustomPageBody(BaseModel):
+    title: Optional[str] = None
+    slug: Optional[str] = None
+    blocks: Optional[List[dict]] = None
+    seo_title: Optional[str] = None
+    meta_description: Optional[str] = None
+    hero_image: Optional[str] = None
+    published: Optional[bool] = None
+    show_in_footer: Optional[bool] = None
+
+
 class PageBody(BaseModel):
     title: Optional[str] = None
     content: Optional[dict] = None
@@ -320,6 +331,48 @@ def make_admin_router(db, require_admin):
             await db.downloads.delete_many(q)
         else:
             raise HTTPException(status_code=400, detail="Unknown action")
+        return {"ok": True}
+
+    # ---------------- Custom Pages (block builder) ----------------
+    @router.get("/custom-pages")
+    async def admin_list_custom_pages():
+        return await db.custom_pages.find({}, {"_id": 0}).sort("created_at", -1).to_list(500)
+
+    @router.get("/custom-pages/{slug}")
+    async def admin_get_custom_page(slug: str):
+        p = await db.custom_pages.find_one({"slug": slug}, {"_id": 0})
+        if not p:
+            raise HTTPException(status_code=404, detail="Not found")
+        return p
+
+    @router.post("/custom-pages")
+    async def admin_create_custom_page(body: CustomPageBody):
+        if not body.title:
+            raise HTTPException(status_code=400, detail="Title required")
+        slug = body.slug or slugify(body.title)
+        if await db.custom_pages.find_one({"slug": slug}):
+            raise HTTPException(status_code=400, detail="Slug exists")
+        doc = {k: v for k, v in body.model_dump().items() if v is not None}
+        doc.update({"id": slug, "slug": slug, "blocks": doc.get("blocks", []), "created_at": _now(), "updated_at": _now()})
+        doc.setdefault("published", True)
+        await db.custom_pages.insert_one(dict(doc))
+        doc.pop("_id", None)
+        return doc
+
+    @router.put("/custom-pages/{slug}")
+    async def admin_update_custom_page(slug: str, body: CustomPageBody):
+        update = {k: v for k, v in body.model_dump().items() if v is not None}
+        update["updated_at"] = _now()
+        result = await db.custom_pages.update_one({"slug": slug}, {"$set": update})
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Not found")
+        return await db.custom_pages.find_one({"slug": slug}, {"_id": 0})
+
+    @router.delete("/custom-pages/{slug}")
+    async def admin_delete_custom_page(slug: str):
+        result = await db.custom_pages.delete_one({"slug": slug})
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Not found")
         return {"ok": True}
 
     # ---------------- Pages ----------------

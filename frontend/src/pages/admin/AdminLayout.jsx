@@ -1,6 +1,6 @@
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../../lib/auth";
-import { Waves, LayoutDashboard, Package, Users, FileText, Settings, Inbox, Mail, Image, Sparkles, LogOut, Send, Download, Layers } from "lucide-react";
+import { Waves, LayoutDashboard, Package, Users, FileText, Settings, Inbox, Mail, Image, Sparkles, LogOut, Send, Download, Layers, PenSquare } from "lucide-react";
 
 const ITEMS = [
   { to: "/admin", end: true, label: "Dashboard", icon: LayoutDashboard },
@@ -8,7 +8,8 @@ const ITEMS = [
   { to: "/admin/characters", label: "Characters", icon: Users },
   { to: "/admin/downloads", label: "Downloads", icon: Download },
   { to: "/admin/download-categories", label: "Download Cats", icon: Layers },
-  { to: "/admin/pages", label: "Pages", icon: FileText },
+  { to: "/admin/pages", label: "System Pages", icon: FileText },
+  { to: "/admin/custom-pages", label: "Custom Pages", icon: PenSquare },
   { to: "/admin/settings", label: "Site & Emails", icon: Settings },
   { to: "/admin/submissions", label: "Submissions", icon: Inbox },
   { to: "/admin/mailing-list", label: "Mailing List", icon: Mail },

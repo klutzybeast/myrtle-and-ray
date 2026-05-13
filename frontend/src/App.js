@@ -36,6 +36,9 @@ import AdminMailingList from "@/pages/admin/AdminMailingList";
 import AdminEmailOutbox from "@/pages/admin/AdminEmailOutbox";
 import AdminMedia from "@/pages/admin/AdminMedia";
 import AdminActivities from "@/pages/admin/AdminActivities";
+import AdminCustomPages from "@/pages/admin/AdminCustomPages";
+import AdminCustomPageEditor from "@/pages/admin/AdminCustomPageEditor";
+import CustomPage from "@/pages/CustomPage";
 
 function RequireAdmin({ children }) {
   const { user, loading } = useAuth();
@@ -76,6 +79,7 @@ function App() {
               <Route path="/for-camps" element={<PublicShell><ForCamps /></PublicShell>} />
               <Route path="/about" element={<PublicShell><About /></PublicShell>} />
               <Route path="/contact" element={<PublicShell><Contact /></PublicShell>} />
+              <Route path="/p/:slug" element={<PublicShell><CustomPage /></PublicShell>} />
 
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/admin" element={<RequireAdmin><AdminLayout /></RequireAdmin>}>
@@ -91,6 +95,8 @@ function App() {
                 <Route path="email-outbox" element={<AdminEmailOutbox />} />
                 <Route path="media" element={<AdminMedia />} />
                 <Route path="activities" element={<AdminActivities />} />
+                <Route path="custom-pages" element={<AdminCustomPages />} />
+                <Route path="custom-pages/:slug" element={<AdminCustomPageEditor />} />
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

@@ -101,6 +101,17 @@ def make_public_router(db):
     async def list_pages():
         return await db.pages.find({}, {"_id": 0}).to_list(200)
 
+    @router.get("/custom-pages")
+    async def list_custom_pages():
+        return await db.custom_pages.find({"published": True}, {"_id": 0}).sort("created_at", -1).to_list(200)
+
+    @router.get("/custom-pages/{slug}")
+    async def get_custom_page(slug: str):
+        p = await db.custom_pages.find_one({"slug": slug, "published": True}, {"_id": 0})
+        if not p:
+            raise HTTPException(status_code=404, detail="Page not found")
+        return p
+
     @router.get("/products")
     async def list_products(
         category: Optional[str] = None,
