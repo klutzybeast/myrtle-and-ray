@@ -93,7 +93,7 @@ function Editor({ item, setItem, cats, chars, statuses, onSave, onCancel }) {
           <Field label="Price (USD)"><input type="number" step="0.01" value={item.price || 0} onChange={(e) => set("price", parseFloat(e.target.value) || 0)} className="inp" /></Field>
           <Field label="Compare-at price"><input type="number" step="0.01" value={item.compare_at_price || ""} onChange={(e) => set("compare_at_price", e.target.value ? parseFloat(e.target.value) : null)} className="inp" /></Field>
           <Field label="Inventory Status"><select value={item.inventory_status} onChange={(e) => set("inventory_status", e.target.value)} className="inp">{statuses.map((s) => <option key={s}>{s}</option>)}</select></Field>
-          <Field label="Printify Buy Now URL"><input value={item.printify_url || ""} onChange={(e) => set("printify_url", e.target.value)} className="inp" /></Field>
+          <Field label="Buy Now URL (direct product link)"><input value={item.printify_url || ""} onChange={(e) => set("printify_url", e.target.value)} className="inp" data-testid="product-edit-buy-url" /></Field>
           <Field label="Primary image URL" full><input value={item.primary_image || ""} onChange={(e) => set("primary_image", e.target.value)} className="inp" data-testid="product-edit-primary-image" /></Field>
           <Field label="Images (comma-separated URLs)" full><input value={(item.images || []).join(", ")} onChange={(e) => set("images", e.target.value.split(",").map((s) => s.trim()).filter(Boolean))} className="inp" /></Field>
           <Field label="Short Description" full><input value={item.short_description || ""} onChange={(e) => set("short_description", e.target.value)} className="inp" /></Field>

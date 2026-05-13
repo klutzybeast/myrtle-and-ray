@@ -85,7 +85,7 @@ export default function ShopDetail() {
 
             <div className="mt-6 flex flex-wrap gap-3">
               <a href={buyUrl || "#"} target="_blank" rel="noopener noreferrer" className="btn-primary text-lg" data-testid="buy-now-btn">
-                <ShoppingBag className="w-5 h-5" /> Buy Now on Printify
+                <ShoppingBag className="w-5 h-5" /> Buy Now
               </a>
               <button onClick={() => {
                 const list = JSON.parse(localStorage.getItem("mr_wishlist") || "[]");
