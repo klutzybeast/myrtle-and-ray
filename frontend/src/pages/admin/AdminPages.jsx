@@ -2,47 +2,72 @@ import { useEffect, useState } from "react";
 import { api } from "../../lib/api";
 import { toast } from "sonner";
 import { Save } from "lucide-react";
+import SchemaForm from "./SchemaForm";
+import { PAGE_SCHEMAS } from "./schemas";
 
 export default function AdminPages() {
   const [pages, setPages] = useState([]);
   const [active, setActive] = useState(null);
-  const [text, setText] = useState("");
+  const [content, setContent] = useState({});
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => { api.get("/admin/pages").then(({ data }) => setPages(data)); }, []);
-  useEffect(() => { if (active) setText(JSON.stringify(active.content || {}, null, 2)); }, [active]);
+  useEffect(() => {
+    if (active) setContent(active.content || {});
+  }, [active]);
 
   const save = async () => {
+    setBusy(true);
     try {
-      const content = JSON.parse(text);
       await api.put(`/admin/pages/${active.key}`, { content });
       toast.success("Saved!");
       setPages((arr) => arr.map((p) => p.key === active.key ? { ...p, content } : p));
-    } catch (err) { toast.error("Invalid JSON or save failed"); }
+    } catch (err) { toast.error("Save failed"); }
+    finally { setBusy(false); }
   };
+
+  const schema = active ? PAGE_SCHEMAS[active.key] : null;
 
   return (
     <div data-testid="admin-pages">
-      <h1 className="font-accent text-3xl font-bold mb-4">Pages (Content)</h1>
-      <p className="text-[#6b7280] mb-4">Edit the JSON content for any static section. Each page has a flexible content object.</p>
-      <div className="grid lg:grid-cols-3 gap-4">
+      <h1 className="font-accent text-3xl font-bold mb-1">System Pages</h1>
+      <p className="text-[#5a6b76] mb-4">Edit the built-in pages and homepage sections. Need a brand new page? Use <a className="text-[#5a8a6f] underline" href="/admin/custom-pages">Custom Pages</a> instead.</p>
+      <div className="grid lg:grid-cols-[260px,1fr] gap-4">
         <div className="space-y-2">
           {pages.map((p) => (
-            <button key={p.key} onClick={() => setActive(p)} className={`block w-full text-left p-3 rounded-2xl border-2 ${active?.key === p.key ? "border-[#7fcfc7] bg-[#eef9fb]" : "border-[#f4e4c6] bg-white"}`} data-testid={`page-row-${p.key}`}>
-              <div className="font-semibold">{p.title || p.key}</div>
-              <div className="text-xs text-[#6b7280]">{p.key}</div>
+            <button
+              key={p.key}
+              onClick={() => setActive(p)}
+              className={`block w-full text-left p-3 rounded-2xl border-2 transition ${active?.key === p.key ? "border-[#7fcfc7] bg-[#eef9fb]" : "border-[#f4e4c6] bg-white hover:border-[#7fcfc7]"}`}
+              data-testid={`page-row-${p.key}`}
+            >
+              <div className="font-semibold">{PAGE_SCHEMAS[p.key]?.title || p.title || p.key}</div>
+              <div className="text-xs text-[#5a6b76]">{p.key}</div>
             </button>
           ))}
         </div>
-        <div className="lg:col-span-2">
-          {active ? (
-            <div className="card-soft p-5">
-              <div className="font-accent text-xl font-bold mb-2">{active.title || active.key}</div>
-              <textarea value={text} onChange={(e) => setText(e.target.value)} rows={20} className="w-full p-4 rounded-2xl border-2 border-[#f4e4c6] font-mono text-sm focus:outline-none focus:border-[#7fcfc7]" data-testid="page-content-editor" />
-              <button onClick={save} className="btn-primary mt-3" data-testid="page-save"><Save className="w-4 h-4" />Save</button>
+
+        <div className="card-soft p-5">
+          {!active && <div className="text-[#5a6b76]">Select a page on the left to edit.</div>}
+          {active && schema && (
+            <>
+              <h2 className="font-accent text-2xl font-bold">{schema.title}</h2>
+              {schema.description && <p className="text-[#5a6b76] text-sm mb-4">{schema.description}</p>}
+              <SchemaForm fields={schema.fields} value={content} onChange={setContent} />
+              <button onClick={save} disabled={busy} className="btn-primary mt-5" data-testid="page-save"><Save className="w-4 h-4" />{busy ? "Saving..." : "Save"}</button>
+            </>
+          )}
+          {active && !schema && (
+            <div>
+              <h2 className="font-accent text-2xl font-bold mb-2">{active.title || active.key}</h2>
+              <p className="text-[#5a6b76] text-sm mb-3">This page doesn't have a structured editor yet. Edit it as JSON below.</p>
+              <textarea value={JSON.stringify(content, null, 2)} onChange={(e) => { try { setContent(JSON.parse(e.target.value)); } catch {} }} rows={16} className="w-full p-4 rounded-2xl border-2 border-[#f4e4c6] font-mono text-sm focus:outline-none focus:border-[#7fcfc7]" />
+              <button onClick={save} className="btn-primary mt-3"><Save className="w-4 h-4" />Save</button>
             </div>
-          ) : <div className="text-[#6b7280]">Select a page to edit.</div>}
+          )}
         </div>
       </div>
+      <style>{`.inp{width:100%;padding:10px 14px;border-radius:9999px;border:2px solid #f4e4c6;background:white;font-size:14px}.inp:focus{outline:none;border-color:#7fcfc7}textarea.inp{border-radius:18px}`}</style>
     </div>
   );
 }
