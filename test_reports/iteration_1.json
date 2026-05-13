@@ -1,0 +1,40 @@
+{
+  "summary": "Backend-only first-pass testing for Myrtle and Ray site. All 38 pytest tests passed against public REACT_APP_BACKEND_URL. Verified health, public catalog (13 characters, 13 products, 7 download categories, 17+ downloads, pages, activities), public submissions (contact, wholesale, mailing-list dedupe, download-capture), JWT auth (cookies + Bearer + 401/403 gating), admin CRUD for products/characters/downloads/categories/pages/settings/mailing-list, email outbox queueing while RESEND_API_KEY is empty, and media upload/list/delete with file accessibility under /uploads.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/admin/pages/{key}", "issue": "PUT performs $set with the full provided content object, so partial updates wipe untouched keys. Acceptable for current usage but consider deep-merge or whitelist."},
+      {"endpoint": "/api/admin/products/{slug} (PUT)", "issue": "If body is empty, still runs $set with only updated_at — no 400 returned. Minor consistency gap vs character PUT which raises 400 on empty."},
+      {"endpoint": "/api/admin/email-outbox/{id}/retry", "issue": "Re-queues a brand-new pending row instead of flipping the existing one — could leave duplicate pending items in the outbox."},
+      {"endpoint": "CORS", "issue": "allow_origins=['*'] combined with allow_credentials=True is invalid per CORS spec; browsers will refuse credentialed requests from a real origin. Use the explicit production origin instead of wildcard."},
+      {"endpoint": "/api/auth/login (cookies)", "issue": "Cookies are set with secure=True, samesite='none'; this works on HTTPS but blocks local http testing. Fine for the preview domain."}
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Optional: tighten CORS — replace allow_origins=['*'] with explicit production origin since allow_credentials=True is set.",
+    "Optional: have /api/admin/pages do a deep-merge of content to avoid wiping fields on partial PUT.",
+    "Optional: /api/admin/email-outbox/{id}/retry should update the original row's status instead of creating a new queued row."
+  ],
+  "critical_code_review_comments": [
+    "auth.py _set_cookies uses secure=True samesite='none' — correct for prod HTTPS, but be aware it disables localhost http testing.",
+    "public_router.py /downloads/{slug}/track does not return 404 when slug missing (just no-op update). Consider verifying existence.",
+    "admin_router.py upload accepts pdf/zip/svg with no content sniffing — relies on extension; OK for MVP but a security hardening item.",
+    "server.py CORS misconfigured: '*' + allow_credentials=True is non-compliant.",
+    "admin_router.py page PUT replaces the whole content dict on $set, which can erase fields if the UI sends partial content."
+  ],
+  "updated_files": [
+    "/app/backend/tests/backend_test.py (new)"
+  ],
+  "success_rate": {"backend": "100% (38/38)", "frontend": "not tested"},
+  "test_credentials": "community@rollingriver.com / Camp1993! (verified working). httpOnly cookies + Bearer fallback both verified.",
+  "seed_data_creation": "Tests create TEST_-prefixed products, downloads, categories, mailing-list subscribers, and a 1x1 PNG media item. Each is cleaned up within its own test (create→get→delete). Submissions (contact/wholesale/download_capture) and a few outbox rows remain in DB and can be left as-is; they are clearly TEST_-prefixed.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend P0 is fully green. Re-run via `pytest /app/backend/tests/backend_test.py -v`. RESEND_API_KEY is intentionally empty — email_outbox rows stay status=pending. Note: TestAdminPages.test_update_homepage_hero overwrites homepage_hero.content with {'headline': 'TEST_marker_*'} and does not restore — main agent or next test should re-seed if hero copy is needed; seeding is idempotent only on first insert so a manual restore may be required. TestAdminSettings.test_update_settings restores tagline back to default at end of test.",
+  "rca of the issue": "No bugs reproduced; all P0 endpoints behave per spec."
+}
