@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../../lib/auth";
-import { Navigate, useLocation } from "react-router-dom";
-import { Waves } from "lucide-react";
+import { Navigate, useLocation, Link } from "react-router-dom";
+import { Waves, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AdminLogin() {

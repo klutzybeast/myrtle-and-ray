@@ -45,8 +45,8 @@ export default function Home() {
           <img src={hero.background_image || HERO_IMG} alt="Stingray Cay Summer Camp" className="w-full h-full object-cover opacity-95" />
           <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-white/0 to-[#fffbf3]" />
         </div>
-        <div className="relative max-w-7xl mx-auto px-4 md:px-6 pt-12 pb-24 md:pb-32 grid md:grid-cols-2 gap-10 items-center">
-          <div className="text-center md:text-left">
+        <div className="relative max-w-7xl mx-auto px-4 md:px-6 pt-12 pb-24 md:pb-32 flex items-center">
+          <div className="text-center md:text-left max-w-3xl mx-auto">
             <span className="inline-block bg-white/80 backdrop-blur px-4 py-1 rounded-full font-accent font-semibold text-[#7cbf94] text-sm mb-4">A rhyming picture book · Ages 3–8</span>
             <h1 className="font-accent text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.05] text-[#2e3a3a] drop-shadow-sm" data-testid="hero-headline">
               {hero.headline || "Welcome to Stingray Cay"}
@@ -61,13 +61,6 @@ export default function Home() {
               <Link to="/story" className="btn-secondary text-lg" data-testid="hero-meet-cta">
                 <Users className="w-5 h-5" /> {hero.cta_secondary || "Meet the Sea Stars"}
               </Link>
-            </div>
-          </div>
-          <div className="relative h-72 md:h-[420px]">
-            <div className="absolute right-2 md:right-10 top-4 animate-bob">
-              <div className="w-56 md:w-72 aspect-[3/4] rounded-3xl overflow-hidden shadow-[0_30px_60px_rgba(46,58,58,0.35)] rotate-[3deg] border-8 border-white">
-                <img src={hero.book_cover || HERO_IMG} alt="Book cover" className="w-full h-full object-cover" />
-              </div>
             </div>
           </div>
         </div>
