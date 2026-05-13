@@ -44,6 +44,7 @@ export default function Header() {
           ))}
         </nav>
         <div className="flex items-center gap-2">
+          <Link to="/admin/login" className="hidden md:inline-flex btn-ghost text-sm" data-testid="header-login-link">Login</Link>
           <button onClick={() => setAudio((v) => !v)} className="p-2 rounded-full hover:bg-[#eef9fb]" aria-label="Toggle ambient sound" data-testid="audio-toggle">
             {audio ? <Volume2 className="w-5 h-5 text-[#5a8a6f]" /> : <VolumeX className="w-5 h-5 text-[#4a5568]" />}
           </button>
