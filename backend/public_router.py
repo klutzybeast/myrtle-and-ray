@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from typing import Optional, List
 
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, EmailStr
 
 from email_service import queue_email
@@ -89,6 +90,25 @@ def make_public_router(db):
         if not ch:
             raise HTTPException(status_code=404, detail="Character not found")
         return ch
+
+    @router.get("/media/download/{media_id}")
+    async def download_media(media_id: str):
+        import os
+        m = await db.media.find_one({"id": media_id}, {"_id": 0})
+        if not m:
+            raise HTTPException(status_code=404, detail="Not found")
+        upload_dir = os.environ.get("UPLOAD_DIR", "/app/backend/uploads")
+        url = m.get("url", "")
+        filename_on_disk = url.rsplit("/", 1)[-1]
+        full_path = os.path.join(upload_dir, filename_on_disk)
+        if not os.path.exists(full_path):
+            raise HTTPException(status_code=404, detail="File missing")
+        return FileResponse(
+            full_path,
+            filename=m.get("filename") or filename_on_disk,
+            media_type=m.get("mime") or "application/octet-stream",
+            content_disposition_type="attachment",
+        )
 
     @router.get("/pages/{key}")
     async def get_page(key: str):
