@@ -27,7 +27,7 @@ export default function Shop() {
   }, [cat, character, sort]);
 
   return (
-    <main className="pt-24 pb-12 bg-[#fff9f0] min-h-screen" data-testid="shop-page">
+    <main className="pt-24 pb-12 bg-[#fffbf3] min-h-screen" data-testid="shop-page">
       <div className="max-w-7xl mx-auto px-4 md:px-6">
         <header className="text-center mb-8">
           <h1 className="font-accent text-5xl md:text-6xl font-bold">Take the Sea Stars Home With You</h1>
@@ -35,17 +35,17 @@ export default function Shop() {
         </header>
         <div className="flex flex-wrap gap-2 mb-4" data-testid="shop-category-chips">
           {CATS.map((c) => (
-            <button key={c} onClick={() => setCat(c)} className={`px-4 py-2 rounded-full font-bold text-sm transition ${cat === c ? "bg-[#40e0d0] text-white" : "bg-white text-[#4a5568] hover:bg-[#e0f7fa]"}`} data-testid={`shop-cat-${c.toLowerCase()}`}>
+            <button key={c} onClick={() => setCat(c)} className={`px-4 py-2 rounded-full font-bold text-sm transition ${cat === c ? "bg-[#7fcfc7] text-white" : "bg-white text-[#4a5568] hover:bg-[#eef9fb]"}`} data-testid={`shop-cat-${c.toLowerCase()}`}>
               {c}
             </button>
           ))}
         </div>
         <div className="flex gap-3 mb-8 flex-wrap" data-testid="shop-filters">
-          <select value={character} onChange={(e) => setCharacter(e.target.value)} className="px-4 py-2 rounded-full bg-white border-2 border-[#fde6c8] text-sm font-semibold" data-testid="shop-character-filter">
+          <select value={character} onChange={(e) => setCharacter(e.target.value)} className="px-4 py-2 rounded-full bg-white border-2 border-[#f4e4c6] text-sm font-semibold" data-testid="shop-character-filter">
             <option value="">All Sea Stars</option>
             {characters.map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}
           </select>
-          <select value={sort} onChange={(e) => setSort(e.target.value)} className="px-4 py-2 rounded-full bg-white border-2 border-[#fde6c8] text-sm font-semibold" data-testid="shop-sort">
+          <select value={sort} onChange={(e) => setSort(e.target.value)} className="px-4 py-2 rounded-full bg-white border-2 border-[#f4e4c6] text-sm font-semibold" data-testid="shop-sort">
             {SORTS.map((s) => <option key={s.v} value={s.v}>{s.l}</option>)}
           </select>
         </div>

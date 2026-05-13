@@ -11,7 +11,7 @@ export default function ReadAloud() {
           <h1 className="font-accent text-5xl md:text-6xl font-bold">Read Aloud</h1>
           <p className="text-[#4a5568] mt-2 max-w-2xl mx-auto">{content.intro || "Press play and ride the wave with us."}</p>
         </header>
-        <div className="aspect-video rounded-[28px] overflow-hidden bg-[#e0f7fa] shadow-2xl" data-testid="read-aloud-video">
+        <div className="aspect-video rounded-[28px] overflow-hidden bg-[#eef9fb] shadow-2xl" data-testid="read-aloud-video">
           {content.video_url ? (
             <iframe title="Read Aloud" src={content.video_url} className="w-full h-full" allow="autoplay; encrypted-media" allowFullScreen />
           ) : (

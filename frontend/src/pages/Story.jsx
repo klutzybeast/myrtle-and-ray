@@ -43,7 +43,7 @@ export default function Story() {
               </div>
               <div className="card-soft p-6 pt-20 text-center min-h-[320px]">
                 <h3 className="font-accent text-2xl font-bold">{c.name}</h3>
-                <p className="text-xs uppercase tracking-widest text-[#3cb371] font-bold mt-1">{c.role}</p>
+                <p className="text-xs uppercase tracking-widest text-[#7cbf94] font-bold mt-1">{c.role}</p>
                 {!flipped[c.slug] ? (
                   <>
                     <p className="text-[#4a5568] mt-3 leading-relaxed">{c.bio}</p>
@@ -51,9 +51,9 @@ export default function Story() {
                   </>
                 ) : (
                   <div className="text-left mt-3 space-y-2 text-[#4a5568]">
-                    <p><b className="text-[#2e8b57]">Species:</b> {c.species}</p>
-                    <p><b className="text-[#2e8b57]">W.A.V.E. value:</b> {waveLabel(c.wave_value)}</p>
-                    <p><b className="text-[#2e8b57]">Fun fact:</b> {c.fun_fact}</p>
+                    <p><b className="text-[#5a8a6f]">Species:</b> {c.species}</p>
+                    <p><b className="text-[#5a8a6f]">W.A.V.E. value:</b> {waveLabel(c.wave_value)}</p>
+                    <p><b className="text-[#5a8a6f]">Fun fact:</b> {c.fun_fact}</p>
                     <button onClick={() => toggle(c.slug)} className="btn-ghost text-sm" data-testid={`flip-back-${c.slug}`}>← Back</button>
                   </div>
                 )}
@@ -75,8 +75,8 @@ export default function Story() {
         <div className="relative rounded-[28px] overflow-hidden shadow-2xl border-4 border-white" data-testid="cay-map">
           <img src="https://customer-assets.emergentagent.com/job_wave-of-excitement/artifacts/np2lq4do_IMG_2972.jpeg" alt="Stingray Cay map" className="w-full h-auto block" />
           {HOTSPOTS.map((h) => (
-            <button key={h.id} onClick={() => setHotspot(h)} className="absolute w-7 h-7 -ml-3.5 -mt-3.5 rounded-full bg-white/80 border-2 border-[#ff9b71] shadow-md hover:scale-125 transition" style={{ left: `${h.x}%`, top: `${h.y}%` }} aria-label={h.title} data-testid={`map-hotspot-${h.id}`}>
-              <span className="absolute inset-0 rounded-full animate-ping bg-[#ff9b71]/50" />
+            <button key={h.id} onClick={() => setHotspot(h)} className="absolute w-7 h-7 -ml-3.5 -mt-3.5 rounded-full bg-white/80 border-2 border-[#f0a988] shadow-md hover:scale-125 transition" style={{ left: `${h.x}%`, top: `${h.y}%` }} aria-label={h.title} data-testid={`map-hotspot-${h.id}`}>
+              <span className="absolute inset-0 rounded-full animate-ping bg-[#f0a988]/50" />
             </button>
           ))}
         </div>
@@ -88,7 +88,7 @@ export default function Story() {
                 {hotspotChar && <div className="gradient-ring" style={{ width: 64, height: 64 }}><img src={hotspotChar.image_url} alt="" className="w-full h-full rounded-full object-cover bg-white" /></div>}
                 <div>
                   <h3 className="font-accent text-2xl font-bold">{hotspot.title}</h3>
-                  {hotspotChar && <div className="text-sm text-[#3cb371]">With {hotspotChar.name}</div>}
+                  {hotspotChar && <div className="text-sm text-[#7cbf94]">With {hotspotChar.name}</div>}
                 </div>
               </div>
               <p className="text-[#4a5568] leading-relaxed">{hotspot.desc}</p>

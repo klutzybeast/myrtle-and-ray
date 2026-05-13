@@ -53,7 +53,7 @@ export default function AdminSettings() {
         </section>
       </div>
       <button onClick={save} className="btn-primary mt-6" data-testid="settings-save"><Save className="w-4 h-4" />Save All Settings</button>
-      <style>{`.inp{width:100%;padding:10px 14px;border-radius:9999px;border:2px solid #fde6c8;background:white;font-size:14px}.inp:focus{outline:none;border-color:#40e0d0}`}</style>
+      <style>{`.inp{width:100%;padding:10px 14px;border-radius:9999px;border:2px solid #f4e4c6;background:white;font-size:14px}.inp:focus{outline:none;border-color:#7fcfc7}`}</style>
     </div>
   );
 }

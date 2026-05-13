@@ -49,7 +49,7 @@ export default function DownloadDetail() {
   };
 
   return (
-    <main className="pt-24 pb-12 bg-[#fff9f0] min-h-screen" data-testid="download-detail-page">
+    <main className="pt-24 pb-12 bg-[#fffbf3] min-h-screen" data-testid="download-detail-page">
       <div className="max-w-6xl mx-auto px-4 md:px-6">
         <nav className="text-sm text-[#6b7280] mb-4 flex items-center gap-1 flex-wrap">
           <Link to="/">Home</Link><ChevronRight className="w-4 h-4" />
@@ -58,18 +58,18 @@ export default function DownloadDetail() {
         </nav>
 
         <div className="grid lg:grid-cols-2 gap-10">
-          <div className="aspect-[4/3] bg-[#e0f7fa] rounded-[28px] overflow-hidden">
-            {d.cover_image ? <img src={d.cover_image} alt={d.title} className="w-full h-full object-cover" /> : <div className="w-full h-full grid place-items-center"><FileText className="w-16 h-16 text-[#87ceeb]" /></div>}
+          <div className="aspect-[4/3] bg-[#eef9fb] rounded-[28px] overflow-hidden">
+            {d.cover_image ? <img src={d.cover_image} alt={d.title} className="w-full h-full object-cover" /> : <div className="w-full h-full grid place-items-center"><FileText className="w-16 h-16 text-[#8fbfe0]" /></div>}
           </div>
           <div>
             <h1 className="font-accent text-4xl md:text-5xl font-bold leading-tight" data-testid="download-title">{d.title}</h1>
             <div className="flex flex-wrap gap-2 mt-3">
-              {d.is_new && <span className="bg-[#ff9b71] text-white text-xs font-bold uppercase px-2 py-1 rounded-full">New</span>}
-              {(d.audiences || []).map((a) => <span key={a} className="bg-[#e0f7fa] text-[#2e8b57] text-xs font-bold uppercase px-2 py-1 rounded-full">{a}</span>)}
-              {(d.wave_values || []).map((w) => <span key={w} className="bg-[#fff5f0] text-[#ff6f91] text-xs font-bold uppercase px-2 py-1 rounded-full">{w}</span>)}
+              {d.is_new && <span className="bg-[#f0a988] text-white text-xs font-bold uppercase px-2 py-1 rounded-full">New</span>}
+              {(d.audiences || []).map((a) => <span key={a} className="bg-[#eef9fb] text-[#5a8a6f] text-xs font-bold uppercase px-2 py-1 rounded-full">{a}</span>)}
+              {(d.wave_values || []).map((w) => <span key={w} className="bg-[#fff5ec] text-[#e89bab] text-xs font-bold uppercase px-2 py-1 rounded-full">{w}</span>)}
             </div>
             {char && (
-              <Link to={`/story#${char.slug}`} className="mt-3 inline-flex items-center gap-2 text-sm text-[#3cb371] font-semibold">
+              <Link to={`/story#${char.slug}`} className="mt-3 inline-flex items-center gap-2 text-sm text-[#7cbf94] font-semibold">
                 <div className="gradient-ring" style={{ width: 32, height: 32 }}><img src={char.image_url} alt="" className="w-full h-full rounded-full object-cover bg-white" /></div>
                 Featuring {char.name}
               </Link>
@@ -79,9 +79,9 @@ export default function DownloadDetail() {
 
             <div className="mt-6 space-y-2" data-testid="download-files">
               {(d.files || []).map((f, i) => (
-                <button key={i} onClick={() => onDownloadClick(f)} className="w-full flex items-center justify-between p-4 rounded-2xl bg-[#fff9f0] border-2 border-[#fde6c8] hover:border-[#40e0d0] transition" data-testid={`download-file-${i}`}>
+                <button key={i} onClick={() => onDownloadClick(f)} className="w-full flex items-center justify-between p-4 rounded-2xl bg-[#fffbf3] border-2 border-[#f4e4c6] hover:border-[#7fcfc7] transition" data-testid={`download-file-${i}`}>
                   <div className="flex items-center gap-3">
-                    <FileText className="w-6 h-6 text-[#ff9b71]" />
+                    <FileText className="w-6 h-6 text-[#f0a988]" />
                     <div className="text-left">
                       <div className="font-bold text-[#2e3a3a]">{f.label || f.filename || `File ${i + 1}`}</div>
                       <div className="text-xs text-[#6b7280]">{f.page_count ? `${f.page_count} page${f.page_count > 1 ? "s" : ""}` : f.mime}{f.size_kb ? ` · ${(f.size_kb / 1024).toFixed(1)} MB` : ""}</div>

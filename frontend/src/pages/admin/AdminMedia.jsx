@@ -27,16 +27,16 @@ export default function AdminMedia() {
     <div data-testid="admin-media">
       <h1 className="font-accent text-3xl font-bold mb-1">Media Library</h1>
       <p className="text-[#6b7280] mb-4">Upload character portraits, product photos, PDFs, and more. Use the copied URL anywhere on the site.</p>
-      <div onDrop={(e) => { e.preventDefault(); upload(Array.from(e.dataTransfer.files)); }} onDragOver={(e) => e.preventDefault()} onClick={() => inputRef.current?.click()} className="border-4 border-dashed border-[#fde6c8] rounded-3xl p-8 text-center cursor-pointer hover:bg-[#fff9f0] mb-6" data-testid="media-dropzone">
-        <Upload className="w-8 h-8 mx-auto text-[#40e0d0]" />
+      <div onDrop={(e) => { e.preventDefault(); upload(Array.from(e.dataTransfer.files)); }} onDragOver={(e) => e.preventDefault()} onClick={() => inputRef.current?.click()} className="border-4 border-dashed border-[#f4e4c6] rounded-3xl p-8 text-center cursor-pointer hover:bg-[#fffbf3] mb-6" data-testid="media-dropzone">
+        <Upload className="w-8 h-8 mx-auto text-[#7fcfc7]" />
         <div className="font-bold mt-2">Drop files here or click to upload</div>
         <div className="text-xs text-[#6b7280]">JPG, PNG, WebP, PDF, ZIP — up to 25MB each</div>
         <input ref={inputRef} type="file" multiple hidden onChange={(e) => upload(Array.from(e.target.files))} data-testid="media-input" />
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
         {items.map((m) => (
-          <div key={m.id} className="bg-white rounded-3xl border border-[#fde6c8] overflow-hidden">
-            <div className="aspect-square bg-[#e0f7fa] grid place-items-center">
+          <div key={m.id} className="bg-white rounded-3xl border border-[#f4e4c6] overflow-hidden">
+            <div className="aspect-square bg-[#eef9fb] grid place-items-center">
               {(m.mime || "").startsWith("image") ? <img src={m.url} alt="" className="w-full h-full object-cover" /> : <div className="text-[#6b7280] text-sm p-3 text-center">{m.filename}</div>}
             </div>
             <div className="p-3">

@@ -437,7 +437,7 @@ def make_admin_router(db, require_admin):
                     width, height = img.size
             except Exception:
                 pass
-        url = f"/uploads/{safe_name}"
+        url = f"/api/uploads/{safe_name}"
         doc = {
             "id": uid, "url": url, "filename": file.filename or safe_name,
             "mime": file.content_type or "", "size_kb": size_kb, "width": width, "height": height,

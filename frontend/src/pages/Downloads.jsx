@@ -57,7 +57,7 @@ export default function Downloads() {
         )}
 
         <div className="flex flex-wrap gap-2 mb-4" data-testid="download-category-chips">
-          <button onClick={() => setCategory("All")} className={`px-4 py-2 rounded-full font-bold text-sm transition ${category === "All" ? "bg-[#40e0d0] text-white" : "bg-white text-[#4a5568]"}`}>All</button>
+          <button onClick={() => setCategory("All")} className={`px-4 py-2 rounded-full font-bold text-sm transition ${category === "All" ? "bg-[#7fcfc7] text-white" : "bg-white text-[#4a5568]"}`}>All</button>
           {cats.map((c) => (
             <button key={c.slug} onClick={() => setCategory(c.slug)} className={`px-4 py-2 rounded-full font-bold text-sm transition ${category === c.slug ? "text-white" : "bg-white text-[#4a5568]"}`} style={category === c.slug ? { background: c.color } : {}} data-testid={`download-cat-${c.slug}`}>
               {c.name}
@@ -66,22 +66,22 @@ export default function Downloads() {
         </div>
 
         <div className="flex flex-wrap gap-3 mb-8 items-center" data-testid="download-filters">
-          <select value={audience} onChange={(e) => setAudience(e.target.value)} className="px-3 py-2 rounded-full bg-white border-2 border-[#fde6c8] text-sm font-semibold" data-testid="downloads-audience-filter">
+          <select value={audience} onChange={(e) => setAudience(e.target.value)} className="px-3 py-2 rounded-full bg-white border-2 border-[#f4e4c6] text-sm font-semibold" data-testid="downloads-audience-filter">
             {AUDIENCES.map((a) => <option key={a} value={a}>{a}</option>)}
           </select>
-          <select value={character} onChange={(e) => setCharacter(e.target.value)} className="px-3 py-2 rounded-full bg-white border-2 border-[#fde6c8] text-sm font-semibold">
+          <select value={character} onChange={(e) => setCharacter(e.target.value)} className="px-3 py-2 rounded-full bg-white border-2 border-[#f4e4c6] text-sm font-semibold">
             <option value="">All Sea Stars</option>
             {chars.map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}
           </select>
           <div className="flex gap-1">
             {WAVE.map((w) => (
-              <button key={w.v} onClick={() => setWave(wave === w.v ? "" : w.v)} className={`px-3 py-2 rounded-full text-sm font-bold ${wave === w.v ? "bg-[#ff9b71] text-white" : "bg-white text-[#4a5568]"}`} data-testid={`wave-filter-${w.v}`}>{w.v} · {w.l}</button>
+              <button key={w.v} onClick={() => setWave(wave === w.v ? "" : w.v)} className={`px-3 py-2 rounded-full text-sm font-bold ${wave === w.v ? "bg-[#f0a988] text-white" : "bg-white text-[#4a5568]"}`} data-testid={`wave-filter-${w.v}`}>{w.v} · {w.l}</button>
             ))}
           </div>
-          <select value={sort} onChange={(e) => setSort(e.target.value)} className="px-3 py-2 rounded-full bg-white border-2 border-[#fde6c8] text-sm font-semibold">
+          <select value={sort} onChange={(e) => setSort(e.target.value)} className="px-3 py-2 rounded-full bg-white border-2 border-[#f4e4c6] text-sm font-semibold">
             {SORTS.map((s) => <option key={s.v} value={s.v}>{s.l}</option>)}
           </select>
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search" className="px-4 py-2 rounded-full bg-white border-2 border-[#fde6c8] text-sm" data-testid="downloads-search" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search" className="px-4 py-2 rounded-full bg-white border-2 border-[#f4e4c6] text-sm" data-testid="downloads-search" />
         </div>
 
         {items.length === 0 ? (

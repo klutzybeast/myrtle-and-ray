@@ -43,16 +43,16 @@ export default function AdminProducts() {
         </div>
         <button onClick={() => { setEditing(blank); setCreating(true); }} className="btn-primary" data-testid="product-new"><Plus className="w-5 h-5" />New Product</button>
       </header>
-      <div className="bg-white rounded-3xl border border-[#fde6c8] overflow-hidden">
+      <div className="bg-white rounded-3xl border border-[#f4e4c6] overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-[#fff9f0] text-left">
+          <thead className="bg-[#fffbf3] text-left">
             <tr>
               <th className="p-3">Name</th><th className="p-3">Category</th><th className="p-3">Character</th><th className="p-3">Price</th><th className="p-3">Status</th><th className="p-3">Featured</th><th></th>
             </tr>
           </thead>
           <tbody>
             {items.map((p) => (
-              <tr key={p.slug} className="border-t border-[#fde6c8]">
+              <tr key={p.slug} className="border-t border-[#f4e4c6]">
                 <td className="p-3 font-semibold">{p.name}<div className="text-xs text-[#6b7280]">/{p.slug}</div></td>
                 <td className="p-3">{p.category}</td>
                 <td className="p-3 text-xs">{p.character_slug || "—"}</td>
@@ -107,7 +107,7 @@ function Editor({ item, setItem, cats, chars, statuses, onSave, onCancel }) {
           <button onClick={() => onSave(item)} className="btn-primary" data-testid="product-edit-save"><Save className="w-4 h-4" />Save</button>
         </div>
       </div>
-      <style>{`.inp{width:100%;padding:10px 14px;border-radius:9999px;border:2px solid #fde6c8;background:white;font-size:14px}.inp:focus{outline:none;border-color:#40e0d0}textarea.inp{border-radius:18px}`}</style>
+      <style>{`.inp{width:100%;padding:10px 14px;border-radius:9999px;border:2px solid #f4e4c6;background:white;font-size:14px}.inp:focus{outline:none;border-color:#7fcfc7}textarea.inp{border-radius:18px}`}</style>
     </div>
   );
 }

@@ -5,40 +5,47 @@
 @tailwind utilities;
 
 :root {
-  --turquoise: #40e0d0;
-  --peach: #ff9b71;
-  --sky: #87ceeb;
-  --palm: #3cb371;
-  --sand: #faebd7;
-  --sand-deep: #f5deb3;
-  --wood: #8b4513;
-  --foam: #e0f7fa;
-  --ink: #2e3a3a;
-  --slate: #4a5568;
-  --rose: #ff6f91;
-  --plum: #9b72cb;
-  --cream: #fff9f0;
+  /* Pastel palette */
+  --turquoise: #a8e6e1;   /* soft mint-turquoise */
+  --turquoise-deep: #7fcfc7; /* used for text/active states */
+  --peach: #fcd5b4;       /* soft peach */
+  --peach-deep: #f0a988;  /* slightly stronger for text */
+  --sky: #c5e3f6;         /* pastel sky blue */
+  --sky-deep: #8fbfe0;
+  --palm: #b8e0c2;        /* pastel mint */
+  --palm-deep: #7cbf94;
+  --rose: #f7c2cf;        /* pastel rose */
+  --plum: #d4c5e8;        /* pastel plum */
+  --butter: #fce6a5;      /* pastel butter yellow */
+  --sand: #fdf3e0;        /* pale cream */
+  --sand-deep: #f4e4c6;
+  --wood: #8b6f4d;        /* warm brown text accent */
+  --foam: #eef9fb;        /* very pale aqua */
+  --cream: #fffbf3;       /* off-white card bg */
+  --ink: #3a4a55;         /* slate-ink text */
+  --slate: #5a6b76;       /* secondary text */
+  --muted: #8a9aa3;
 
   /* shadcn tokens */
-  --background: 36 56% 96%;
-  --foreground: 200 20% 18%;
-  --card: 0 0% 100%;
-  --card-foreground: 200 20% 18%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 200 20% 18%;
-  --primary: 174 72% 56%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 16 100% 72%;
-  --secondary-foreground: 200 20% 18%;
-  --muted: 36 56% 92%;
-  --muted-foreground: 200 8% 40%;
-  --accent: 199 71% 73%;
-  --accent-foreground: 200 20% 18%;
-  --destructive: 0 84% 60%;
+  --background: 40 50% 96%;
+  --foreground: 200 18% 25%;
+  --card: 36 80% 99%;
+  --card-foreground: 200 18% 25%;
+  --popover: 36 80% 99%;
+  --popover-foreground: 200 18% 25%;
+  --primary: 174 50% 78%;
+  --primary-foreground: 200 18% 25%;
+  --secondary: 24 95% 85%;
+  --secondary-foreground: 200 18% 25%;
+  --muted: 36 40% 92%;
+  --muted-foreground: 200 8% 45%;
+  --accent: 200 75% 87%;
+  --accent-foreground: 200 18% 25%;
+  --destructive: 0 70% 70%;
   --destructive-foreground: 0 0% 100%;
-  --border: 36 32% 86%;
-  --input: 36 32% 86%;
-  --ring: 174 72% 56%;
+  --border: 36 32% 88%;
+  --input: 36 32% 88%;
+  --ring: 174 50% 70%;
   --radius: 1rem;
 }
 
@@ -58,47 +65,46 @@ h1, h2, h3, h4, h5 {
 
 .font-accent { font-family: 'Baloo 2', sans-serif; }
 
-/* Sand texture using subtle noise */
 .bg-sand-texture {
   background-color: var(--sand);
-  background-image: radial-gradient(circle at 1px 1px, rgba(139,69,19,0.06) 1px, transparent 0);
+  background-image: radial-gradient(circle at 1px 1px, rgba(139,111,77,0.05) 1px, transparent 0);
   background-size: 14px 14px;
 }
 
 .bg-foam-grad {
-  background: linear-gradient(180deg, #e0f7fa 0%, #fff9f0 60%, #faebd7 100%);
+  background: linear-gradient(180deg, #eef9fb 0%, #fffbf3 55%, #fdf3e0 100%);
 }
 
 .bg-wave-hero {
   background:
-    radial-gradient(ellipse at top, rgba(135,206,235,0.35), transparent 60%),
-    linear-gradient(180deg, #b9eaf6 0%, #e0f7fa 45%, #faebd7 100%);
+    radial-gradient(ellipse at top, rgba(197,227,246,0.55), transparent 65%),
+    linear-gradient(180deg, #d8edf6 0%, #eef9fb 45%, #fdf3e0 100%);
 }
 
 .gradient-wave {
-  background: linear-gradient(90deg, #40e0d0 0%, #87ceeb 50%, #ff9b71 100%);
+  background: linear-gradient(90deg, var(--turquoise) 0%, var(--sky) 50%, var(--peach) 100%);
 }
 
 .gradient-ring {
-  background: linear-gradient(135deg, #40e0d0 0%, #ff9b71 100%);
+  background: linear-gradient(135deg, var(--turquoise) 0%, var(--peach) 100%);
   padding: 4px;
   border-radius: 9999px;
 }
 
-/* Buttons */
+/* Buttons — pastel with deeper text for contrast */
 .btn-primary {
-  background: linear-gradient(90deg, #40e0d0 0%, #ff9b71 100%);
-  color: white;
+  background: linear-gradient(90deg, var(--turquoise) 0%, var(--peach) 100%);
+  color: var(--ink);
   border-radius: 9999px;
   padding: 14px 28px;
   font-family: 'Fredoka', sans-serif;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.01em;
-  box-shadow: 0 8px 20px rgba(64,224,208,0.30);
+  box-shadow: 0 8px 20px rgba(127, 207, 199, 0.22);
   transition: transform .15s ease, box-shadow .15s ease;
   display: inline-flex; align-items: center; gap: .5rem;
 }
-.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 14px 28px rgba(255,155,113,0.35); }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 14px 28px rgba(240, 169, 136, 0.30); }
 .btn-primary:active { transform: translateY(0); }
 
 .btn-secondary {
@@ -108,37 +114,37 @@ h1, h2, h3, h4, h5 {
   border-radius: 9999px;
   padding: 12px 26px;
   font-family: 'Fredoka', sans-serif;
-  font-weight: 600;
+  font-weight: 700;
   transition: all .15s ease;
   display: inline-flex; align-items: center; gap: .5rem;
 }
-.btn-secondary:hover { background: #fff5f0; transform: translateY(-1px); }
+.btn-secondary:hover { background: #fff5ec; transform: translateY(-1px); }
 
 .btn-ghost {
   background: transparent;
   color: var(--ink);
   padding: 10px 18px;
   border-radius: 9999px;
-  font-weight: 600;
+  font-weight: 700;
   font-family: 'Fredoka', sans-serif;
   transition: background .15s ease;
 }
-.btn-ghost:hover { background: rgba(64,224,208,0.12); }
+.btn-ghost:hover { background: rgba(168,230,225,0.30); }
 
 /* Cards */
 .card-soft {
   background: white;
   border-radius: 28px;
-  box-shadow: 0 10px 30px rgba(46,58,58,0.08);
+  box-shadow: 0 10px 30px rgba(58, 74, 85, 0.06);
   transition: transform .2s ease, box-shadow .2s ease;
 }
-.card-soft:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(64,224,208,0.18); }
+.card-soft:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(168,230,225,0.30); }
 
 .card-cream {
   background: var(--cream);
   border-radius: 28px;
-  border: 2px solid #fde6c8;
-  box-shadow: 0 6px 18px rgba(255,155,113,0.10);
+  border: 2px solid var(--sand-deep);
+  box-shadow: 0 6px 18px rgba(252,213,180,0.18);
 }
 
 /* Animations */
@@ -167,7 +173,7 @@ h1, h2, h3, h4, h5 {
   width: 96px; height: 96px;
   border-radius: 9999px;
   padding: 4px;
-  background: linear-gradient(135deg,#40e0d0 0%,#ff9b71 100%);
+  background: linear-gradient(135deg, var(--turquoise) 0%, var(--peach) 100%);
   display: inline-block;
 }
 .portrait-pill > img {
@@ -176,28 +182,15 @@ h1, h2, h3, h4, h5 {
   background: white;
 }
 
-/* Hide scrollbar on horizontal scrollers */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* Sticky bottom safe area */
 body { padding-bottom: 96px; }
 @media (min-width: 768px) { body { padding-bottom: 88px; } }
 
-/* Beach decorations */
-.deco-shell, .deco-wave {
-  position: absolute;
-  pointer-events: none;
-  opacity: 0.6;
-}
+::selection { background: rgba(168,230,225,0.45); color: var(--ink); }
 
-/* Selection */
-::selection { background: rgba(64,224,208,0.35); color: var(--ink); }
-
-/* Wave SVG bottom of sections */
-.wave-divider {
-  display: block; width: 100%; height: 60px;
-}
+.wave-divider { display: block; width: 100%; height: 60px; }
 
 @layer base {
   * { @apply border-border; }

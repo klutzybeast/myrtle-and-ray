@@ -10,7 +10,7 @@ export default function PopupSignup() {
 
   useEffect(() => {
     if (localStorage.getItem("mr_popup_dismissed")) return;
-    const t = setTimeout(() => setOpen(true), 30000);
+    const t = setTimeout(() => setOpen(true), 5000);
     return () => clearTimeout(t);
   }, []);
 
@@ -40,7 +40,7 @@ export default function PopupSignup() {
         <p className="text-[#4a5568] mb-4">Get free downloads, sneak peeks, and gentle first-day tips.</p>
         <form onSubmit={submit} className="space-y-3">
           <input required type="email" placeholder="your@email.com" value={email} onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-3 rounded-full border-2 border-[#fde6c8] focus:outline-none focus:border-[#40e0d0]" data-testid="popup-email" />
+            className="w-full px-4 py-3 rounded-full border-2 border-[#f4e4c6] focus:outline-none focus:border-[#7fcfc7]" data-testid="popup-email" />
           <button disabled={busy} className="btn-primary w-full justify-center" data-testid="popup-submit">{busy ? "..." : "Catch the Wave"}</button>
         </form>
       </div>

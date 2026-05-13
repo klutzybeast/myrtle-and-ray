@@ -25,11 +25,11 @@ export default function AdminEmailOutbox() {
     <div data-testid="admin-email-outbox">
       <h1 className="font-accent text-3xl font-bold mb-1">Email Outbox</h1>
       <p className="text-[#6b7280] mb-4">If RESEND_API_KEY is not set, emails queue here. Once you add the key, click Retry on any pending email.</p>
-      <div className="flex gap-2 mb-4">{TABS.map((t) => <button key={t.key} onClick={() => setTab(t.key)} className={`px-4 py-2 rounded-full text-sm font-bold ${tab === t.key ? "bg-[#40e0d0] text-white" : "bg-white text-[#4a5568]"}`}>{t.label}</button>)}</div>
+      <div className="flex gap-2 mb-4">{TABS.map((t) => <button key={t.key} onClick={() => setTab(t.key)} className={`px-4 py-2 rounded-full text-sm font-bold ${tab === t.key ? "bg-[#7fcfc7] text-white" : "bg-white text-[#4a5568]"}`}>{t.label}</button>)}</div>
       <div className="space-y-2">
         {items.map((e) => (
-          <div key={e.id} className="bg-white rounded-3xl border border-[#fde6c8] p-4 flex items-start gap-3">
-            <div className={`px-2 py-1 rounded-full text-xs font-bold ${e.status === "sent" ? "bg-[#3cb371] text-white" : e.status === "failed" ? "bg-red-500 text-white" : "bg-[#ffb347] text-white"}`}>{e.status}</div>
+          <div key={e.id} className="bg-white rounded-3xl border border-[#f4e4c6] p-4 flex items-start gap-3">
+            <div className={`px-2 py-1 rounded-full text-xs font-bold ${e.status === "sent" ? "bg-[#7cbf94] text-white" : e.status === "failed" ? "bg-red-500 text-white" : "bg-[#f4d28a] text-white"}`}>{e.status}</div>
             <div className="flex-1 min-w-0">
               <div className="font-semibold truncate">{e.subject}</div>
               <div className="text-xs text-[#6b7280]">To {e.to} · {new Date(e.created_at).toLocaleString()} · {e.purpose}</div>

@@ -25,7 +25,7 @@ export default function AdminCharacters() {
       <p className="text-[#6b7280] mb-4">The core thirteen cannot be deleted, but everything else is fully editable.</p>
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {items.map((c) => (
-          <div key={c.slug} className="bg-white rounded-3xl border border-[#fde6c8] p-5 flex gap-4" data-testid={`char-row-${c.slug}`}>
+          <div key={c.slug} className="bg-white rounded-3xl border border-[#f4e4c6] p-5 flex gap-4" data-testid={`char-row-${c.slug}`}>
             <div className="gradient-ring flex-shrink-0" style={{ width: 64, height: 64 }}><img src={c.image_url} alt="" className="w-full h-full rounded-full object-cover bg-white" /></div>
             <div className="flex-1 min-w-0">
               <div className="font-bold text-[#2e3a3a]">{c.name}</div>
@@ -61,7 +61,7 @@ function Editor({ item, setItem, onSave, onCancel }) {
         </div>
         <div className="flex justify-end gap-2 mt-5"><button onClick={onCancel} className="btn-ghost">Cancel</button><button onClick={() => onSave(item)} className="btn-primary" data-testid="char-save"><Save className="w-4 h-4" />Save</button></div>
       </div>
-      <style>{`.inp{width:100%;padding:10px 14px;border-radius:9999px;border:2px solid #fde6c8;background:white;font-size:14px}.inp:focus{outline:none;border-color:#40e0d0}textarea.inp{border-radius:18px}`}</style>
+      <style>{`.inp{width:100%;padding:10px 14px;border-radius:9999px;border:2px solid #f4e4c6;background:white;font-size:14px}.inp:focus{outline:none;border-color:#7fcfc7}textarea.inp{border-radius:18px}`}</style>
     </div>
   );
 }

@@ -38,10 +38,10 @@ export default function EmailCaptureModal({ open, onClose, downloadSlug, downloa
         <p className="text-[#4a5568] mb-4">...and we'll send the wave your way!</p>
         <form onSubmit={submit} className="space-y-3" data-testid="email-capture-form">
           <input required placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)}
-            className="w-full px-4 py-3 rounded-full border-2 border-[#fde6c8] focus:outline-none focus:border-[#40e0d0]" data-testid="email-capture-name" />
+            className="w-full px-4 py-3 rounded-full border-2 border-[#f4e4c6] focus:outline-none focus:border-[#7fcfc7]" data-testid="email-capture-name" />
           <input required type="email" placeholder="your@email.com" value={email} onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-3 rounded-full border-2 border-[#fde6c8] focus:outline-none focus:border-[#40e0d0]" data-testid="email-capture-email" />
-          <select value={audience} onChange={(e) => setAudience(e.target.value)} className="w-full px-4 py-3 rounded-full border-2 border-[#fde6c8] focus:outline-none focus:border-[#40e0d0] bg-white" data-testid="email-capture-audience">
+            className="w-full px-4 py-3 rounded-full border-2 border-[#f4e4c6] focus:outline-none focus:border-[#7fcfc7]" data-testid="email-capture-email" />
+          <select value={audience} onChange={(e) => setAudience(e.target.value)} className="w-full px-4 py-3 rounded-full border-2 border-[#f4e4c6] focus:outline-none focus:border-[#7fcfc7] bg-white" data-testid="email-capture-audience">
             <option>Parent</option>
             <option>Teacher</option>
             <option>Camp Director</option>

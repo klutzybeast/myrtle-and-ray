@@ -5,7 +5,6 @@ export const API = `${BASE}/api`;
 
 export const api = axios.create({
   baseURL: API,
-  withCredentials: true,
 });
 
 // attach access token from localStorage as a fallback for cross-site cookie blocking

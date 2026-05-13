@@ -4,14 +4,14 @@ import { toast } from "sonner";
 import { Puzzle, Search, Map as MapIcon, Award, Star, Palette, Music, Sticker } from "lucide-react";
 
 const TILES = [
-  { key: "memory_match", title: "Memory Match", icon: Puzzle, color: "#40e0d0" },
-  { key: "spot_difference", title: "Spot the Difference", icon: Search, color: "#ff9b71" },
-  { key: "coloring", title: "Coloring", icon: Palette, color: "#9b72cb" },
-  { key: "word_search", title: "Word Search", icon: Search, color: "#3cb371" },
-  { key: "quiz", title: "Which Sea Star Are You?", icon: Star, color: "#ff6f91" },
-  { key: "rhyme_time", title: "Rhyme Time", icon: Music, color: "#87ceeb" },
-  { key: "maze", title: "Maze with Billy", icon: MapIcon, color: "#ffb347" },
-  { key: "sticker_beach", title: "Sticker Beach", icon: Sticker, color: "#ff9b71" },
+  { key: "memory_match", title: "Memory Match", icon: Puzzle, color: "#7fcfc7" },
+  { key: "spot_difference", title: "Spot the Difference", icon: Search, color: "#f0a988" },
+  { key: "coloring", title: "Coloring", icon: Palette, color: "#b8a3d9" },
+  { key: "word_search", title: "Word Search", icon: Search, color: "#7cbf94" },
+  { key: "quiz", title: "Which Sea Star Are You?", icon: Star, color: "#e89bab" },
+  { key: "rhyme_time", title: "Rhyme Time", icon: Music, color: "#8fbfe0" },
+  { key: "maze", title: "Maze with Billy", icon: MapIcon, color: "#f4d28a" },
+  { key: "sticker_beach", title: "Sticker Beach", icon: Sticker, color: "#f0a988" },
 ];
 
 export default function Activities() {
@@ -21,7 +21,7 @@ export default function Activities() {
     <main className="pt-24 pb-12 bg-foam-grad min-h-screen" data-testid="activities-page">
       <div className="max-w-7xl mx-auto px-4 md:px-6">
         <header className="text-center mb-10">
-          <Award className="w-10 h-10 text-[#ff9b71] mx-auto mb-3" />
+          <Award className="w-10 h-10 text-[#f0a988] mx-auto mb-3" />
           <h1 className="font-accent text-5xl md:text-6xl font-bold">Activities & Games</h1>
           <p className="text-[#4a5568] mt-2 max-w-2xl mx-auto">Eight little games to play with Myrtle, Ray, and the crew. Collect W.A.V.E. badges as you go!</p>
         </header>
@@ -66,7 +66,7 @@ function Badges() {
   if (!badges.length) return <div className="text-[#6b7280] mt-3">No badges yet — tap an activity above to start.</div>;
   return (
     <div className="flex flex-wrap gap-2 mt-3" data-testid="badges-list">
-      {badges.map((b) => <span key={b} className="bg-white px-3 py-1 rounded-full text-sm font-bold border-2 border-[#fde6c8]">🌟 {b.replace(/_/g, " ")}</span>)}
+      {badges.map((b) => <span key={b} className="bg-white px-3 py-1 rounded-full text-sm font-bold border-2 border-[#f4e4c6]">🌟 {b.replace(/_/g, " ")}</span>)}
     </div>
   );
 }

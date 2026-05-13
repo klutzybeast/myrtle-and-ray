@@ -30,8 +30,8 @@ export default function AdminLogin() {
           <p className="text-[#6b7280] text-sm">Catch the W.A.V.E. of Excitement.</p>
         </div>
         <form onSubmit={submit} className="space-y-3">
-          <input required type="email" placeholder="you@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-3 rounded-full border-2 border-[#fde6c8] focus:outline-none focus:border-[#40e0d0]" data-testid="login-email" />
-          <input required type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-4 py-3 rounded-full border-2 border-[#fde6c8] focus:outline-none focus:border-[#40e0d0]" data-testid="login-password" />
+          <input required type="email" placeholder="you@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-3 rounded-full border-2 border-[#f4e4c6] focus:outline-none focus:border-[#7fcfc7]" data-testid="login-email" />
+          <input required type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-4 py-3 rounded-full border-2 border-[#f4e4c6] focus:outline-none focus:border-[#7fcfc7]" data-testid="login-password" />
           <button disabled={busy} className="btn-primary w-full justify-center" data-testid="login-submit">{busy ? "Signing in..." : "Sign In"}</button>
         </form>
       </div>

@@ -42,12 +42,11 @@ app.include_router(api_router)
 # Static uploads
 upload_dir = os.environ.get("UPLOAD_DIR", "/app/backend/uploads")
 os.makedirs(upload_dir, exist_ok=True)
-app.mount("/uploads", StaticFiles(directory=upload_dir), name="uploads")
+app.mount("/api/uploads", StaticFiles(directory=upload_dir), name="uploads")
 
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=["*"],
     allow_origin_regex=".*",
     allow_methods=["*"],
     allow_headers=["*"],

@@ -5,7 +5,7 @@ export default function About() {
   const [content, setContent] = useState({});
   useEffect(() => { api.get("/pages/about").then(({ data }) => setContent(data.content || {})); }, []);
   return (
-    <main className="pt-24 pb-12 bg-[#fff9f0] min-h-screen" data-testid="about-page">
+    <main className="pt-24 pb-12 bg-[#fffbf3] min-h-screen" data-testid="about-page">
       <div className="max-w-5xl mx-auto px-4 md:px-6">
         <header className="text-center mb-10">
           <h1 className="font-accent text-5xl md:text-6xl font-bold">About the Book</h1>
@@ -23,7 +23,7 @@ export default function About() {
           <h3 className="font-accent text-xl font-bold mb-2">Why We Wrote This Book</h3>
           <p className="text-[#4a5568] leading-relaxed">{content.why_we_wrote}</p>
         </section>
-        <section className="text-center text-[#4a5568] py-6 border-t-2 border-dashed border-[#fde6c8]">
+        <section className="text-center text-[#4a5568] py-6 border-t-2 border-dashed border-[#f4e4c6]">
           <div className="font-accent text-xl font-bold text-[#2e3a3a]">{content.publisher}</div>
           <div className="mt-1">{content.editor}</div>
         </section>

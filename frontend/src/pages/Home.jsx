@@ -43,11 +43,11 @@ export default function Home() {
       <section className="relative bg-wave-hero overflow-hidden" data-testid="hero-section">
         <div className="absolute inset-0">
           <img src={hero.background_image || HERO_IMG} alt="Stingray Cay Summer Camp" className="w-full h-full object-cover opacity-95" />
-          <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-white/0 to-[#fff9f0]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-white/0 to-[#fffbf3]" />
         </div>
         <div className="relative max-w-7xl mx-auto px-4 md:px-6 pt-12 pb-24 md:pb-32 grid md:grid-cols-2 gap-10 items-center">
           <div className="text-center md:text-left">
-            <span className="inline-block bg-white/80 backdrop-blur px-4 py-1 rounded-full font-accent font-semibold text-[#3cb371] text-sm mb-4">A rhyming picture book · Ages 3–8</span>
+            <span className="inline-block bg-white/80 backdrop-blur px-4 py-1 rounded-full font-accent font-semibold text-[#7cbf94] text-sm mb-4">A rhyming picture book · Ages 3–8</span>
             <h1 className="font-accent text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.05] text-[#2e3a3a] drop-shadow-sm" data-testid="hero-headline">
               {hero.headline || "Welcome to Stingray Cay"}
             </h1>
@@ -71,11 +71,11 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <WaveDivider color="#fff9f0" />
+        <WaveDivider color="#fffbf3" />
       </section>
 
       {/* MEET THE SEA STARS */}
-      <section className="bg-[#fff9f0] py-16 md:py-24" data-testid="sea-stars-band">
+      <section className="bg-[#fffbf3] py-16 md:py-24" data-testid="sea-stars-band">
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           <div className="text-center mb-10">
             <h2 className="font-accent text-4xl md:text-5xl font-bold">Meet the Sea Stars</h2>
@@ -123,7 +123,7 @@ export default function Home() {
       </section>
 
       {/* SHOP THE CREW */}
-      <section className="bg-[#fff9f0] py-16 md:py-24" data-testid="shop-the-crew">
+      <section className="bg-[#fffbf3] py-16 md:py-24" data-testid="shop-the-crew">
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           <div className="flex items-end justify-between mb-8 flex-wrap gap-3">
             <div>
@@ -155,8 +155,8 @@ export default function Home() {
       </section>
 
       {/* TESTIMONIAL */}
-      <section className="bg-[#fde6c8] py-16 md:py-20 text-center px-4" data-testid="sand-banner">
-        <Sparkles className="w-8 h-8 text-[#ff9b71] mx-auto mb-3" />
+      <section className="bg-[#f4e4c6] py-16 md:py-20 text-center px-4" data-testid="sand-banner">
+        <Sparkles className="w-8 h-8 text-[#f0a988] mx-auto mb-3" />
         <blockquote className="max-w-3xl mx-auto font-accent text-2xl md:text-3xl font-semibold text-[#2e3a3a] leading-snug">
           “{banner.quote || "Our campers cheer Catch the W.A.V.E. all summer. It became our shared language for kindness."}”
         </blockquote>
@@ -164,14 +164,14 @@ export default function Home() {
       </section>
 
       {/* MESSAGE IN A BOTTLE */}
-      <section className="bg-[#fff9f0] py-16 md:py-24" data-testid="bottle-signup">
+      <section className="bg-[#fffbf3] py-16 md:py-24" data-testid="bottle-signup">
         <div className="max-w-2xl mx-auto px-4 md:px-6 text-center">
           <div className="text-6xl mb-3">📜</div>
           <h2 className="font-accent text-3xl md:text-4xl font-bold">Send Us a Message in a Bottle</h2>
           <p className="text-[#4a5568] mt-2">Join the mailing list for new downloads, sneak peeks, and gentle first-day tips.</p>
           <form onSubmit={submitBottle} className="mt-6 flex gap-2 max-w-lg mx-auto" data-testid="bottle-form">
             <input required type="email" value={bottleEmail} onChange={(e) => setBottleEmail(e.target.value)} placeholder="your@email.com"
-              className="flex-1 px-4 py-3 rounded-full border-2 border-[#fde6c8] bg-white focus:outline-none focus:border-[#40e0d0]" data-testid="bottle-email" />
+              className="flex-1 px-4 py-3 rounded-full border-2 border-[#f4e4c6] bg-white focus:outline-none focus:border-[#7fcfc7]" data-testid="bottle-email" />
             <button className="btn-primary" data-testid="bottle-submit">Send</button>
           </form>
         </div>

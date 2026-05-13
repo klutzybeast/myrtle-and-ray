@@ -11,7 +11,7 @@ export default function AdminDownloadCategories() {
   const load = () => api.get("/admin/download-categories").then(({ data }) => setItems(data));
   useEffect(() => { load(); }, []);
 
-  const blank = { name: "", slug: "", icon: "FileText", description: "", color: "#40e0d0", order: 99, visible: true };
+  const blank = { name: "", slug: "", icon: "FileText", description: "", color: "#7fcfc7", order: 99, visible: true };
   const save = async (data) => {
     try {
       if (creating) await api.post("/admin/download-categories", data);
@@ -34,7 +34,7 @@ export default function AdminDownloadCategories() {
       </header>
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {items.map((c) => (
-          <div key={c.slug} className="bg-white rounded-3xl border border-[#fde6c8] p-5">
+          <div key={c.slug} className="bg-white rounded-3xl border border-[#f4e4c6] p-5">
             <div className="w-10 h-10 rounded-2xl mb-3" style={{ background: c.color }} />
             <div className="font-bold">{c.name}</div>
             <div className="text-xs text-[#6b7280]">/{c.slug}</div>
@@ -55,13 +55,13 @@ export default function AdminDownloadCategories() {
               <input placeholder="Slug" value={editing.slug || ""} onChange={(e) => setEditing({ ...editing, slug: e.target.value })} className="inp" />
               <input placeholder="Icon (lucide name)" value={editing.icon || ""} onChange={(e) => setEditing({ ...editing, icon: e.target.value })} className="inp" />
               <input placeholder="Description" value={editing.description || ""} onChange={(e) => setEditing({ ...editing, description: e.target.value })} className="inp" />
-              <input type="color" value={editing.color || "#40e0d0"} onChange={(e) => setEditing({ ...editing, color: e.target.value })} className="w-full h-12 rounded-full" />
+              <input type="color" value={editing.color || "#7fcfc7"} onChange={(e) => setEditing({ ...editing, color: e.target.value })} className="w-full h-12 rounded-full" />
               <input type="number" placeholder="Order" value={editing.order || 0} onChange={(e) => setEditing({ ...editing, order: parseInt(e.target.value, 10) || 0 })} className="inp" />
               <label className="flex items-center gap-2"><input type="checkbox" checked={editing.visible !== false} onChange={(e) => setEditing({ ...editing, visible: e.target.checked })} />Visible on site</label>
             </div>
             <div className="flex justify-end gap-2 mt-5"><button onClick={() => { setEditing(null); setCreating(false); }} className="btn-ghost">Cancel</button><button onClick={() => save(editing)} className="btn-primary"><Save className="w-4 h-4" />Save</button></div>
           </div>
-          <style>{`.inp{width:100%;padding:10px 14px;border-radius:9999px;border:2px solid #fde6c8;background:white;font-size:14px}.inp:focus{outline:none;border-color:#40e0d0}`}</style>
+          <style>{`.inp{width:100%;padding:10px 14px;border-radius:9999px;border:2px solid #f4e4c6;background:white;font-size:14px}.inp:focus{outline:none;border-color:#7fcfc7}`}</style>
         </div>
       )}
     </div>
