@@ -1,0 +1,155 @@
+{
+  "theme": "light",
+  "archetype": "Vibrant Play (Archetype 6)",
+  "emotional_tone": "Warm, friendly, encouraging, playful, beachy",
+  "brand_theme": "Catch the W.A.V.E. of Excitement",
+  "colors": {
+    "primary": "#40E0D0",
+    "primary_gradient": "bg-gradient-to-r from-[#40E0D0] to-[#FF9B71]",
+    "secondary": "#FF9B71",
+    "accent_blue": "#87CEEB",
+    "accent_green": "#3CB371",
+    "background": {
+      "default": "#FAEBD7",
+      "sand_cream": "#F5DEB3",
+      "white": "#FFFFFF",
+      "sky": "#E0F7FA"
+    },
+    "text": {
+      "primary": "#4A4A4A",
+      "secondary": "#6B7280",
+      "heading": "#2E8B57",
+      "inverted": "#FFFFFF",
+      "wood_brown": "#8B4513"
+    },
+    "border": "#E5E7EB",
+    "admin": {
+      "sidebar": "#FFFFFF",
+      "background": "#F3F4F6",
+      "accent": "#40E0D0"
+    }
+  },
+  "typography": {
+    "fonts": {
+      "heading": "Fredoka, sans-serif",
+      "body": "Nunito, sans-serif",
+      "accent": "'Baloo 2', sans-serif"
+    },
+    "scales": {
+      "h1": "text-5xl md:text-6xl tracking-tight leading-tight",
+      "h2": "text-4xl md:text-5xl tracking-tight leading-tight",
+      "h3": "text-2xl md:text-3xl tracking-tight",
+      "h4": "text-xl md:text-2xl font-bold",
+      "body": "text-base md:text-lg leading-relaxed",
+      "small": "text-sm font-medium"
+    },
+    "weights": {
+      "heading": "font-bold",
+      "body": "font-medium"
+    },
+    "imports": [
+      "@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400..800&family=Fredoka:wght@300..700&family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');"
+    ]
+  },
+  "spacing_and_layout": {
+    "container": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
+    "section_padding": "py-16 md:py-24",
+    "gap": {
+      "small": "gap-4",
+      "medium": "gap-8",
+      "large": "gap-12",
+      "huge": "gap-16"
+    },
+    "border_radius": {
+      "card": "rounded-[32px]",
+      "button": "rounded-full",
+      "pill": "rounded-full",
+      "image": "rounded-2xl"
+    },
+    "shadows": {
+      "soft": "shadow-[0_8px_30px_rgb(0,0,0,0.08)]",
+      "floating": "shadow-[0_20px_40px_rgba(0,0,0,0.12)]",
+      "card_hover": "shadow-[0_20px_50px_rgba(64,224,208,0.2)]"
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-gradient-to-r from-[#40E0D0] to-[#FF9B71] text-white rounded-full px-8 py-4 font-bold text-lg hover:-translate-y-1 transition-all shadow-soft hover:shadow-floating",
+      "secondary": "bg-white text-[#8B4513] border-2 border-[#FF9B71] rounded-full px-8 py-4 font-bold text-lg hover:bg-[#FFF5F0] transition-all",
+      "outline": "border-2 border-[#40E0D0] text-[#2E8B57] rounded-full px-6 py-3 font-bold hover:bg-[#E0F7FA] transition-all"
+    },
+    "cards": {
+      "character_card": "relative bg-white rounded-[32px] p-6 pt-16 mt-16 shadow-soft hover:shadow-card_hover transition-shadow text-center",
+      "activity_tile": "bg-white rounded-[24px] p-6 shadow-soft hover:shadow-floating transition-all border-4 border-transparent hover:border-[#40E0D0]",
+      "product_card": "bg-white rounded-[24px] p-4 shadow-soft hover:shadow-floating transition-all overflow-hidden",
+      "download_card": "bg-[#FFF9F0] rounded-[24px] p-6 shadow-soft border-2 border-[#FFE4B5]"
+    },
+    "navigation": {
+      "header": "fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl border-b border-[#E5E7EB] py-4",
+      "sticky_bottom_bar": "fixed bottom-0 w-full z-50 bg-white/95 backdrop-blur-lg border-t border-[#E5E7EB] py-3 px-4 shadow-[0_-10px_30px_rgba(0,0,0,0.05)] flex justify-center gap-4 flex-wrap",
+      "admin_sidebar": "bg-white w-64 h-screen border-r border-gray-200 p-4 fixed left-0 top-0 flex flex-col gap-2"
+    },
+    "dividers": {
+      "wave_top": "w-full overflow-hidden leading-0 -mb-1",
+      "wave_bottom": "w-full overflow-hidden leading-0 -mt-1 transform rotate-180"
+    }
+  },
+  "animations": {
+    "bobbing": {
+      "type": "framer-motion",
+      "props": {
+        "animate": { "y": [-5, 5, -5] },
+        "transition": { "repeat": "Infinity", "duration": 4, "ease": "easeInOut" }
+      }
+    },
+    "flip_card": {
+      "type": "css_or_framer",
+      "description": "3D rotation on Y-axis for character cards"
+    },
+    "marquee": {
+      "type": "react-fast-marquee",
+      "description": "Slow, smooth horizontal scrolling for downloads and products"
+    }
+  },
+  "specific_treatments": {
+    "hero": "Full viewport height with the Stingray Cay camp reference illustration as background cover. A floating 3D book cover effect in the center foreground. Overlay text uses white with strong text-shadow for readability over illustration.",
+    "character_portraits": "Circular images with a thick 4px border consisting of a turquoise-to-peach gradient ring. Floating out of their parent containers (negative top margin). Apply bobbing animation.",
+    "interactive_map": "Uses the Stingray Cay Camp illustration as a base image map. Hotspots (pins or pulsating dots) positioned over key areas (pool, hut, tent). Clicking a hotspot opens a modal or highlights a character/activity.",
+    "admin_dashboard": "Clean, light-themed interface avoiding harsh enterprise grays. Uses #F3F4F6 for background and white cards with #border-radius-2xl. High use of padding for breathing room. #40E0D0 accent for active states.",
+    "wave_values": "4 Flip-cards detailing Welcome Curiosity, Act with Kindness, Value Teamwork, Encourage Others. Colorful fronts, text on back."
+  },
+  "icons": {
+    "library": "lucide-react",
+    "stroke_width": 2.5,
+    "style": "rounded, playful, scaled large (w-8 h-8)"
+  },
+  "media": {
+    "hero_camp_map_reference": "https://customer-assets.emergentagent.com/job_wave-of-excitement/artifacts/np2lq4do_IMG_2972.jpeg",
+    "background_textures": {
+      "beach_sand": "https://images.unsplash.com/photo-1684394019299-ae9d541a9615?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NjZ8MHwxfHNlYXJjaHwxfHx0cm9waWNhbCUyMGJlYWNoJTIwY2FydG9vbnxlbnwwfHx8fDE3Nzg3MDYxMDZ8MA&ixlib=rb-4.1.0&q=85"
+    },
+    "characters": {
+      "myrtle_turtle": "https://images.unsplash.com/photo-1743613314177-fc7193605955?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzNzl8MHwxfHNlYXJjaHwyfHxjdXRlJTIwc2VhJTIwdHVydGxlJTIwaWxsdXN0cmF0aW9ufGVufDB8fHx8MTc3ODcwNjEwNnww&ixlib=rb-4.1.0&q=85",
+      "ray_manta_ray": "https://images.unsplash.com/photo-1599663369941-884b3e7fab34?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAxODF8MHwxfHNlYXJjaHwxfHxjdXRlJTIwbWFudGElMjByYXklMjBpbGx1c3RyYXRpb258ZW58MHx8fHwxNzc4NzA2MTE0fDA&ixlib=rb-4.1.0&q=85",
+      "ms_bluegill": "https://images.unsplash.com/photo-1734548657572-666232fd72bc?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzd8MHwxfHNlYXJjaHwxfHxjdXRlJTIwZmlzaCUyMGlsbHVzdHJhdGlvbnxlbnwwfHx8fDE3Nzg3MDYxMTR8MA&ixlib=rb-4.1.0&q=85",
+      "ollie_octopus": "https://images.unsplash.com/photo-1743307478241-4b240c7f4e17?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MTJ8MHwxfHNlYXJjaHwyfHxjdXRlJTIwb2N0b3B1cyUyMGlsbHVzdHJhdGlvbnxlbnwwfHx8fDE3Nzg3MDYxMDZ8MA&ixlib=rb-4.1.0&q=85",
+      "sally_seahorse": "https://images.unsplash.com/photo-1775379995608-d1d9a811d4f2?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1OTV8MHwxfHNlYXJjaHwxfHxjdXRlJTIwc2VhaG9yc2UlMjBpbGx1c3RyYXRpb258ZW58MHx8fHwxNzc4NzA2MTE0fDA&ixlib=rb-4.1.0&q=85",
+      "jessie_jellyfish": "https://images.unsplash.com/photo-1629103554663-6685b527aead?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1Mjh8MHwxfHNlYXJjaHwxfHxjdXRlJTIwamVsbHlmaXNoJTIwaWxsdXN0cmF0aW9ufGVufDB8fHx8MTc3ODcwNjExNHww&ixlib=rb-4.1.0&q=85",
+      "casey_crab": "https://images.unsplash.com/photo-1723056018762-61d10f93241a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2Mzl8MHwxfHNlYXJjaHwzfHxjdXRlJTIwY3JhYiUyMGlsbHVzdHJhdGlvbnxlbnwwfHx8fDE3Nzg3MDYxMDZ8MA&ixlib=rb-4.1.0&q=85",
+      "dani_dolphin": "https://images.unsplash.com/photo-1775379995608-d1d9a811d4f2?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Nzd8MHwxfHNlYXJjaHwxfHxjdXRlJTIwZG9scGhpbiUyMGlsbHVzdHJhdGlvbnxlbnwwfHx8fDE3Nzg3MDYxMTR8MA&ixlib=rb-4.1.0&q=85",
+      "sami_shark": "https://images.unsplash.com/photo-1775379995608-d1d9a811d4f2?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1ODh8MHwxfHNlYXJjaHwxfHxjdXRlJTIwc2hhcmslMjBpbGx1c3RyYXRpb258ZW58MHx8fHwxNzc4NzA2MTE0fDA&ixlib=rb-4.1.0&q=85",
+      "izzy_iguana": "https://images.unsplash.com/photo-1737846157670-155bd6a54a4c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzOTB8MHwxfHNlYXJjaHwxfHxjdXRlJTIwaWd1YW5hJTIwaWxsdXN0cmF0aW9ufGVufDB8fHx8MTc3ODcwNjExNHww&ixlib=rb-4.1.0&q=85",
+      "louie_lobster": "https://images.unsplash.com/photo-1723056018738-6ece7e8fb3c0?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1MDV8MHwxfHNlYXJjaHwxfHxjdXRlJTIwbG9ic3RlciUyMGlsbHVzdHJhdGlvbnxlbnwwfHx8fDE3Nzg3MDYxMTV8MA&ixlib=rb-4.1.0&q=85",
+      "billy_beluga": "https://images.unsplash.com/photo-1627909477137-dfef12d46d47?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NzZ8MHwxfHNlYXJjaHwxfHxjdXRlJTIwYmVsdWdhJTIwaWxsdXN0cmF0aW9ufGVufDB8fHx8MTc3ODcwNjExNXww&ixlib=rb-4.1.0&q=85",
+      "frankie_flamingo": "https://images.unsplash.com/photo-1706464215720-b3c65a14a2d3?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxOTJ8MHwxfHNlYXJjaHwxfHxjdXRlJTIwZmxhbWluZ28lMjBpbGx1c3RyYXRpb258ZW58MHx8fHwxNzc4NzA2MTE0fDA&ixlib=rb-4.1.0&q=85"
+    }
+  },
+  "instructions_to_main_agent": [
+    "Ensure the hero section implements the referenced map image as a full-bleed background, with text and a floating book mockup clearly readable in front of it.",
+    "The 13 character portraits must float out of the tops of their respective flip cards. Use absolute positioning (e.g. -top-12) and apply the defined 'bobbing' animation.",
+    "Do not use generic grays or dull colors in the admin panel. Keep it clean but preserve the friendly nature with white panels and turquoise/peach accents.",
+    "Implement wave SVG dividers between key sections on the marketing pages to enhance the beachy theme.",
+    "Add the sticky bottom action bar with two large CTA buttons. Make sure it stays on top (z-index) without obscuring vital footer content.",
+    "All interactive elements must include 'data-testid' attributes per requirements."
+  ]
+}
