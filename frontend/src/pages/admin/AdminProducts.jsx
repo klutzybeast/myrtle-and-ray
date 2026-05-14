@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../../lib/api";
 import { toast } from "sonner";
 import { Plus, Trash2, Pencil, X, Save } from "lucide-react";
+import { ImageGalleryUploader } from "./ImageUploader";
 
 const CATS = ["Stuffies", "Apparel", "Drinkware", "Stickers", "Bundles", "Books", "Accessories"];
 const STATUS = ["In Stock", "Low Stock", "Sold Out", "Coming Soon"];
@@ -95,8 +96,14 @@ function Editor({ item, setItem, cats, chars, statuses, onSave, onCancel }) {
           <Field label="Compare-at price"><input type="number" inputMode="decimal" step="0.01" min="0" value={item.compare_at_price === 0 || item.compare_at_price == null ? "" : item.compare_at_price} onChange={(e) => set("compare_at_price", e.target.value === "" ? null : parseFloat(e.target.value))} placeholder="optional" className="inp" /></Field>
           <Field label="Inventory Status"><select value={item.inventory_status} onChange={(e) => set("inventory_status", e.target.value)} className="inp">{statuses.map((s) => <option key={s}>{s}</option>)}</select></Field>
           <Field label="Buy Now URL (direct product link)"><input value={item.printify_url || ""} onChange={(e) => set("printify_url", e.target.value)} className="inp" data-testid="product-edit-buy-url" /></Field>
-          <Field label="Primary image URL" full><input value={item.primary_image || ""} onChange={(e) => set("primary_image", e.target.value)} className="inp" data-testid="product-edit-primary-image" /></Field>
-          <Field label="Images (comma-separated URLs)" full><input value={(item.images || []).join(", ")} onChange={(e) => set("images", e.target.value.split(",").map((s) => s.trim()).filter(Boolean))} className="inp" /></Field>
+          <div className="sm:col-span-2">
+            <ImageGalleryUploader
+              label="Product images (drop files or click)"
+              images={item.images && item.images.length ? item.images : (item.primary_image ? [item.primary_image] : [])}
+              onChange={(urls) => setItem({ ...item, images: urls, primary_image: urls[0] || "" })}
+              testid="product-images"
+            />
+          </div>
           <Field label="Short Description" full><input value={item.short_description || ""} onChange={(e) => set("short_description", e.target.value)} className="inp" /></Field>
           <Field label="Long Description" full><textarea value={item.long_description || ""} onChange={(e) => set("long_description", e.target.value)} className="inp min-h-[100px]" rows={4} /></Field>
           <Field label="Tags (comma-separated)" full><input value={(item.tags || []).join(", ")} onChange={(e) => set("tags", e.target.value.split(",").map((s) => s.trim()).filter(Boolean))} className="inp" /></Field>
