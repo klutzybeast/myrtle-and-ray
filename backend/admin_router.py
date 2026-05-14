@@ -633,10 +633,10 @@ def make_admin_router(db, require_admin):
     @router.post("/media/upload")
     async def admin_upload_media(file: UploadFile = File(...), tags: str = Form("")):
         ext = (file.filename or "upload").split(".")[-1].lower()
-        allowed = {"jpg", "jpeg", "png", "webp", "pdf", "zip", "gif", "svg"}
+        allowed = {"jpg", "jpeg", "png", "webp", "pdf", "zip", "gif", "svg", "mp3", "ogg", "wav", "m4a", "aac"}
         if ext not in allowed:
             raise HTTPException(status_code=400, detail=f"File type {ext} not allowed")
-        max_mb = int(os.environ.get("MAX_UPLOAD_MB", "25"))
+        max_mb = int(os.environ.get("MAX_UPLOAD_MB", "50"))
         contents = await file.read()
         size_kb = len(contents) // 1024
         if size_kb > max_mb * 1024:
