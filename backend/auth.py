@@ -102,15 +102,6 @@ def make_router(db):
         access = create_access_token(user["id"], user["email"])
         refresh = create_refresh_token(user["id"])
         _set_cookies(response, access, refresh)
-        settings = await db.settings.find_one({"_id": "settings"}, {"_id": 0}) or {}
-        if settings.get("admin_login_alert_enabled"):
-            await queue_email(
-                db,
-                to=settings.get("admin_login_alert_email", "community@rollingriver.com"),
-                subject="Admin login on Myrtle and Ray site",
-                html=f"<p>An admin login occurred for {user['email']} at {datetime.now(timezone.utc).isoformat()} UTC.</p>",
-                purpose="admin_login_alert",
-            )
         return {
             "id": user["id"],
             "email": user["email"],

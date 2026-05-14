@@ -1,6 +1,6 @@
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../../lib/auth";
-import { Waves, LayoutDashboard, Package, Users, FileText, Settings, Inbox, Mail, Image, Sparkles, LogOut, Send, Download, Layers, PenSquare, ExternalLink, Home } from "lucide-react";
+import { Waves, LayoutDashboard, Package, Users, FileText, Settings, Inbox, Mail, Image, Sparkles, LogOut, Send, Download, Layers, PenSquare, ExternalLink, Home, Megaphone } from "lucide-react";
 
 const ITEMS = [
   { to: "/admin", end: true, label: "Dashboard", icon: LayoutDashboard },
@@ -13,6 +13,7 @@ const ITEMS = [
   { to: "/admin/settings", label: "Site & Emails", icon: Settings },
   { to: "/admin/submissions", label: "Submissions", icon: Inbox },
   { to: "/admin/mailing-list", label: "Mailing List", icon: Mail },
+  { to: "/admin/campaigns", label: "Campaigns", icon: Megaphone },
   { to: "/admin/email-outbox", label: "Email Outbox", icon: Send },
   { to: "/admin/media", label: "Media Library", icon: Image },
   { to: "/admin/activities", label: "Activities", icon: Sparkles },

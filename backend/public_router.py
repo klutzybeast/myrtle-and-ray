@@ -49,6 +49,13 @@ class DownloadCaptureBody(BaseModel):
     subscribe: bool = True
 
 
+class ChatBody(BaseModel):
+    name: str = ""
+    email: EmailStr
+    message: str
+    page: str = ""
+
+
 def make_public_router(db):
     router = APIRouter(tags=["public"])
 
@@ -325,20 +332,12 @@ def make_public_router(db):
                 "tags": body.tags,
                 "created_at": _now(),
             })
-            settings = await db.settings.find_one({"_id": "settings"}, {"_id": 0}) or {}
             await queue_email(
                 db,
                 to=email,
                 subject="Welcome to the wave!",
                 html=f"<p>Hi {body.name or 'friend'},</p><p>Thanks for joining the Myrtle and Ray mailing list. We'll send the wave your way with new downloads, sneak peeks, and gentle encouragements.</p><p>- Marissa, Alison, and the Sea Stars</p>",
                 purpose="mailing_list_welcome",
-            )
-            await queue_email(
-                db,
-                to=settings.get("primary_contact_email", "community@rollingriver.com"),
-                subject="New mailing list signup",
-                html=f"<p>{body.name or '(no name)'} &lt;{email}&gt; via {body.source}</p>",
-                purpose="mailing_list_notify",
             )
         return {"ok": True}
 
@@ -375,12 +374,6 @@ def make_public_router(db):
                 })
         # No admin notification on download captures (intentional — keeps inbox light)
         return {"ok": True}
-
-    class ChatBody(BaseModel):
-        name: str = ""
-        email: EmailStr
-        message: str
-        page: str = ""
 
     @router.post("/chat")
     async def chat_message(body: ChatBody):

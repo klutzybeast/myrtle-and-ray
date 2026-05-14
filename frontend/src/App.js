@@ -9,6 +9,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import StickyActionBar from "@/components/StickyActionBar";
 import PopupSignup from "@/components/PopupSignup";
+import ChatBubble from "@/components/ChatBubble";
 
 import Home from "@/pages/Home";
 import Story from "@/pages/Story";
@@ -38,6 +39,8 @@ import AdminMedia from "@/pages/admin/AdminMedia";
 import AdminActivities from "@/pages/admin/AdminActivities";
 import AdminCustomPages from "@/pages/admin/AdminCustomPages";
 import AdminCustomPageEditor from "@/pages/admin/AdminCustomPageEditor";
+import AdminCampaigns from "@/pages/admin/AdminCampaigns";
+import AdminCampaignEditor from "@/pages/admin/AdminCampaignEditor";
 import CustomPage from "@/pages/CustomPage";
 
 function RequireAdmin({ children }) {
@@ -56,6 +59,7 @@ function PublicShell({ children }) {
       <Footer />
       <StickyActionBar />
       <PopupSignup />
+      <ChatBubble />
     </>
   );
 }
@@ -97,6 +101,8 @@ function App() {
                 <Route path="activities" element={<AdminActivities />} />
                 <Route path="custom-pages" element={<AdminCustomPages />} />
                 <Route path="custom-pages/:slug" element={<AdminCustomPageEditor />} />
+                <Route path="campaigns" element={<AdminCampaigns />} />
+                <Route path="campaigns/:id" element={<AdminCampaignEditor />} />
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

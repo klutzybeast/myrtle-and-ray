@@ -89,7 +89,9 @@ def render_block(block: dict, default_color: str, accent: str) -> str:
         h = int(d.get("height") or 24)
         return f'<div style="height:{h}px;line-height:{h}px;">&nbsp;</div>'
     if t == "quote":
-        return f'{wrap_open}<blockquote style="margin:0;padding:0 0 0 14px;border-left:4px solid {accent};font-style:italic;color:{text_color};font-size:16px;line-height:1.5;">{escape(d.get("text",""))}{(' — ' + escape(d.get("author",""))) if d.get("author") else ""}</blockquote>{wrap_close}'
+        author = d.get("author") or ""
+        author_html = f' \u2014 {escape(author)}' if author else ""
+        return f'{wrap_open}<blockquote style="margin:0;padding:0 0 0 14px;border-left:4px solid {accent};font-style:italic;color:{text_color};font-size:16px;line-height:1.5;">{escape(d.get("text",""))}{author_html}</blockquote>{wrap_close}'
     if t == "html":
         return d.get("html") or ""
     return ""

@@ -1,0 +1,47 @@
+{
+  "summary": "Tested all newly added scope: chat bubble endpoint, removal of admin notification emails (admin_login_alert + mailing_list_notify), and full Email Campaigns module (CRUD, preview render for all 8 block types incl. em-dash quote regression, test-send, send-to-list, recipient_filter by tags, 401 gating). 16/16 new pytest cases pass against the public REACT_APP_BACKEND_URL. Frontend smoke verified: chat bubble open/submit/thank-you works on home; admin sidebar Campaigns link navigates to /admin/campaigns; New Campaign creates and routes into /admin/campaigns/:id editor with live preview iframe and block-add toolbar (Heading/Paragraph/Image/Button/Divider/Spacer/Quote/Raw HTML).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/admin/campaigns/{id}/send", "issue": "Resolved recipient set is built from lower-cased recipient_emails + mailing_list emails, but mailing_list emails are NOT lower-cased on read, so two casings of the same email could be sent to twice."},
+      {"endpoint": "/api/admin/campaigns/{id}/send", "issue": "On partial failure (some queue_email calls raise) the campaign is still marked status='sent'. Consider 'partial' or per-recipient retry."},
+      {"endpoint": "/api/admin/campaigns/{id} (PUT)", "issue": "Empty body still triggers an updated_at-only $set instead of a 400 (same minor pattern as other admin PUTs)."},
+      {"endpoint": "email_renderer.render_block", "issue": "Block content lives under block['data'] but no validation/type checking — sending {type:'heading', text:'x'} silently renders an empty heading. Consider Pydantic validation of block schema."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Home — chat bubble", "issues": ["Toast 'Sent! We'll reply at your email.' overlaps the top navigation links (covers center menu briefly) — z-index/positioning could be lowered or aligned to the bubble's corner."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_new_features.py",
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/new_features.xml",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Optional: lowercase mailing_list emails when reading for campaign send to avoid double-sends.",
+    "Optional: validate campaign block payloads with a Pydantic model so missing block['data'] returns 400 instead of silently rendering empty markup.",
+    "Optional (pre-existing): backend_test.py has 4 env-drift failures unrelated to this review: test_products_list expects 13 (now >13), test_contact/test_outbox_queues_when_no_key assume status=pending (RESEND_API_KEY is now set, so emails go to status=sent), test_upload_list_delete_png expects /uploads/ prefix (now /api/uploads/). Refresh those assertions in a follow-up."
+  ],
+  "critical_code_review_comments": [
+    "email_renderer.py is clean; the em-dash regression is fixed via author_html intermediate (verified by rendering a block with author='Myrtle — the Turtle' and asserting both substrings appear in the preview HTML).",
+    "admin_router.py CampaignSendBody.recipient_filter is typed as Optional[dict] — consider a typed Pydantic sub-model with fields {tags: List[str], source: str, audience: str} for clarity and validation.",
+    "public_router.py /chat correctly forwards visitor email as reply_to and tags purpose='chat' — confirmed via outbox row.",
+    "auth.py login no longer emits any admin_login_alert email — confirmed by counting outbox rows before/after a fresh login.",
+    "public_router.py /mailing-list only emits purpose='mailing_list_welcome' to the visitor; no mailing_list_notify rows produced — confirmed via outbox count diff."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_new_features.py (new — 16 tests)"
+  ],
+  "success_rate": {"backend": "100% (16/16) new-feature tests; 50/54 across full suite (4 pre-existing env-drift failures in backend_test.py unrelated to current review)", "frontend": "smoke passed: chat bubble end-to-end + campaign editor load"},
+  "test_credentials": "community@rollingriver.com / Camp1993! (verified)",
+  "seed_data_creation": "Each test creates and tears down its own data (TEST_-prefixed campaigns, mailing-list rows, etc.). One UI-created campaign was deleted via API at the end of the run; remaining campaigns count = 0. Outbox rows from chat/test-sends remain (status=sent) — fine for inspection.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "RESEND_API_KEY is currently set in backend/.env, so email_outbox rows land with status='sent' (not 'pending'). When refreshing tests, do not assume status='pending'. Media URLs are served under /api/uploads/<file> (the /uploads/ alias may have been removed). New backend tests live at /app/backend/tests/test_new_features.py and are stable. Frontend campaign editor uses data-testid='admin-nav-campaigns' (sidebar), 'admin-campaigns' (list), 'campaign-editor' (editor). Chat bubble uses chat-bubble-open / chat-bubble-panel / chat-name / chat-email / chat-message / chat-send.",
+  "rca of the issue": "N/A — no regressions found. The previously-broken em-dash in email_renderer is fixed and verified by a dedicated preview-rendering test that includes em-dash characters in both quote text and quote author."
+}
