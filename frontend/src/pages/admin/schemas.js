@@ -96,34 +96,48 @@ export const PAGE_SCHEMAS = {
 export const ACTIVITY_SCHEMAS = {
   rhyme_time: {
     title: "Rhyme Time",
-    description: "Fill-in-the-rhyme prompts.",
+    description: "Each level is a pack of fill-in-the-rhyme prompts. The site rotates through levels — kids see a different pack each play.",
     fields: [
       {
-        key: "prompts", label: "Prompts", type: "list",
-        itemLabel: (i, idx) => i?.line ? `Prompt ${idx + 1}` : `Prompt ${idx + 1}`,
+        key: "levels", label: "Levels (rotating packs)", type: "list",
+        itemLabel: (i, idx) => i?.name || `Level ${idx + 1}`,
         itemSchema: [
-          { key: "line", label: "Rhyme line (use ... where the missing word goes)", type: "textarea" },
-          { key: "choices", label: "Choices (comma-separated)", type: "csv" },
-          { key: "answer", label: "Correct answer", type: "text" },
+          { key: "name", label: "Level name (e.g. 'Set 1')", type: "text" },
+          {
+            key: "prompts", label: "Prompts", type: "list",
+            itemLabel: (i, idx) => `Prompt ${idx + 1}`,
+            itemSchema: [
+              { key: "line", label: "Rhyme line (use ... where the missing word goes)", type: "textarea" },
+              { key: "choices", label: "Choices (comma-separated)", type: "csv" },
+              { key: "answer", label: "Correct answer", type: "text" },
+            ],
+          },
         ],
       },
     ],
   },
   quiz: {
     title: "Which Sea Star Are You?",
-    description: "Multi-question quiz that maps to a character.",
+    description: "Each level is a pack of quiz questions. Levels rotate so quizzes feel fresh.",
     fields: [
       {
-        key: "questions", label: "Questions", type: "list",
-        itemLabel: (i, idx) => `Q${idx + 1}: ${(i?.q || "").slice(0, 40)}`,
+        key: "levels", label: "Levels (rotating packs)", type: "list",
+        itemLabel: (i, idx) => i?.name || `Level ${idx + 1}`,
         itemSchema: [
-          { key: "q", label: "Question", type: "text" },
+          { key: "name", label: "Level name", type: "text" },
           {
-            key: "options", label: "Answer options", type: "list",
-            itemLabel: (opt) => opt?.label || "Option",
+            key: "questions", label: "Questions", type: "list",
+            itemLabel: (i, idx) => `Q${idx + 1}: ${(i?.q || "").slice(0, 40)}`,
             itemSchema: [
-              { key: "label", label: "Option text", type: "text" },
-              { key: "char", label: "Maps to character (slug)", type: "text" },
+              { key: "q", label: "Question", type: "text" },
+              {
+                key: "options", label: "Answer options", type: "list",
+                itemLabel: (opt) => opt?.label || "Option",
+                itemSchema: [
+                  { key: "label", label: "Option text", type: "text" },
+                  { key: "char", label: "Maps to character (slug)", type: "text" },
+                ],
+              },
             ],
           },
         ],
@@ -132,47 +146,88 @@ export const ACTIVITY_SCHEMAS = {
   },
   word_search: {
     title: "Word Search",
+    description: "Each level is a themed word pack. The puzzle rotates between themes.",
     fields: [
-      { key: "words", label: "Words (one per line)", type: "lines" },
+      {
+        key: "levels", label: "Levels (themed packs)", type: "list",
+        itemLabel: (i, idx) => i?.name || `Level ${idx + 1}`,
+        itemSchema: [
+          { key: "name", label: "Theme name (e.g. 'Beach', 'W.A.V.E.')", type: "text" },
+          { key: "words", label: "Words (one per line, A–Z only)", type: "lines" },
+        ],
+      },
     ],
   },
   memory_match: {
     title: "Memory Match",
+    description: "Each level controls how many pairs. Difficulty rotates as kids replay.",
     fields: [
-      { key: "difficulties", label: "Difficulty card-counts (comma-separated, e.g. 6,10,13)", type: "csv-num" },
+      {
+        key: "levels", label: "Levels", type: "list",
+        itemLabel: (i, idx) => i?.name ? `${i.name} (${i.pairs || 0} pairs)` : `Level ${idx + 1}`,
+        itemSchema: [
+          { key: "name", label: "Level name", type: "text" },
+          { key: "pairs", label: "Number of pairs", type: "number" },
+        ],
+      },
     ],
   },
   spot_difference: {
     title: "Spot the Difference",
+    description: "Each level picks one of the built-in scenes. The scene rotates between plays.",
     fields: [
       {
-        key: "scenes", label: "Scenes", type: "list",
-        itemLabel: (i, idx) => i?.name || `Scene ${idx + 1}`,
+        key: "levels", label: "Levels", type: "list",
+        itemLabel: (i, idx) => i?.name || `Level ${idx + 1}`,
         itemSchema: [
-          { key: "name", label: "Scene name", type: "text" },
-          { key: "image_a", label: "Image A", type: "image" },
-          { key: "image_b", label: "Image B (with differences)", type: "image" },
+          { key: "name", label: "Level name", type: "text" },
+          { key: "scene_key", label: "Built-in scene (beach | camp)", type: "text" },
         ],
       },
     ],
   },
   coloring: {
     title: "Color the Cay",
+    description: "Each level is a different SVG line-art scene. Palette is shared.",
     fields: [
       { key: "palette", label: "Color palette (hex codes, comma-separated)", type: "csv" },
+      {
+        key: "levels", label: "Levels (scenes)", type: "list",
+        itemLabel: (i, idx) => i?.name || `Level ${idx + 1}`,
+        itemSchema: [
+          { key: "name", label: "Scene name", type: "text" },
+          { key: "scene_key", label: "Built-in scene (wave | camp)", type: "text" },
+        ],
+      },
     ],
   },
   maze: {
     title: "Maze with Billy the Beluga",
+    description: "Each level controls maze size. Mazes rotate from easy to captain.",
     fields: [
-      { key: "width", label: "Maze width (cells)", type: "number" },
-      { key: "height", label: "Maze height (cells)", type: "number" },
+      {
+        key: "levels", label: "Levels", type: "list",
+        itemLabel: (i, idx) => i?.name ? `${i.name} (${i.width||0}×${i.height||0})` : `Level ${idx + 1}`,
+        itemSchema: [
+          { key: "name", label: "Level name", type: "text" },
+          { key: "width", label: "Width (cells, 5–24)", type: "number" },
+          { key: "height", label: "Height (cells, 5–24)", type: "number" },
+        ],
+      },
     ],
   },
   sticker_beach: {
     title: "Sticker Beach",
+    description: "Each level picks a background scene. Scene rotates between plays.",
     fields: [
-      { key: "scene_image", label: "Beach scene background", type: "image" },
+      {
+        key: "levels", label: "Levels (background scenes)", type: "list",
+        itemLabel: (i, idx) => i?.name || `Level ${idx + 1}`,
+        itemSchema: [
+          { key: "name", label: "Scene name", type: "text" },
+          { key: "scene_image", label: "Scene image", type: "image" },
+        ],
+      },
     ],
   },
 };

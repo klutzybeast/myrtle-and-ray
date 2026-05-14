@@ -348,39 +348,98 @@ async def seed_database(db) -> None:
             "updated_at": _now_iso(),
         })
 
-    # --- Activity content placeholders ---
+    # --- Activity content with rotating levels (new schema) ---
     activity_seeds = [
-        {"key": "rhyme_time", "title": "Rhyme Time",
-         "data": {"prompts": [
-             {"line": "Myrtle waved hello to the sun, and zipped down the slide just for...", "choices": ["fun", "sand"], "answer": "fun"},
-             {"line": "Ray paddled out, then caught a big wave, smiling because he was being...", "choices": ["brave", "shy"], "answer": "brave"},
-             {"line": "Ollie made art with each of his eight, his sculpture turned out totally...", "choices": ["great", "late"], "answer": "great"},
-         ]}},
-        {"key": "quiz", "title": "Which Sea Star Are You?",
-         "data": {"questions": [
-             {"q": "Your favorite first-day activity is...", "options": [
-                 {"label": "Searching for seashells", "char": "myrtle"},
-                 {"label": "Surfing the biggest waves", "char": "ray"},
-                 {"label": "Painting a giant mural", "char": "sally"},
-                 {"label": "Climbing the tallest palm", "char": "izzy"},
-             ]},
-             {"q": "Pick a snack", "options": [
-                 {"label": "Seaweed chips", "char": "ollie"},
-                 {"label": "Fruit kabobs", "char": "frankie"},
-                 {"label": "Sand-castle cookies", "char": "casey"},
-                 {"label": "Triple-flip popsicles", "char": "dani"},
-             ]},
-         ]}},
-        {"key": "word_search", "title": "Stingray Cay Word Search",
-         "data": {"words": ["WAVE", "BRAVE", "KIND", "TEAM", "CAMP", "MYRTLE", "RAY", "STAR", "CURL", "SHELL"]}},
-        {"key": "memory_match", "title": "Memory Match", "data": {"difficulties": [6, 10, 13]}},
-        {"key": "spot_difference", "title": "Spot the Difference", "data": {"scenes": []}},
-        {"key": "coloring", "title": "Color the Cay", "data": {"palette": ["#40E0D0", "#FF9B71", "#87CEEB", "#3CB371", "#FFB347", "#9B72CB"]}},
-        {"key": "maze", "title": "Maze with Billy the Beluga", "data": {"width": 12, "height": 12}},
-        {"key": "sticker_beach", "title": "Sticker Beach", "data": {"scene_image": ""}},
+        {"key": "rhyme_time", "title": "Rhyme Time", "data": {"levels": [
+            {"name": "Sea Star starters", "prompts": [
+                {"line": "Myrtle waved hello to the sun, and zipped down the slide just for...", "choices": ["fun", "sand"], "answer": "fun"},
+                {"line": "Ray paddled out, then caught a big wave, smiling because he was being...", "choices": ["brave", "shy"], "answer": "brave"},
+                {"line": "Ollie made art with each of his eight, his sculpture turned out totally...", "choices": ["great", "late"], "answer": "great"},
+            ]},
+            {"name": "Beach buddies", "prompts": [
+                {"line": "Casey dug a castle deep in the sand, the tallest one in the whole...", "choices": ["land", "sea"], "answer": "land"},
+                {"line": "Sally painted murals all bright and bold, even when her brushes felt...", "choices": ["cold", "warm"], "answer": "cold"},
+                {"line": "Jessie floated, soft and still, then taught her friends a gentle...", "choices": ["skill", "song"], "answer": "skill"},
+            ]},
+            {"name": "Camp time", "prompts": [
+                {"line": "Billy swam in loops and zooms, then said hello with happy...", "choices": ["booms", "fish"], "answer": "booms"},
+                {"line": "Frankie strut in pink and tall, the kindest flamingo of them...", "choices": ["all", "few"], "answer": "all"},
+                {"line": "Izzy climbed the palm so high, then waved her arms up at the...", "choices": ["sky", "tree"], "answer": "sky"},
+            ]},
+        ]}},
+        {"key": "quiz", "title": "Which Sea Star Are You?", "data": {"levels": [
+            {"name": "First Day round", "questions": [
+                {"q": "Your favorite first-day activity is...", "options": [
+                    {"label": "Searching for seashells", "char": "myrtle"},
+                    {"label": "Surfing the biggest waves", "char": "ray"},
+                    {"label": "Painting a giant mural", "char": "sally"},
+                    {"label": "Climbing the tallest palm", "char": "izzy"},
+                ]},
+                {"q": "Pick a snack", "options": [
+                    {"label": "Seaweed chips", "char": "ollie"},
+                    {"label": "Fruit kabobs", "char": "frankie"},
+                    {"label": "Sand-castle cookies", "char": "casey"},
+                    {"label": "Triple-flip popsicles", "char": "dani"},
+                ]},
+                {"q": "If you needed a buddy you'd ask...", "options": [
+                    {"label": "The calm one who listens", "char": "jessie"},
+                    {"label": "The friend with a plan", "char": "ms-bluegill"},
+                    {"label": "The one who tells jokes", "char": "louie"},
+                    {"label": "The one who'll race you", "char": "ray"},
+                ]},
+            ]},
+            {"name": "Bravery round", "questions": [
+                {"q": "When something is new, you...", "options": [
+                    {"label": "Breathe and try it slow", "char": "myrtle"},
+                    {"label": "Jump right in", "char": "ray"},
+                    {"label": "Watch first, then go", "char": "jessie"},
+                    {"label": "Bring a friend", "char": "casey"},
+                ]},
+                {"q": "Your superpower would be...", "options": [
+                    {"label": "Eight hands at once", "char": "ollie"},
+                    {"label": "Tail of color", "char": "sally"},
+                    {"label": "Echo-locate friends", "char": "billy"},
+                    {"label": "Glow in the dark", "char": "jessie"},
+                ]},
+            ]},
+        ]}},
+        {"key": "word_search", "title": "Stingray Cay Word Search", "data": {"levels": [
+            {"name": "Beach", "words": ["WAVE", "SAND", "SHELL", "SUN", "SURF", "CRAB", "REEF", "TIDE"]},
+            {"name": "W.A.V.E.", "words": ["WELCOME", "ACT", "VALUE", "ENCOURAGE", "KIND", "BRAVE", "TEAM", "SHINE"]},
+            {"name": "Camp crew", "words": ["MYRTLE", "RAY", "OLLIE", "SALLY", "JESSIE", "CASEY", "BILLY", "FRANKIE"]},
+        ]}},
+        {"key": "memory_match", "title": "Memory Match", "data": {"levels": [
+            {"name": "Easy", "pairs": 6},
+            {"name": "Medium", "pairs": 10},
+            {"name": "Hard", "pairs": 13},
+        ]}},
+        {"key": "spot_difference", "title": "Spot the Difference", "data": {"levels": [
+            {"name": "Beach day", "scene_key": "beach"},
+            {"name": "Camp scene", "scene_key": "camp"},
+        ]}},
+        {"key": "coloring", "title": "Color the Cay", "data": {"palette": ["#40E0D0", "#FF9B71", "#87CEEB", "#3CB371", "#FFB347", "#9B72CB"], "levels": [
+            {"name": "Big Wave", "scene_key": "wave"},
+            {"name": "Stingray Cay", "scene_key": "camp"},
+        ]}},
+        {"key": "maze", "title": "Maze with Billy the Beluga", "data": {"levels": [
+            {"name": "Easy", "width": 8, "height": 8},
+            {"name": "Medium", "width": 12, "height": 12},
+            {"name": "Hard", "width": 16, "height": 16},
+            {"name": "Captain", "width": 20, "height": 20},
+        ]}},
+        {"key": "sticker_beach", "title": "Sticker Beach", "data": {"levels": [
+            {"name": "Sunny beach", "scene_image": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&h=700&fit=crop"},
+            {"name": "Sunset cove", "scene_image": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=1200&h=700&fit=crop"},
+            {"name": "Coral reef", "scene_image": "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?w=1200&h=700&fit=crop"},
+        ]}},
     ]
     for a in activity_seeds:
-        if await db.activity_content.find_one({"key": a["key"]}):
+        existing = await db.activity_content.find_one({"key": a["key"]})
+        if existing:
+            # Migrate: if no levels yet, add the seeded levels in-place
+            if "levels" not in (existing.get("data") or {}):
+                merged = {**(existing.get("data") or {}), **a["data"]}
+                await db.activity_content.update_one({"key": a["key"]}, {"$set": {"data": merged, "updated_at": _now_iso()}})
             continue
         await db.activity_content.insert_one({
             "id": a["key"],

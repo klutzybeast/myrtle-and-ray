@@ -84,6 +84,7 @@ def make_public_router(db):
             "google_analytics_id": s.get("google_analytics_id", ""),
             "meta_pixel_id": s.get("meta_pixel_id", ""),
             "email_gate_enabled": s.get("email_gate_enabled", True),
+            "ambient_audio_url": s.get("ambient_audio_url", ""),
         }
         return public
 

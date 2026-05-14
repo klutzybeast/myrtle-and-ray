@@ -3,7 +3,8 @@ import { Toaster } from "sonner";
 import "@/App.css";
 
 import { AuthProvider, useAuth } from "@/lib/auth";
-import { SiteProvider } from "@/lib/site";
+import { SiteProvider, useSite } from "@/lib/site";
+import { AudioProvider } from "@/lib/audio";
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -42,6 +43,7 @@ import AdminCustomPageEditor from "@/pages/admin/AdminCustomPageEditor";
 import AdminCampaigns from "@/pages/admin/AdminCampaigns";
 import AdminCampaignEditor from "@/pages/admin/AdminCampaignEditor";
 import CustomPage from "@/pages/CustomPage";
+import WaveBadges from "@/pages/WaveBadges";
 
 function RequireAdmin({ children }) {
   const { user, loading } = useAuth();
@@ -49,6 +51,11 @@ function RequireAdmin({ children }) {
   if (loading) return <div className="min-h-screen grid place-items-center text-[#6b7280]">Loading...</div>;
   if (!user || user.role !== "admin") return <Navigate to="/admin/login" state={{ from: loc.pathname }} replace />;
   return children;
+}
+
+function AudioWrapper({ children }) {
+  const site = useSite();
+  return <AudioProvider audioUrl={site?.ambient_audio_url || ""}>{children}</AudioProvider>;
 }
 
 function PublicShell({ children }) {
@@ -70,11 +77,13 @@ function App() {
       <BrowserRouter>
         <AuthProvider>
           <SiteProvider>
-            <Toaster position="top-center" richColors />
-            <Routes>
+            <AudioWrapper>
+              <Toaster position="top-center" richColors />
+              <Routes>
               <Route path="/" element={<PublicShell><Home /></PublicShell>} />
               <Route path="/story" element={<PublicShell><Story /></PublicShell>} />
               <Route path="/activities" element={<PublicShell><Activities /></PublicShell>} />
+              <Route path="/wave-badges" element={<PublicShell><WaveBadges /></PublicShell>} />
               <Route path="/read-aloud" element={<PublicShell><ReadAloud /></PublicShell>} />
               <Route path="/shop" element={<PublicShell><Shop /></PublicShell>} />
               <Route path="/shop/:slug" element={<PublicShell><ShopDetail /></PublicShell>} />
@@ -106,6 +115,7 @@ function App() {
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
+            </AudioWrapper>
           </SiteProvider>
         </AuthProvider>
       </BrowserRouter>

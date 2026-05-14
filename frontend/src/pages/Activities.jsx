@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { toast } from "sonner";
+import { useAudio } from "../lib/audio";
 import { Puzzle, Search, Map as MapIcon, Award, Star, Palette, Music, Sticker, X } from "lucide-react";
 
 import MemoryMatch from "./games/MemoryMatch";
@@ -50,6 +52,7 @@ export default function Activities() {
   const [activeData, setActiveData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [badges, setBadges] = useState(readBadges());
+  const { pop } = useAudio();
 
   useEffect(() => {
     if (!active) { setActiveData(null); return; }
@@ -81,7 +84,7 @@ export default function Activities() {
           {TILES.map((t) => {
             const earned = badges.includes(t.key);
             return (
-              <button key={t.key} onClick={() => setActive(t)} className="card-soft p-5 text-left relative" data-testid={`activity-tile-${t.key}`}>
+              <button key={t.key} onClick={() => { pop(); setActive(t); }} className="card-soft p-5 text-left relative" data-testid={`activity-tile-${t.key}`}>
                 <div className="w-12 h-12 rounded-2xl grid place-items-center mb-3" style={{ background: `${t.color}22` }}>
                   <t.icon className="w-6 h-6" style={{ color: t.color }} strokeWidth={2.5} />
                 </div>
@@ -120,8 +123,13 @@ export default function Activities() {
         )}
 
         <section className="mt-12 card-cream p-6 md:p-8" data-testid="badges-section">
-          <h3 className="font-accent text-2xl font-bold">My Wave Badges</h3>
-          <p className="text-[#4a5568] mt-1">Every game you finish earns a badge.</p>
+          <div className="flex items-start justify-between flex-wrap gap-3">
+            <div>
+              <h3 className="font-accent text-2xl font-bold">My Wave Badges</h3>
+              <p className="text-[#4a5568] mt-1">Every game you finish earns a badge. {badges.length}/{TILES.length} collected.</p>
+            </div>
+            <Link to="/wave-badges" className="btn-secondary text-sm" data-testid="see-all-badges">See all badges →</Link>
+          </div>
           {badges.length === 0 ? (
             <div className="text-[#6b7280] mt-3">No badges yet — tap a game above to start.</div>
           ) : (

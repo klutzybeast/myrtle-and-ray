@@ -1,0 +1,37 @@
+{
+  "summary": "Iteration 5 testing — Activity Levels system (all 8 games), /wave-badges page, ambient audio system, and Story page voice buttons. Backend: 28/28 pytest tests passed (12 new + 16 regression). Frontend: all level pickers/Next/localStorage persistence work, /wave-badges renders 8 tiles + progress, audio toggle persists in localStorage, story page voice buttons disabled when audio_url empty (as expected), admin login still works, no JS console errors on /, /story, /activities, /wave-badges, /admin.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Story.jsx - disabled Hear my voice button", "issue": "When c.audio_url is empty the fallback disabled <button> does NOT carry data-testid=voice-<slug>. Only the enabled variant has it. The spec says testid is optional on disabled, but for testability/parity, consider always emitting data-testid=voice-<slug> (with disabled attribute). 13 disabled buttons present, 0 with testid.", "selector": "/app/frontend/src/pages/Story.jsx L66", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_levels_and_audio.py",
+    "/app/backend/tests/test_new_features.py",
+    "/app/test_reports/pytest/iter5_levels.xml"
+  ],
+  "action_items": [
+    "(LOW) Add data-testid=voice-<slug> to the disabled fallback button in Story.jsx so test harness can target both enabled & disabled states consistently."
+  ],
+  "critical_code_review_comments": [
+    "Backend /api/site correctly surfaces ambient_audio_url (empty string default) and persists when PUT via /api/admin/settings.",
+    "Activity LEVELS: all 8 games return data.levels with expected counts (maze=4 sizes 8/12/16/20; word_search=3; memory_match=3; rhyme_time=3; quiz=2; coloring=2; spot_difference=2; sticker_beach=3). Admin PUT /api/admin/activity-content/<key> with new levels persists and re-reads via public endpoint.",
+    "Maze level data uses 'width'/'height' keys (not 'size'); test was adjusted accordingly. Worth standardising key naming across games for clarity (some use 'pairs', 'size', 'width', 'name', 'title').",
+    "Frontend LevelHeader: pickers [data-testid^=level-pick-] and [data-testid=level-next] render only when total>1 — correctly implemented for all games. localStorage keys mr_level_<activity_key> verified for maze (0→1→2), memory_match (deck sizes 12/20/26 confirmed for Easy/Medium/Hard).",
+    "WordSearch pack switching rebuilds targets — verified (Beach: WAVE/SAND/SHELL → W.A.V.E.: WELCOME/ACT/VALUE).",
+    "Audio toggle in header persists state ('on'/'off') in localStorage 'mr_audio'; no AudioContext errors thrown in console; toggle icon swaps Volume2/VolumeX.",
+    "Wave Badges page: renders 8 badge-tile-* cards (all grayscale on fresh session), badge-progress text correct ('0 of 8 earned' + '0% complete'), captain-banner hidden until all 8 earned (verified hidden state), 'Back to Activities' link routes back. Tested by hitting /wave-badges and via in-page 'See all badges →' link.",
+    "Admin login flow OK via [data-testid=login-email/login-password/login-submit]; reached /admin dashboard. No regression in chat bubble (visible on home)."
+  ],
+  "updated_files": ["/app/backend/tests/test_levels_and_audio.py"],
+  "success_rate": {"backend": "100% (28/28)", "frontend": "~98% (all primary level flows + wave-badges + audio toggle + admin login OK; only minor missing testid on disabled voice button)"},
+  "test_credentials": "Admin community@rollingriver.com / Camp1993! (from /app/memory/test_credentials.md) — verified working at /admin/login.",
+  "seed_data_creation": "None. Used existing seeded activity rows (which now carry levels via idempotent migration in seed.py).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All 8 activities now expose data.levels in /api/activities/<key>. Use [data-testid^=level-pick-N] (0-indexed) and [data-testid=level-next] for picker controls. localStorage key for level index is mr_level_<key> (key = activity key like 'maze','memory_match','sticker_beach'). Audio toggle testid: audio-toggle. Wave Badges page uses [data-testid^=badge-tile-], [data-testid=badge-progress], [data-testid=captain-banner] (the banner only mounts when all 8 earned). Admin login submit testid: login-submit (NOT admin-submit). To suppress newsletter popup in test sessions, set localStorage mr_popup_seen=1 and mr_signup_seen=1 before navigating.",
+  "rca of the issue": "N/A — no critical issues. The only minor finding is the disabled 'Hear my voice' button in Story.jsx lacking a data-testid; main agent can add `data-testid={`voice-${c.slug}`}` to the disabled fallback (~1 line change at /app/frontend/src/pages/Story.jsx line 66)."
+}

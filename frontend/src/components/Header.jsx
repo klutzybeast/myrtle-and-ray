@@ -1,6 +1,7 @@
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useSite } from "../lib/site";
+import { useAudio } from "../lib/audio";
 import { Waves, Menu, Volume2, VolumeX, X, LogIn } from "lucide-react";
 
 const NAV = [
@@ -17,7 +18,7 @@ const NAV = [
 
 export default function Header() {
   const site = useSite();
-  const [audio, setAudio] = useState(false);
+  const { enabled: audio, toggle: toggleAudio } = useAudio();
   const [open, setOpen] = useState(false);
   const loc = useLocation();
   useEffect(() => setOpen(false), [loc.pathname]);
@@ -47,7 +48,7 @@ export default function Header() {
           {/* Right actions */}
           <div className="flex items-center gap-1.5">
             <button
-              onClick={() => setAudio((v) => !v)}
+              onClick={toggleAudio}
               className="w-9 h-9 grid place-items-center rounded-full hover:bg-[#eef9fb] transition"
               aria-label={audio ? "Mute ambient sound" : "Play ambient sound"}
               title={audio ? "Mute" : "Play ambient"}

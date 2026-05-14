@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
-import { Volume2, Palette } from "lucide-react";
+import { useAudio } from "../lib/audio";
+import { Volume2, Palette, VolumeOff } from "lucide-react";
 
 const HOTSPOTS = [
   { id: "welcome-sign", title: "Welcome Sign", x: 22, y: 78, char: "ms-bluegill", desc: "Ms Bluegill welcomes every camper here on the very first day." },
@@ -19,6 +20,7 @@ export default function Story() {
   const [chars, setChars] = useState([]);
   const [flipped, setFlipped] = useState({});
   const [hotspot, setHotspot] = useState(null);
+  const { playClip } = useAudio();
 
   useEffect(() => {
     api.get("/characters").then(({ data }) => setChars(data)).catch(() => {});
@@ -58,7 +60,11 @@ export default function Story() {
                   </div>
                 )}
                 <div className="mt-5 flex flex-wrap gap-2 justify-center">
-                  <button className="btn-ghost text-xs"><Volume2 className="w-4 h-4" />Hear my voice</button>
+                  {c.audio_url ? (
+                    <button onClick={() => playClip(c.audio_url)} className="btn-ghost text-xs" data-testid={`voice-${c.slug}`}><Volume2 className="w-4 h-4" />Hear my voice</button>
+                  ) : (
+                    <button disabled title="Coming soon — admin can upload an audio clip" className="btn-ghost text-xs opacity-50 cursor-not-allowed"><VolumeOff className="w-4 h-4" />Hear my voice</button>
+                  )}
                   <Link to={`/downloads/color-${c.slug}`} className="btn-ghost text-xs"><Palette className="w-4 h-4" />Color me</Link>
                 </div>
               </div>
