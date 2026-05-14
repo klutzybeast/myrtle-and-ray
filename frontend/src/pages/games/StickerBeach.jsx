@@ -57,9 +57,9 @@ export default function StickerBeach({ data, onComplete }) {
           <button key={s} onClick={() => setPicked(s)} className={`w-10 h-10 rounded-2xl text-2xl border-2 ${picked === s ? "border-[#3a4a55] bg-[#eef9fb]" : "border-[#f4e4c6] bg-white hover:bg-[#fffbf3]"}`} data-testid={`sticker-${s}`}>{s}</button>
         ))}
       </div>
-      <div ref={stageRef} onClick={addAt} onMouseMove={onMove} onMouseUp={onUp} onMouseLeave={onUp} onTouchMove={onMove} onTouchEnd={onUp}
+      <div ref={stageRef} onClick={addAt} onMouseMove={onMove} onMouseUp={onUp} onMouseLeave={onUp} onTouchMove={(e) => { e.preventDefault(); onMove(e); }} onTouchEnd={onUp}
         className="relative rounded-2xl overflow-hidden border-4 border-white shadow-inner select-none"
-        style={{ aspectRatio: "16/9", background: `center/cover no-repeat url(${sceneImg})` }} data-testid="sticker-stage">
+        style={{ aspectRatio: "16/9", background: `center/cover no-repeat url(${sceneImg})`, touchAction: "none" }} data-testid="sticker-stage">
         {items.map((it) => (
           <div key={it.id} data-sticker="1" onMouseDown={(e) => onDown(it.id, e)} onTouchStart={(e) => onDown(it.id, e)} onDoubleClick={(e) => removeOne(it.id, e)}
             className="absolute -translate-x-1/2 -translate-y-1/2 cursor-move drop-shadow-md hover:scale-110 active:scale-105 transition-transform"

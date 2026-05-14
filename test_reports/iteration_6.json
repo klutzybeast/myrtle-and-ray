@@ -1,0 +1,28 @@
+{
+  "summary": "Iteration 6 — Frontend regression tests for 3 reported bug fixes: (1) WordSearch grid stability during drag, (2) Activity modal not closing on drag-out, (3) SpotDifference responsive layout. Plus regression checks on StickerBeach, Maze, and mobile modal sizing. 25/25 functional checks passed across PC (1280x900), Tablet (768x1024), and Mobile (390x844) viewports.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "BUG #1 FIX VERIFIED — WordSearch.jsx L46: useMemo dep is now level?.words (stable primitive ref via memoised parent). Snapshot of all 144 cells before/after a 6-cell drag (cell-0-0 → cell-0-5) is IDENTICAL on PC, Tablet, and Mobile viewports. touchAction:none confirmed on grid container so mobile drag won't scroll the page.",
+    "BUG #2 FIX VERIFIED — Activities.jsx L116-124: armed-flag onMouseDown/onMouseUp pattern works. Verified three scenarios in WordSearch modal: (a) drag that ENDS inside grid → modal stays open ✓, (b) drag that STARTS inside grid and ENDS on backdrop → modal stays open ✓ (this was the user-reported regression), (c) plain mousedown+mouseup directly on backdrop with no drag → modal closes ✓.",
+    "BUG #3 FIX VERIFIED — SpotDifference.jsx: md:grid-cols-2 + preserveAspectRatio='xMidYMid meet' confirmed. Image-B bbox aspect ratio = 1.50 (3:2) on ALL three viewports. Side-by-side on PC (a.x=220 / b.x=650) and Tablet 768 (a.x=52 / b.x=394). Stacked on Mobile 390 (both at x=32). Cloud diff at cx=180,cy=80 correctly registers a click on the right-hand SVG at every viewport (sd-found-cloud element appears).",
+    "REGRESSIONS — StickerBeach drag-to-move works on PC and Mobile without closing the parent modal (touch-action:none + stopPropagation on inner card). Maze keyboard ArrowRight/ArrowDown moves the player (verified DOM position delta). 'New maze' button clickable. Mobile maze arrow buttons present via aria-label (data-testid='maze-arrow-*' not used but functionality intact — main agent may optionally add testids for consistency).",
+    "MOBILE LAYOUT — All 8 activity tiles fit at 390x844 (grid-cols-2). Modal inner card max-h-[92vh] (503px of 844 viewport) with overflow-y:auto. LevelHeader pickers wrap properly. No horizontal overflow observed.",
+    "MINOR NIT — The 'Tap differences here' label text is rendered in CSS uppercase; this is a display style, not a content issue. Visible in screenshots.",
+    "CONSOLE — Multiple 401s in console come from polling endpoints that require auth (admin status); not related to these bug fixes and present in prior iterations. No JS exceptions, no audio errors during tile pop sound, no React warnings."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "not tested this iteration", "frontend": "100% (25/25 functional checks)"},
+  "test_credentials": "n/a — frontend-only run, no auth required.",
+  "seed_data_creation": "None.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All three reported bugs are verified fixed. Test harness uses mouse drag to simulate touch (Playwright touch emulation limitation noted). For WordSearch stability the canonical assertion is: snapshot textContent of all [data-testid^='ws-cell-'] before/after drag — must be deep-equal. For modal close logic the armed-flag is set on backdrop mousedown only if e.target === e.currentTarget; resetting after mouseup. Useful selectors: [data-testid='activity-modal'] (the backdrop), [data-testid='activity-close'], [data-testid='sd-image-b'], [data-testid='sd-found-<id>'], [data-testid='sticker-stage'], [data-testid^='placed-'].",
+  "rca of the issue": "N/A — all three bug fixes verified across PC/Tablet/Mobile. No regressions observed in StickerBeach, Maze, or modal sizing."
+}

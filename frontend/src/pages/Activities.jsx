@@ -113,8 +113,16 @@ export default function Activities() {
         </div>
 
         {active && (
-          <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-3 sm:p-6" onClick={() => setActive(null)} data-testid="activity-modal">
-            <div className="bg-white rounded-[28px] max-w-4xl w-full max-h-[92vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-3 sm:p-6"
+            // Only close when the user STARTED and ENDED on the backdrop (not a drag that crossed it).
+            onMouseDown={(e) => { if (e.target === e.currentTarget) e.currentTarget.dataset.armed = "1"; }}
+            onMouseUp={(e) => { if (e.target === e.currentTarget && e.currentTarget.dataset.armed === "1") setActive(null); e.currentTarget.dataset.armed = ""; }}
+            onTouchStart={(e) => { if (e.target === e.currentTarget) e.currentTarget.dataset.armed = "1"; }}
+            onTouchEnd={(e) => { if (e.target === e.currentTarget && e.currentTarget.dataset.armed === "1") setActive(null); e.currentTarget.dataset.armed = ""; }}
+            data-testid="activity-modal"
+          >
+            <div className="bg-white rounded-[28px] max-w-4xl w-full max-h-[92vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()} onMouseUp={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} onTouchEnd={(e) => e.stopPropagation()}>
               <header className="sticky top-0 z-10 flex items-center justify-between p-4 sm:p-5 bg-white/95 backdrop-blur border-b border-[#f4e4c6]">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="w-10 h-10 rounded-2xl grid place-items-center shrink-0" style={{ background: `${active.color}22` }}>

@@ -122,10 +122,14 @@ export default function SpotDifference({ data, onComplete }) {
     <div className="space-y-3" data-testid="game-spot-difference">
       <LevelHeader idx={idx} total={total} levels={L} onPick={setLevel} onAdvance={advance} />
       <div className="text-center text-sm text-[#4a5568]">Tap the differences in the right-hand picture. Find all {scene.diffs.length}!</div>
-      <div className="grid sm:grid-cols-2 gap-3">
-        <div className="bg-white rounded-2xl border-4 border-[#f4e4c6] overflow-hidden"><svg viewBox="0 0 600 400" className="w-full h-auto">{scene.a}</svg></div>
-        <div className="bg-white rounded-2xl border-4 border-[#f4e4c6] overflow-hidden">
-          <svg viewBox="0 0 600 400" className="w-full h-auto cursor-crosshair" onClick={handleClick} data-testid="sd-image-b">
+      <div className="grid md:grid-cols-2 gap-3">
+        <div className="relative bg-white rounded-2xl border-4 border-[#f4e4c6] overflow-hidden">
+          <span className="absolute top-2 left-2 z-10 bg-white/90 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider text-[#5a8a6f]">Original</span>
+          <svg viewBox="0 0 600 400" preserveAspectRatio="xMidYMid meet" className="w-full h-auto block">{scene.a}</svg>
+        </div>
+        <div className="relative bg-white rounded-2xl border-4 border-[#f4e4c6] overflow-hidden">
+          <span className="absolute top-2 left-2 z-10 bg-white/90 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider text-[#f0a988]">Tap differences here</span>
+          <svg viewBox="0 0 600 400" preserveAspectRatio="xMidYMid meet" className="w-full h-auto block cursor-crosshair touch-manipulation" onClick={handleClick} data-testid="sd-image-b">
             {scene.b}
             {Array.from(foundIds).map((id) => { const d = scene.diffs.find((x) => x.id === id); return <circle key={id} cx={d.cx} cy={d.cy} r={d.r} fill="none" stroke="#7cbf94" strokeWidth="4" data-testid={`sd-found-${id}`} />; })}
           </svg>

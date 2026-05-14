@@ -42,7 +42,8 @@ export default function WordSearch({ data, onComplete }) {
     return [];
   }, [data]);
   const { level, idx, total, advance, setLevel, levels: L } = useRotatingLevel("word_search", levels);
-  const words = (level?.words || []).filter(Boolean);
+  // IMPORTANT: stable reference for words so the grid doesn't rebuild on every render.
+  const words = useMemo(() => (level?.words || []).filter(Boolean), [level?.words]);
 
   const [seed, setSeed] = useState(0);
   const { grid, placements } = useMemo(() => buildGrid(words), [words, seed]);
@@ -88,13 +89,14 @@ export default function WordSearch({ data, onComplete }) {
   return (
     <div className="space-y-3" data-testid="game-word-search">
       <LevelHeader idx={idx} total={total} levels={L} onPick={setLevel} onAdvance={advance} />
-      <div className="grid select-none" style={{ gridTemplateColumns: `repeat(${SIZE},1fr)` }} onMouseLeave={end} onMouseUp={end} onTouchEnd={end}>
+      <div className="grid select-none" style={{ gridTemplateColumns: `repeat(${SIZE},1fr)`, touchAction: "none" }} onMouseLeave={end} onMouseUp={end} onTouchEnd={end}>
         {grid.map((row, r) => row.map((ch, c) => (
           <div key={`${r}-${c}`}
-            onMouseDown={() => start(r, c)} onMouseEnter={() => enter(r, c)}
-            onTouchStart={() => start(r, c)}
-            onTouchMove={(e) => { const t = e.touches[0]; const el = document.elementFromPoint(t.clientX, t.clientY); const rr = el?.getAttribute("data-r"), cc = el?.getAttribute("data-c"); if (rr !== null && cc !== null) enter(parseInt(rr, 10), parseInt(cc, 10)); }}
+            onMouseDown={(e) => { e.preventDefault(); start(r, c); }} onMouseEnter={() => enter(r, c)}
+            onTouchStart={(e) => { e.preventDefault(); start(r, c); }}
+            onTouchMove={(e) => { e.preventDefault(); const t = e.touches[0]; const el = document.elementFromPoint(t.clientX, t.clientY); const rr = el?.getAttribute("data-r"), cc = el?.getAttribute("data-c"); if (rr !== null && cc !== null) enter(parseInt(rr, 10), parseInt(cc, 10)); }}
             data-r={r} data-c={c} data-testid={`ws-cell-${r}-${c}`}
+            style={{ touchAction: "none", userSelect: "none" }}
             className={`aspect-square grid place-items-center font-bold text-sm md:text-base cursor-pointer ${inFound(r, c) ? "bg-[#b8e0c2]" : inSel(r, c) ? "bg-[#a8e6e1]" : "bg-white hover:bg-[#eef9fb]"} border border-[#f4e4c6] text-[#3a4a55]`}>{ch}</div>
         )))}
       </div>
