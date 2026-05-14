@@ -32,8 +32,11 @@ function renderField(field, value, onChange) {
         <Label key={field.key} text={field.label}>
           <input
             type="number"
-            value={value ?? ""}
+            inputMode="decimal"
+            step={field.step || "any"}
+            value={value === 0 || value == null ? "" : value}
             onChange={(e) => onChange(e.target.value === "" ? "" : Number(e.target.value))}
+            placeholder={field.placeholder || ""}
             className="inp max-w-[200px]"
             data-testid={`field-${field.key}`}
           />

@@ -56,7 +56,7 @@ export default function AdminDownloadCategories() {
               <input placeholder="Icon (lucide name)" value={editing.icon || ""} onChange={(e) => setEditing({ ...editing, icon: e.target.value })} className="inp" />
               <input placeholder="Description" value={editing.description || ""} onChange={(e) => setEditing({ ...editing, description: e.target.value })} className="inp" />
               <input type="color" value={editing.color || "#7fcfc7"} onChange={(e) => setEditing({ ...editing, color: e.target.value })} className="w-full h-12 rounded-full" />
-              <input type="number" placeholder="Order" value={editing.order || 0} onChange={(e) => setEditing({ ...editing, order: parseInt(e.target.value, 10) || 0 })} className="inp" />
+              <input type="number" placeholder="Order" value={editing.order === 0 || editing.order == null ? "" : editing.order} onChange={(e) => setEditing({ ...editing, order: e.target.value === "" ? 0 : parseInt(e.target.value, 10) || 0 })} className="inp" />
               <label className="flex items-center gap-2"><input type="checkbox" checked={editing.visible !== false} onChange={(e) => setEditing({ ...editing, visible: e.target.checked })} />Visible on site</label>
             </div>
             <div className="flex justify-end gap-2 mt-5"><button onClick={() => { setEditing(null); setCreating(false); }} className="btn-ghost">Cancel</button><button onClick={() => save(editing)} className="btn-primary"><Save className="w-4 h-4" />Save</button></div>

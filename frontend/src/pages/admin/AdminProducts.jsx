@@ -15,12 +15,13 @@ export default function AdminProducts() {
   const load = () => api.get("/admin/products").then(({ data }) => setItems(data));
   useEffect(() => { load(); api.get("/admin/characters").then(({ data }) => setChars(data)); }, []);
 
-  const blank = { name: "", slug: "", category: "Stuffies", character_slug: "", short_description: "", long_description: "", price: 0, compare_at_price: null, images: [], primary_image: "", printify_url: "", inventory_status: "In Stock", featured: false, tags: [], published: true };
+  const blank = { name: "", slug: "", category: "Stuffies", character_slug: "", short_description: "", long_description: "", price: null, compare_at_price: null, images: [], primary_image: "", printify_url: "", inventory_status: "In Stock", featured: false, tags: [], published: true };
 
   const save = async (data) => {
     try {
-      if (creating) await api.post("/admin/products", data);
-      else await api.put(`/admin/products/${editing.slug}`, data);
+      const payload = { ...data, price: data.price == null || data.price === "" ? 0 : Number(data.price) };
+      if (creating) await api.post("/admin/products", payload);
+      else await api.put(`/admin/products/${editing.slug}`, payload);
       toast.success("Saved!");
       setEditing(null); setCreating(false);
       load();
@@ -90,8 +91,8 @@ function Editor({ item, setItem, cats, chars, statuses, onSave, onCancel }) {
           <Field label="Slug (auto if blank)"><input value={item.slug || ""} onChange={(e) => set("slug", e.target.value)} className="inp" /></Field>
           <Field label="Category"><select value={item.category} onChange={(e) => set("category", e.target.value)} className="inp">{cats.map((c) => <option key={c}>{c}</option>)}</select></Field>
           <Field label="Character (optional)"><select value={item.character_slug || ""} onChange={(e) => set("character_slug", e.target.value)} className="inp"><option value="">None</option>{chars.map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}</select></Field>
-          <Field label="Price (USD)"><input type="number" step="0.01" min="0" value={item.price ?? ""} onChange={(e) => set("price", e.target.value === "" ? 0 : parseFloat(e.target.value))} placeholder="0.00" className="inp" /></Field>
-          <Field label="Compare-at price"><input type="number" step="0.01" min="0" value={item.compare_at_price ?? ""} onChange={(e) => set("compare_at_price", e.target.value === "" ? null : parseFloat(e.target.value))} placeholder="optional" className="inp" /></Field>
+          <Field label="Price (USD)"><input type="number" inputMode="decimal" step="0.01" min="0" value={item.price === 0 || item.price == null ? "" : item.price} onChange={(e) => set("price", e.target.value === "" ? null : e.target.value)} placeholder="0.00" className="inp" data-testid="product-edit-price" /></Field>
+          <Field label="Compare-at price"><input type="number" inputMode="decimal" step="0.01" min="0" value={item.compare_at_price === 0 || item.compare_at_price == null ? "" : item.compare_at_price} onChange={(e) => set("compare_at_price", e.target.value === "" ? null : parseFloat(e.target.value))} placeholder="optional" className="inp" /></Field>
           <Field label="Inventory Status"><select value={item.inventory_status} onChange={(e) => set("inventory_status", e.target.value)} className="inp">{statuses.map((s) => <option key={s}>{s}</option>)}</select></Field>
           <Field label="Buy Now URL (direct product link)"><input value={item.printify_url || ""} onChange={(e) => set("printify_url", e.target.value)} className="inp" data-testid="product-edit-buy-url" /></Field>
           <Field label="Primary image URL" full><input value={item.primary_image || ""} onChange={(e) => set("primary_image", e.target.value)} className="inp" data-testid="product-edit-primary-image" /></Field>
