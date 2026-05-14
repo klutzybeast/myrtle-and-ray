@@ -102,6 +102,24 @@ Casey, Dani, Sami, Izzy, Louie, Billy, Frankie.
 - Fixed: PopupSignup no longer auto-opens on /activities (was overlapping
   game modals). Now waits 12s on other pages.
 
+## What's been implemented (2026-02-14, pass 4)
+- **Rotating levels** for every game: admin edits a `levels[]` array per
+  activity (Maze sizes Easy/Medium/Hard/Captain, Word Search themed packs
+  Beach/W.A.V.E./Camp crew, etc). Public game shows a level picker +
+  "Next →" cycle. Current level persists in localStorage `mr_level_<key>`.
+  Idempotent backend migration adds defaults to existing rows.
+- **Dedicated `/wave-badges` page**: 8 badge tiles (earned vs grayscale),
+  progress bar, "Captain of the Cay" banner when all 8 earned, linked
+  from Activities page.
+- **Audio system**: synthesized ocean loop via Web Audio (no external
+  files), tap-pop on game tile click, "Hear my voice" buttons on Sea
+  Star cards in /story now play character `audio_url` when admin
+  uploads one (disabled fallback otherwise). New admin setting
+  `ambient_audio_url` lets admin override the synthesized loop with
+  a real MP3.
+- Tested: 28/28 backend pytest (iteration_5.json); all level rotation +
+  badges page + audio toggle verified end-to-end.
+
 ## Prioritized backlog
 **P1 (next pass)**
 - Build the 8 activity games (Memory Match, Spot the Difference, Coloring

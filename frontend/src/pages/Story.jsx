@@ -63,7 +63,7 @@ export default function Story() {
                   {c.audio_url ? (
                     <button onClick={() => playClip(c.audio_url)} className="btn-ghost text-xs" data-testid={`voice-${c.slug}`}><Volume2 className="w-4 h-4" />Hear my voice</button>
                   ) : (
-                    <button disabled title="Coming soon — admin can upload an audio clip" className="btn-ghost text-xs opacity-50 cursor-not-allowed"><VolumeOff className="w-4 h-4" />Hear my voice</button>
+                    <button disabled title="Coming soon — admin can upload an audio clip" className="btn-ghost text-xs opacity-50 cursor-not-allowed" data-testid={`voice-${c.slug}`}><VolumeOff className="w-4 h-4" />Hear my voice</button>
                   )}
                   <Link to={`/downloads/color-${c.slug}`} className="btn-ghost text-xs"><Palette className="w-4 h-4" />Color me</Link>
                 </div>
