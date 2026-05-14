@@ -16,6 +16,8 @@ export function AudioProvider({ children, urls }) {
   const [trackIdx, setTrackIdx] = useState(0);
   const elRef = useRef(null);
   const popCtxRef = useRef(null);
+  const playlistRef = useRef(playlist);
+  useEffect(() => { playlistRef.current = playlist; }, [playlist]);
 
   // (Re)build the audio element whenever the URL for the current track changes
   useEffect(() => {
@@ -24,19 +26,45 @@ export function AudioProvider({ children, urls }) {
       return;
     }
     const url = playlist[trackIdx % playlist.length];
-    if (elRef.current) { try { elRef.current.pause(); } catch {} }
-    const el = new Audio(url);
-    el.loop = false; // we manage looping via onended → next track
+    if (elRef.current) { try { elRef.current.pause(); elRef.current.src = ""; } catch {} }
+    const el = new Audio();
+    el.loop = false; // playlist mode — DO NOT loop the same song
     el.volume = 0.5;
     el.preload = "auto";
-    el.crossOrigin = "anonymous";
-    el.onended = () => setTrackIdx((i) => (i + 1) % playlist.length);
-    el.onerror = () => { // skip broken track after a brief delay
-      setTimeout(() => setTrackIdx((i) => (i + 1) % playlist.length), 800);
+    // Note: deliberately NOT setting crossOrigin — same-origin /api/uploads/* don't need it
+    // and setting it can prevent the 'ended' event from firing in some browsers.
+
+    const goNext = () => {
+      // Use functional updater + ref to current playlist length to avoid stale closures
+      setTrackIdx((i) => {
+        const len = playlistRef.current.length || 1;
+        return (i + 1) % len;
+      });
     };
+
+    el.addEventListener("ended", goNext);
+    el.addEventListener("error", () => setTimeout(goNext, 800));
+    // Safety: if 'ended' never fires (some MP3s lack metadata), poll a watchdog
+    let watchdog = null;
+    const startWatchdog = () => {
+      if (watchdog) clearInterval(watchdog);
+      watchdog = setInterval(() => {
+        if (!el.duration || Number.isNaN(el.duration)) return;
+        if (el.currentTime >= el.duration - 0.05 && !el.paused) {
+          clearInterval(watchdog);
+          goNext();
+        }
+      }, 1000);
+    };
+    el.addEventListener("playing", startWatchdog);
+
+    el.src = url; // assign AFTER listeners so we don't miss early events
     elRef.current = el;
     if (enabled) el.play().catch(() => {});
-    return () => { try { el.pause(); } catch {} };
+    return () => {
+      try { el.pause(); el.src = ""; } catch {}
+      if (watchdog) clearInterval(watchdog);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playlist, trackIdx]);
 
