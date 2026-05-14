@@ -47,7 +47,7 @@ export default function Home() {
         </div>
         <div className="relative max-w-7xl mx-auto px-4 md:px-6 pt-12 pb-24 md:pb-32 flex items-center">
           <div className="text-center md:text-left max-w-3xl mx-auto">
-            <span className="inline-block bg-white/80 backdrop-blur px-4 py-1 rounded-full font-accent font-semibold text-[#7cbf94] text-sm mb-4">A rhyming picture book · Ages 3–8</span>
+            <span className="inline-block bg-white/80 backdrop-blur px-4 py-1 rounded-full font-accent font-semibold text-[#7cbf94] text-sm mb-4" data-testid="hero-wave-tag">Catch the W.A.V.E. of Excitement</span>
             <h1 className="font-accent text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.05] text-[#2e3a3a] drop-shadow-sm" data-testid="hero-headline">
               {hero.headline || "Welcome to Stingray Cay"}
             </h1>

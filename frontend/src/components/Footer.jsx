@@ -41,7 +41,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-12 grid md:grid-cols-3 gap-10">
         <div>
           <h3 className="font-accent text-2xl font-bold mb-3">{site.site_name || "Myrtle and Ray"}</h3>
-          <p className="text-[#4a5568] leading-relaxed">A rhyming picture book about being brave on your very first day. Catch the W.A.V.E. of Excitement with Myrtle, Ray, and every Sea Star at Stingray Cay.</p>
+          <p className="text-[#4a5568] leading-relaxed">A book about being brave on your very first day. Catch the W.A.V.E. of Excitement with Myrtle, Ray, and every Sea Star at Stingray Cay.</p>
           <p className="mt-4 text-sm text-[#6b7280]">By Marissa Allaben & Alison Rothenberg · Edited by Brian Stein · Published by KingApe Media</p>
         </div>
         <div>

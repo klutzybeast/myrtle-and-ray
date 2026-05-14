@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
-import { Volume2, Palette, ShoppingBag } from "lucide-react";
+import { Volume2, Palette } from "lucide-react";
 
 const HOTSPOTS = [
   { id: "welcome-sign", title: "Welcome Sign", x: 22, y: 78, char: "ms-bluegill", desc: "Ms Bluegill welcomes every camper here on the very first day." },
@@ -60,7 +60,6 @@ export default function Story() {
                 <div className="mt-5 flex flex-wrap gap-2 justify-center">
                   <button className="btn-ghost text-xs"><Volume2 className="w-4 h-4" />Hear my voice</button>
                   <Link to={`/downloads/color-${c.slug}`} className="btn-ghost text-xs"><Palette className="w-4 h-4" />Color me</Link>
-                  <Link to={`/shop/${c.linked_product_slug}`} className="btn-ghost text-xs"><ShoppingBag className="w-4 h-4" />Shop my stuffie</Link>
                 </div>
               </div>
             </div>
