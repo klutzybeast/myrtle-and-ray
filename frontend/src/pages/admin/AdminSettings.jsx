@@ -3,9 +3,10 @@ import { api } from "../../lib/api";
 import { toast } from "sonner";
 import { Save } from "lucide-react";
 import MusicPlaylistManager from "./MusicPlaylistManager";
+import { ImageUploader } from "./ImageUploader";
 
 const SECTIONS = [
-  { title: "Site identity", fields: [["site_name", "Site name"], ["tagline", "Tagline"], ["logo_url", "Logo URL"], ["favicon_url", "Favicon URL"], ["footer_text", "Footer copyright text"]] },
+  { title: "Site identity", customRender: "site_identity", fields: [["site_name", "Site name"], ["tagline", "Tagline"], ["footer_text", "Footer copyright text"]] },
   { title: "Store URLs", fields: [["amazon_book_url", "Amazon book URL"], ["printify_popup_url", "Printify pop-up store URL"]] },
   { title: "Email routing (defaults to community@rollingriver.com)", placeholder: "community@rollingriver.com", fields: [["primary_contact_email", "Primary contact email"], ["contact_form_email", "Contact form recipient"], ["wholesale_email", "Wholesale inquiry recipient"], ["press_email", "Press inquiries email"], ["mailing_list_reply_to", "Mailing list reply-to"], ["download_capture_email", "Download capture notifications"], ["password_reset_email", "Admin password reset destination"], ["admin_login_alert_email", "Admin login alert destination"]] },
   { title: "Outgoing email", fields: [["outgoing_from_email", "Outgoing 'from' address"]] },
@@ -51,6 +52,12 @@ export default function AdminSettings() {
         {SECTIONS.map((sec) => (
           <section key={sec.title} className="card-soft p-5">
             <h3 className="font-accent text-lg font-bold mb-3">{sec.title}</h3>
+            {sec.customRender === "site_identity" && (
+              <div className="flex flex-wrap gap-6 mb-4">
+                <ImageUploader label="Site logo" value={s.logo_url || ""} onChange={(u) => set("logo_url", u)} testid="setting-logo" />
+                <ImageUploader label="Favicon (square)" value={s.favicon_url || ""} onChange={(u) => set("favicon_url", u)} testid="setting-favicon" />
+              </div>
+            )}
             <div className="grid sm:grid-cols-2 gap-3">
               {sec.fields.map(([k, label]) => (
                 <label key={k} className="text-sm">

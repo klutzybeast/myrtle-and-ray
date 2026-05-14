@@ -3,6 +3,7 @@ import { api } from "../../lib/api";
 import { toast } from "sonner";
 import { Plus, Trash2, Pencil, X, Save } from "lucide-react";
 import { ImageGalleryUploader } from "./ImageUploader";
+import TagsInput from "./TagsInput";
 
 const CATS = ["Stuffies", "Apparel", "Drinkware", "Stickers", "Bundles", "Books", "Accessories"];
 const STATUS = ["In Stock", "Low Stock", "Sold Out", "Coming Soon"];
@@ -106,7 +107,9 @@ function Editor({ item, setItem, cats, chars, statuses, onSave, onCancel }) {
           </div>
           <Field label="Short Description" full><input value={item.short_description || ""} onChange={(e) => set("short_description", e.target.value)} className="inp" /></Field>
           <Field label="Long Description" full><textarea value={item.long_description || ""} onChange={(e) => set("long_description", e.target.value)} className="inp min-h-[100px]" rows={4} /></Field>
-          <Field label="Tags (comma-separated)" full><input value={(item.tags || []).join(", ")} onChange={(e) => set("tags", e.target.value.split(",").map((s) => s.trim()).filter(Boolean))} className="inp" /></Field>
+          <Field label="Tags" full>
+            <TagsInput value={item.tags || []} onChange={(tags) => set("tags", tags)} testid="product-edit-tags" />
+          </Field>
           <label className="flex items-center gap-2 mt-2"><input type="checkbox" checked={!!item.featured} onChange={(e) => set("featured", e.target.checked)} data-testid="product-edit-featured" />Featured (shows in Shop the Crew band)</label>
           <label className="flex items-center gap-2 mt-2"><input type="checkbox" checked={item.published !== false} onChange={(e) => set("published", e.target.checked)} />Published</label>
         </div>
