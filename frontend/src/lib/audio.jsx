@@ -3,32 +3,54 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState } from 
 
 const AudioCtx = createContext(null);
 
-function makeSynthLoop(audioCtx) {
-  // Soft ocean-like noise: brown-ish noise band-passed + slow LFO.
-  const bufferSize = 2 * audioCtx.sampleRate;
-  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-  const out = buffer.getChannelData(0);
-  let lastOut = 0;
-  for (let i = 0; i < bufferSize; i++) {
-    const white = Math.random() * 2 - 1;
-    out[i] = (lastOut + 0.02 * white) / 1.02;
-    lastOut = out[i];
-    out[i] *= 3.5;
-  }
-  const noise = audioCtx.createBufferSource();
-  noise.buffer = buffer; noise.loop = true;
-  const filter = audioCtx.createBiquadFilter();
-  filter.type = "lowpass"; filter.frequency.value = 800;
-  const lfo = audioCtx.createOscillator();
-  const lfoGain = audioCtx.createGain();
-  lfo.frequency.value = 0.18; lfoGain.gain.value = 320;
-  lfo.connect(lfoGain).connect(filter.frequency);
-  lfo.start();
+function makeHappyTones(audioCtx) {
+  // Gentle marimba/music-box style: soft sine notes from a C-major pentatonic
+  // scale (C4 E4 G4 A4 C5 D5 E5 G5) played at random ~2.4s intervals, with
+  // a tiny fifth harmonic for warmth. Master gain stays low (0.0 by default).
   const masterGain = audioCtx.createGain();
   masterGain.gain.value = 0.0;
-  noise.connect(filter).connect(masterGain).connect(audioCtx.destination);
-  noise.start();
-  return { masterGain };
+  // Soft reverb-y feel via a short delay line
+  const delay = audioCtx.createDelay(0.6);
+  delay.delayTime.value = 0.32;
+  const feedback = audioCtx.createGain();
+  feedback.gain.value = 0.25;
+  const wet = audioCtx.createGain();
+  wet.gain.value = 0.35;
+  masterGain.connect(audioCtx.destination);
+  masterGain.connect(delay);
+  delay.connect(feedback).connect(delay);
+  delay.connect(wet).connect(audioCtx.destination);
+
+  const SCALE = [261.63, 329.63, 392.0, 440.0, 523.25, 587.33, 659.25, 783.99];
+  let stopped = false;
+
+  const playNote = () => {
+    if (stopped) return;
+    const t = audioCtx.currentTime;
+    const f = SCALE[Math.floor(Math.random() * SCALE.length)];
+    const o1 = audioCtx.createOscillator();
+    o1.type = "sine"; o1.frequency.value = f;
+    const o2 = audioCtx.createOscillator();
+    o2.type = "sine"; o2.frequency.value = f * 2.0;
+    const g = audioCtx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.55, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 1.6);
+    const h = audioCtx.createGain();
+    h.gain.setValueAtTime(0.0001, t);
+    h.gain.exponentialRampToValueAtTime(0.12, t + 0.02);
+    h.gain.exponentialRampToValueAtTime(0.0001, t + 1.1);
+    o1.connect(g).connect(masterGain);
+    o2.connect(h).connect(masterGain);
+    o1.start(t); o2.start(t);
+    o1.stop(t + 1.8); o2.stop(t + 1.3);
+    // Random next note 1.6–3.0s
+    const next = 1600 + Math.random() * 1400;
+    setTimeout(playNote, next);
+  };
+  playNote();
+
+  return { masterGain, stop: () => { stopped = true; } };
 }
 
 export function AudioProvider({ children, audioUrl }) {
@@ -55,11 +77,12 @@ export function AudioProvider({ children, audioUrl }) {
       try {
         const AC = window.AudioContext || window.webkitAudioContext;
         ctxRef.current = new AC();
-        synthRef.current = makeSynthLoop(ctxRef.current);
+        synthRef.current = makeHappyTones(ctxRef.current);
       } catch { return; }
     }
     const c = ctxRef.current; if (c.state === "suspended") c.resume();
-    synthRef.current?.masterGain.gain.linearRampToValueAtTime(0.18, c.currentTime + 0.6);
+    // Very soft target volume — happy tones, not a foreground sound.
+    synthRef.current?.masterGain.gain.linearRampToValueAtTime(0.06, c.currentTime + 0.6);
   };
 
   const stop = () => {
@@ -102,13 +125,14 @@ export function AudioProvider({ children, audioUrl }) {
       ctxRef.current = c;
       const o = c.createOscillator();
       const g = c.createGain();
-      o.frequency.setValueAtTime(800, c.currentTime);
-      o.frequency.exponentialRampToValueAtTime(220, c.currentTime + 0.12);
+      o.type = "sine";
+      o.frequency.setValueAtTime(880, c.currentTime);
+      o.frequency.exponentialRampToValueAtTime(440, c.currentTime + 0.08);
       g.gain.setValueAtTime(0.0001, c.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.18, c.currentTime + 0.02);
-      g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.16);
+      g.gain.exponentialRampToValueAtTime(0.06, c.currentTime + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.14);
       o.connect(g).connect(c.destination);
-      o.start(); o.stop(c.currentTime + 0.18);
+      o.start(); o.stop(c.currentTime + 0.16);
     } catch {}
   };
 
