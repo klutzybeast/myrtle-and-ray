@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../../lib/api";
 import { toast } from "sonner";
 import { Save } from "lucide-react";
+import MusicPlaylistManager from "./MusicPlaylistManager";
 
 const SECTIONS = [
   { title: "Site identity", fields: [["site_name", "Site name"], ["tagline", "Tagline"], ["logo_url", "Logo URL"], ["favicon_url", "Favicon URL"], ["footer_text", "Footer copyright text"]] },
@@ -12,19 +13,21 @@ const SECTIONS = [
   { title: "Tracking", fields: [["google_analytics_id", "Google Analytics ID"], ["meta_pixel_id", "Meta Pixel ID"]] },
 ];
 
-const TEXTAREA_FIELDS = {
-  ambient_audio_urls: {
-    title: "Background music playlist",
-    label: "Music tracks — one URL per line",
-    help: "Paste one MP3/OGG URL per line. The site will play them in order and loop the playlist. Upload your MP3s in Admin → Media Library, then paste each /api/uploads/... URL here.",
-    placeholder: "https://yourdomain.com/api/uploads/song1.mp3\nhttps://yourdomain.com/api/uploads/song2.mp3",
-  },
-};
-
 export default function AdminSettings() {
   const [s, setS] = useState(null);
   useEffect(() => { api.get("/admin/settings").then(({ data }) => setS(data)); }, []);
   const set = (k, v) => setS({ ...s, [k]: v });
+
+  // Auto-save the playlist whenever it changes (so the user doesn't have to click Save)
+  const setPlaylist = async (newUrls) => {
+    setS({ ...s, ambient_audio_urls: newUrls });
+    try {
+      const payload = { ...s, ambient_audio_urls: newUrls };
+      delete payload._id;
+      await api.put("/admin/settings", payload);
+      toast.success("Playlist saved");
+    } catch { toast.error("Save failed"); }
+  };
 
   const save = async () => {
     try {
@@ -37,11 +40,14 @@ export default function AdminSettings() {
 
   if (!s) return <div>Loading...</div>;
 
+  const playlist = Array.isArray(s.ambient_audio_urls) ? s.ambient_audio_urls : (s.ambient_audio_url ? [s.ambient_audio_url] : []);
+
   return (
     <div data-testid="admin-settings">
       <h1 className="font-accent text-3xl font-bold mb-1">Site & Email Settings</h1>
       <p className="text-[#6b7280] mb-6">All public-facing site values and email routing live here.</p>
       <div className="space-y-6">
+        <MusicPlaylistManager urls={playlist} onChange={setPlaylist} />
         {SECTIONS.map((sec) => (
           <section key={sec.title} className="card-soft p-5">
             <h3 className="font-accent text-lg font-bold mb-3">{sec.title}</h3>
@@ -55,21 +61,6 @@ export default function AdminSettings() {
             </div>
           </section>
         ))}
-        <section className="card-soft p-5">
-          <h3 className="font-accent text-lg font-bold mb-3">{TEXTAREA_FIELDS.ambient_audio_urls.title}</h3>
-          <label className="text-sm block">
-            <div className="font-semibold mb-1">{TEXTAREA_FIELDS.ambient_audio_urls.label}</div>
-            <p className="text-xs text-[#6b7280] mb-2">{TEXTAREA_FIELDS.ambient_audio_urls.help}</p>
-            <textarea
-              value={Array.isArray(s.ambient_audio_urls) ? s.ambient_audio_urls.join("\n") : (s.ambient_audio_urls || s.ambient_audio_url || "")}
-              onChange={(e) => set("ambient_audio_urls", e.target.value.split("\n").map((u) => u.trim()).filter(Boolean))}
-              placeholder={TEXTAREA_FIELDS.ambient_audio_urls.placeholder}
-              rows={6}
-              className="w-full p-3 rounded-2xl border-2 border-[#f4e4c6] focus:border-[#7fcfc7] focus:outline-none text-sm font-mono"
-              data-testid="setting-ambient_audio_urls"
-            />
-          </label>
-        </section>
         <section className="card-soft p-5">
           <h3 className="font-accent text-lg font-bold mb-3">Downloads & alerts</h3>
           <label className="flex items-center gap-2"><input type="checkbox" checked={!!s.email_gate_enabled} onChange={(e) => set("email_gate_enabled", e.target.checked)} data-testid="setting-email-gate" />Email gate enabled by default for downloads</label>
