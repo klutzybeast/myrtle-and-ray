@@ -10,7 +10,9 @@ export default function PopupSignup() {
 
   useEffect(() => {
     if (localStorage.getItem("mr_popup_dismissed")) return;
-    const t = setTimeout(() => setOpen(true), 5000);
+    // Don't pop while user is on /activities (a game modal is likely in flight)
+    if (window.location.pathname.startsWith("/activities")) return;
+    const t = setTimeout(() => setOpen(true), 12000);
     return () => clearTimeout(t);
   }, []);
 

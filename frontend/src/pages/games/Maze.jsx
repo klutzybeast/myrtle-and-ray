@@ -59,18 +59,25 @@ export default function Maze({ data, onComplete }) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [maze, won, w, h]);
 
+  // Reset player + state whenever the maze changes (seed bump or admin size change)
   useEffect(() => {
     setPos({ x: 0, y: 0 }); setWon(false); setMoves(0);
-  }, [seed]);
+  }, [maze]);
+
+  const newMaze = () => {
+    setPos({ x: 0, y: 0 }); setWon(false); setMoves(0);
+    setSeed((s) => s + 1);
+  };
 
   const SIZE = 30;
   return (
     <div className="space-y-3" data-testid="game-maze">
       <div className="flex items-center justify-between text-sm text-[#4a5568]">
         <div><b>Moves:</b> {moves} — Help Billy reach the shell 🐚</div>
-        <button onClick={() => setSeed((s) => s + 1)} className="btn-ghost text-xs" data-testid="maze-reset">New maze</button>
+        <button onClick={newMaze} className="btn-ghost text-xs" data-testid="maze-reset">New maze</button>
       </div>
       <div ref={boardRef} className="mx-auto rounded-2xl p-2 bg-[#eef9fb] border-4 border-white shadow-inner" style={{ width: "fit-content" }} tabIndex={0}>
         <svg width={w * SIZE} height={h * SIZE} viewBox={`0 0 ${w * SIZE} ${h * SIZE}`}>

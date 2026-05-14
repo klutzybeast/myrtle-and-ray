@@ -85,6 +85,23 @@ Casey, Dani, Sami, Izzy, Louie, Billy, Frankie.
   backdrop tap also close. Desktop sidebar unchanged.
 - Frontend tested: all 4 changes verified (see iteration_3.json).
 
+## What's been implemented (2026-02-14, pass 3)
+- All 8 Activity games are now fully playable at `/activities`:
+  - Memory Match — flip-and-match using character portraits, 3 difficulty levels (6/10/13 pairs)
+  - Quiz "Which Sea Star Are You?" — multi-question with character-mapped result
+  - Rhyme Time — fill-in-the-rhyme with right/wrong feedback + score
+  - Word Search — 12×12 drag-to-find grid, words from admin
+  - Maze with Billy — recursive backtracking maze (configurable size), arrow keys + mobile arrow buttons
+  - Color the Cay — 2 SVG scenes, palette + custom color picker, save as SVG
+  - Sticker Beach — tap-to-place, drag-to-move, double-click-to-remove emoji stickers
+  - Spot the Difference — built-in beach scene with 5 differences, click-to-find with tolerance circle
+- Each game awards a Wave badge on completion via localStorage `mr_badges`.
+  Earning all 8 unlocks the "Captain of the Cay" crown chip.
+- Frontend tested: 7/8 games verified by testing_agent + Maze reset race fixed
+  (see iteration_4.json).
+- Fixed: PopupSignup no longer auto-opens on /activities (was overlapping
+  game modals). Now waits 12s on other pages.
+
 ## Prioritized backlog
 **P1 (next pass)**
 - Build the 8 activity games (Memory Match, Spot the Difference, Coloring
