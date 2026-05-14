@@ -19,7 +19,7 @@ const NAV = [
 
 export default function Header() {
   const site = useSite();
-  const { enabled: audio, toggle: toggleAudio } = useAudio();
+  const { enabled: audio, toggle: toggleAudio, hasTrack } = useAudio();
   const [open, setOpen] = useState(false);
   const loc = useLocation();
   useEffect(() => setOpen(false), [loc.pathname]);
@@ -48,15 +48,17 @@ export default function Header() {
 
           {/* Right actions */}
           <div className="flex items-center gap-1.5">
-            <button
-              onClick={toggleAudio}
-              className="w-9 h-9 grid place-items-center rounded-full hover:bg-[#eef9fb] transition"
-              aria-label={audio ? "Mute ambient sound" : "Play ambient sound"}
-              title={audio ? "Mute" : "Play ambient"}
-              data-testid="audio-toggle"
-            >
-              {audio ? <Volume2 className="w-5 h-5 text-[#5a8a6f]" /> : <VolumeX className="w-5 h-5 text-[#5a6b76]" />}
-            </button>
+            {hasTrack && (
+              <button
+                onClick={toggleAudio}
+                className="w-9 h-9 grid place-items-center rounded-full hover:bg-[#eef9fb] transition"
+                aria-label={audio ? "Mute music" : "Play music"}
+                title={audio ? "Mute music" : "Play music"}
+                data-testid="audio-toggle"
+              >
+                {audio ? <Volume2 className="w-5 h-5 text-[#5a8a6f]" /> : <VolumeX className="w-5 h-5 text-[#5a6b76]" />}
+              </button>
+            )}
             <Link
               to="/admin/login"
               className="hidden md:inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border-2 border-[#f4e4c6] hover:border-[#7fcfc7] hover:bg-[#eef9fb] text-sm font-bold text-[#3a4a55] transition"

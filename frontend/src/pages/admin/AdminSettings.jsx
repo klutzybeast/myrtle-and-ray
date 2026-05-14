@@ -10,7 +10,7 @@ const SECTIONS = [
   { title: "Outgoing email", fields: [["outgoing_from_email", "Outgoing 'from' address"]] },
   { title: "Social links", fields: [["facebook_url", "Facebook"], ["instagram_url", "Instagram"], ["tiktok_url", "TikTok"], ["youtube_url", "YouTube"], ["pinterest_url", "Pinterest"], ["twitter_url", "X/Twitter"], ["threads_url", "Threads"], ["linkedin_url", "LinkedIn"]] },
   { title: "Tracking", fields: [["google_analytics_id", "Google Analytics ID"], ["meta_pixel_id", "Meta Pixel ID"]] },
-  { title: "Ambient audio", placeholder: "https://… (leave empty for synthesized ocean)", fields: [["ambient_audio_url", "Ambient loop URL (mp3/ogg)"]] },
+  { title: "Background music", placeholder: "Paste an MP3/OGG URL (e.g. from Pixabay royalty-free music). Leave empty to hide the music button entirely.", fields: [["ambient_audio_url", "Music loop URL (MP3 or OGG)"]] },
 ];
 
 export default function AdminSettings() {
