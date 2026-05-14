@@ -42,23 +42,24 @@ export default function Home() {
       {/* HERO */}
       <section className="relative bg-wave-hero overflow-hidden" data-testid="hero-section">
         <div className="absolute inset-0">
-          <img src={hero.background_image || HERO_IMG} alt="Stingray Cay Summer Camp" className="w-full h-full object-cover opacity-95" />
-          <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-white/0 to-[#fffbf3]" />
+          <img src={hero.background_image || HERO_IMG} alt="Stingray Cay Summer Camp" className="w-full h-full object-cover" />
+          {/* Darker scrim so the headline is always readable */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#1e2a35]/55 via-[#1e2a35]/30 to-[#fffbf3]" />
         </div>
-        <div className="relative max-w-7xl mx-auto px-4 md:px-6 pt-12 pb-24 md:pb-32 flex items-center">
-          <div className="text-center md:text-left max-w-3xl mx-auto">
-            <span className="inline-block bg-white/80 backdrop-blur px-4 py-1 rounded-full font-accent font-semibold text-[#7cbf94] text-sm mb-4" data-testid="hero-wave-tag">Catch the W.A.V.E. of Excitement</span>
-            <h1 className="font-accent text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.05] text-[#2e3a3a] drop-shadow-sm" data-testid="hero-headline">
+        <div className="relative max-w-7xl mx-auto px-4 md:px-6 pt-20 pb-28 md:pt-28 md:pb-36 flex items-center justify-center">
+          <div className="w-full max-w-3xl mx-auto text-center bg-white/35 backdrop-blur-md rounded-[32px] px-6 py-8 md:px-10 md:py-10 border border-white/60 shadow-[0_20px_60px_rgba(30,42,53,0.25)]">
+            <span className="inline-block bg-white/90 px-4 py-1 rounded-full font-accent font-semibold text-[#5a8a6f] text-sm mb-4" data-testid="hero-wave-tag">Catch the W.A.V.E. of Excitement</span>
+            <h1 className="font-accent text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.05] text-[#1e2a35]" data-testid="hero-headline">
               {hero.headline || "Welcome to Stingray Cay"}
             </h1>
-            <p className="mt-4 text-lg md:text-xl text-[#2e3a3a]/90 max-w-xl">
+            <p className="mt-4 text-base md:text-lg text-[#2e3a3a] max-w-xl mx-auto">
               {hero.subheadline || "Catch the W.A.V.E. of Excitement with Myrtle, Ray, and every Sea Star at camp."}
             </p>
-            <div className="mt-7 flex flex-wrap gap-3 justify-center md:justify-start">
-              <a href={site.amazon_book_url || "#"} target="_blank" rel="noopener noreferrer" className="btn-primary text-lg" data-testid="hero-amazon-cta">
+            <div className="mt-7 flex flex-wrap gap-3 justify-center">
+              <a href={site.amazon_book_url || "#"} target="_blank" rel="noopener noreferrer" className="btn-primary text-base md:text-lg" data-testid="hero-amazon-cta">
                 <BookOpen className="w-5 h-5" /> {hero.cta_primary || "Buy the Book on Amazon"}
               </a>
-              <Link to="/story" className="btn-secondary text-lg" data-testid="hero-meet-cta">
+              <Link to="/story" className="btn-secondary text-base md:text-lg" data-testid="hero-meet-cta">
                 <Users className="w-5 h-5" /> {hero.cta_secondary || "Meet the Sea Stars"}
               </Link>
             </div>
