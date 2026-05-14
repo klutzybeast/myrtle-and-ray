@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { api } from "../../lib/api";
 import { toast } from "sonner";
-import { Plus, Trash2, Pencil, X, Save } from "lucide-react";
+import { Plus, Trash2, Pencil, X, Save, ChevronLeft, Search, Star } from "lucide-react";
 import { ImageGalleryUploader } from "./ImageUploader";
 import TagsInput from "./TagsInput";
 
@@ -39,38 +39,15 @@ export default function AdminProducts() {
 
   return (
     <div data-testid="admin-products">
-      <header className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="font-accent text-3xl font-bold">Products</h1>
-          <p className="text-[#6b7280]">{items.length} item{items.length === 1 ? "" : "s"}</p>
-        </div>
-        <button onClick={() => { setEditing(blank); setCreating(true); }} className="btn-primary" data-testid="product-new"><Plus className="w-5 h-5" />New Product</button>
-      </header>
-      <div className="bg-white rounded-3xl border border-[#f4e4c6] overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-[#fffbf3] text-left">
-            <tr>
-              <th className="p-3">Name</th><th className="p-3">Category</th><th className="p-3">Character</th><th className="p-3">Price</th><th className="p-3">Status</th><th className="p-3">Featured</th><th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((p) => (
-              <tr key={p.slug} className="border-t border-[#f4e4c6]">
-                <td className="p-3 font-semibold">{p.name}<div className="text-xs text-[#6b7280]">/{p.slug}</div></td>
-                <td className="p-3">{p.category}</td>
-                <td className="p-3 text-xs">{p.character_slug || "—"}</td>
-                <td className="p-3">${(p.price || 0).toFixed(2)}</td>
-                <td className="p-3">{p.inventory_status}</td>
-                <td className="p-3">{p.featured ? "★" : ""}</td>
-                <td className="p-3 text-right">
-                  <button onClick={() => { setEditing(p); setCreating(false); }} className="p-2 hover:bg-gray-100 rounded-full" data-testid={`product-edit-${p.slug}`}><Pencil className="w-4 h-4" /></button>
-                  <button onClick={() => remove(p.slug)} className="p-2 hover:bg-red-50 rounded-full text-red-500" data-testid={`product-delete-${p.slug}`}><Trash2 className="w-4 h-4" /></button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <ProductsBrowser
+        items={items}
+        onNew={() => { setEditing(blank); setCreating(true); }}
+        onEdit={(p) => { setEditing(p); setCreating(false); }}
+        onDelete={remove}
+        onToggleFeatured={async (p) => {
+          try { await api.put(`/admin/products/${p.slug}`, { ...p, featured: !p.featured }); load(); } catch { toast.error("Couldn't update"); }
+        }}
+      />
 
       {editing && (
         <Editor item={editing} setItem={setEditing} cats={CATS} chars={chars} statuses={STATUS} onSave={save} onCancel={() => { setEditing(null); setCreating(false); }} />
@@ -125,4 +102,139 @@ function Editor({ item, setItem, cats, chars, statuses, onSave, onCancel }) {
 
 function Field({ label, children, full }) {
   return <label className={`text-sm ${full ? "sm:col-span-2" : ""}`}><div className="font-semibold text-[#2e3a3a] mb-1">{label}</div>{children}</label>;
+}
+
+const CATEGORY_META = {
+  "Stuffies": { color: "#7fcfc7", emoji: "🧸" },
+  "Apparel": { color: "#f0a988", emoji: "👕" },
+  "Books": { color: "#b8a3d9", emoji: "📚" },
+  "Accessories": { color: "#fdd47e", emoji: "🎒" },
+  "Stationery": { color: "#e89bab", emoji: "✏️" },
+  "Other": { color: "#9aa3ab", emoji: "📦" },
+};
+
+function ProductsBrowser({ items, onNew, onEdit, onDelete, onToggleFeatured }) {
+  const [category, setCategory] = useState(null); // null = category grid, "All" = all products
+  const [query, setQuery] = useState("");
+
+  const categories = useMemo(() => {
+    const map = new Map();
+    for (const p of items) {
+      const c = p.category || "Other";
+      if (!map.has(c)) map.set(c, []);
+      map.get(c).push(p);
+    }
+    return Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+  }, [items]);
+
+  // Category landing
+  if (category === null) {
+    return (
+      <>
+        <header className="flex items-center justify-between mb-6 flex-wrap gap-3">
+          <div>
+            <h1 className="font-accent text-3xl font-bold">Products</h1>
+            <p className="text-[#6b7280]">{items.length} item{items.length === 1 ? "" : "s"} in {categories.length} categor{categories.length === 1 ? "y" : "ies"}</p>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={() => setCategory("All")} className="btn-ghost" data-testid="cat-show-all">View all</button>
+            <button onClick={onNew} className="btn-primary" data-testid="product-new"><Plus className="w-5 h-5" />New Product</button>
+          </div>
+        </header>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4" data-testid="categories-grid">
+          {categories.map(([cat, list]) => {
+            const meta = CATEGORY_META[cat] || CATEGORY_META.Other;
+            const featuredCount = list.filter((p) => p.featured).length;
+            return (
+              <button key={cat} onClick={() => setCategory(cat)} className="card-soft p-5 text-left hover:scale-[1.02] transition" data-testid={`cat-card-${cat}`}>
+                <div className="flex items-start gap-3">
+                  <div className="w-14 h-14 rounded-2xl grid place-items-center text-3xl shrink-0" style={{ background: `${meta.color}33` }}>{meta.emoji}</div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-accent text-xl font-bold truncate">{cat}</h3>
+                    <p className="text-sm text-[#5a6b76]">{list.length} item{list.length === 1 ? "" : "s"}{featuredCount ? ` · ${featuredCount} featured` : ""}</p>
+                  </div>
+                </div>
+                {/* mini product preview */}
+                <div className="flex gap-1.5 mt-3 -mx-1 overflow-hidden">
+                  {list.slice(0, 5).map((p) => (
+                    <div key={p.slug} className="w-10 h-10 rounded-lg bg-[#fffbf3] border border-[#f4e4c6] overflow-hidden shrink-0">
+                      {p.primary_image && <img src={p.primary_image} alt="" className="w-full h-full object-contain" />}
+                    </div>
+                  ))}
+                  {list.length > 5 && <div className="w-10 h-10 rounded-lg grid place-items-center bg-[#eef9fb] text-xs font-bold text-[#5a8a6f]">+{list.length - 5}</div>}
+                </div>
+              </button>
+            );
+          })}
+          {/* + Add category quick action via New Product */}
+          <button onClick={onNew} className="rounded-3xl border-2 border-dashed border-[#f4e4c6] hover:border-[#7fcfc7] hover:bg-[#eef9fb] p-5 grid place-items-center text-[#5a6b76] hover:text-[#5a8a6f] min-h-[140px] transition" data-testid="cat-add-product">
+            <div className="text-center">
+              <Plus className="w-8 h-8 mx-auto mb-1" />
+              <div className="font-accent font-bold text-sm">Add a product</div>
+              <div className="text-xs text-[#9aa3ab] mt-0.5">Type a new category to start one</div>
+            </div>
+          </button>
+        </div>
+      </>
+    );
+  }
+
+  // Category detail view (cards inside the selected category)
+  const filtered = items.filter((p) => {
+    if (category !== "All" && (p.category || "Other") !== category) return false;
+    if (query.trim() && !`${p.name} ${p.slug} ${p.character_slug || ""}`.toLowerCase().includes(query.toLowerCase())) return false;
+    return true;
+  });
+  const meta = CATEGORY_META[category] || CATEGORY_META.Other;
+
+  return (
+    <>
+      <button onClick={() => { setCategory(null); setQuery(""); }} className="btn-ghost text-sm mb-4" data-testid="cat-back"><ChevronLeft className="w-4 h-4" />All categories</button>
+      <header className="flex items-end justify-between mb-6 gap-3 flex-wrap">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-12 h-12 rounded-2xl grid place-items-center text-2xl shrink-0" style={{ background: `${meta.color}33` }}>{meta.emoji}</div>
+          <div className="min-w-0">
+            <h1 className="font-accent text-3xl font-bold truncate">{category}</h1>
+            <p className="text-[#6b7280] text-sm">{filtered.length} of {items.filter((p) => category === "All" || (p.category || "Other") === category).length} item{filtered.length === 1 ? "" : "s"}</p>
+          </div>
+        </div>
+        <div className="flex gap-2 items-center">
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9aa3ab]" />
+            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search this category…" className="pl-9 pr-3 py-2 text-sm rounded-full border-2 border-[#f4e4c6] focus:border-[#7fcfc7] outline-none w-56" data-testid="cat-search" />
+          </div>
+          <button onClick={onNew} className="btn-primary" data-testid="product-new"><Plus className="w-5 h-5" />New</button>
+        </div>
+      </header>
+      {filtered.length === 0 ? (
+        <div className="text-center py-12 bg-white rounded-3xl border-2 border-dashed border-[#f4e4c6]"><p className="text-[#6b7280]">No products{query ? ` matching “${query}”` : ""} yet.</p><button onClick={onNew} className="btn-primary mt-3" data-testid="empty-new"><Plus className="w-4 h-4" />Add a product</button></div>
+      ) : (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {filtered.map((p) => (
+            <div key={p.slug} className="card-soft p-3 flex flex-col" data-testid={`product-card-${p.slug}`}>
+              <div className="aspect-square rounded-2xl bg-[#fffbf3] overflow-hidden mb-3 relative">
+                {p.primary_image
+                  ? <img src={p.primary_image} alt={p.name} className="w-full h-full object-contain" />
+                  : <div className="w-full h-full grid place-items-center text-[#9aa3ab] text-xs">No image</div>}
+                <button onClick={() => onToggleFeatured(p)} className={`absolute top-2 right-2 p-1.5 rounded-full backdrop-blur ${p.featured ? "bg-yellow-100 text-yellow-600" : "bg-white/80 text-[#9aa3ab] hover:text-yellow-500"}`} title={p.featured ? "Featured" : "Mark featured"} data-testid={`featured-${p.slug}`}>
+                  <Star className="w-4 h-4" fill={p.featured ? "currentColor" : "none"} />
+                </button>
+                {!p.published && <span className="absolute top-2 left-2 bg-white/90 px-2 py-0.5 rounded-full text-[10px] font-bold text-[#5a6b76]">Draft</span>}
+              </div>
+              <h3 className="font-accent font-bold text-[#2e3a3a] truncate" title={p.name}>{p.name}</h3>
+              <p className="text-xs text-[#6b7280] truncate">{p.character_slug ? `with ${p.character_slug}` : `/${p.slug}`}</p>
+              <div className="flex items-center justify-between mt-2">
+                <span className="font-accent text-lg font-bold text-[#5a8a6f]">${(p.price || 0).toFixed(2)}</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#7cbf94]">{p.inventory_status}</span>
+              </div>
+              <div className="flex gap-2 mt-3 pt-3 border-t border-[#f4e4c6]">
+                <button onClick={() => onEdit(p)} className="btn-secondary text-xs flex-1 justify-center" data-testid={`product-edit-${p.slug}`}><Pencil className="w-3.5 h-3.5" />Edit</button>
+                <button onClick={() => onDelete(p.slug)} className="p-2 rounded-full hover:bg-red-50 text-red-500" data-testid={`product-delete-${p.slug}`} title="Delete"><Trash2 className="w-4 h-4" /></button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </>
+  );
 }
