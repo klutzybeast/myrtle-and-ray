@@ -44,6 +44,7 @@ import AdminCampaigns from "@/pages/admin/AdminCampaigns";
 import AdminCampaignEditor from "@/pages/admin/AdminCampaignEditor";
 import CustomPage from "@/pages/CustomPage";
 import WaveBadges from "@/pages/WaveBadges";
+import MapPage from "@/pages/Map";
 
 function RequireAdmin({ children }) {
   const { user, loading } = useAuth();
@@ -82,6 +83,7 @@ function App() {
               <Routes>
               <Route path="/" element={<PublicShell><Home /></PublicShell>} />
               <Route path="/story" element={<PublicShell><Story /></PublicShell>} />
+              <Route path="/map" element={<PublicShell><MapPage /></PublicShell>} />
               <Route path="/activities" element={<PublicShell><Activities /></PublicShell>} />
               <Route path="/wave-badges" element={<PublicShell><WaveBadges /></PublicShell>} />
               <Route path="/read-aloud" element={<PublicShell><ReadAloud /></PublicShell>} />

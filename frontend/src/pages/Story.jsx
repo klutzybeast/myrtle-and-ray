@@ -1,26 +1,16 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
 import { useAudio } from "../lib/audio";
-import { Volume2, Palette, VolumeOff } from "lucide-react";
-
-const HOTSPOTS = [
-  { id: "welcome-sign", title: "Welcome Sign", x: 22, y: 78, char: "ms-bluegill", desc: "Ms Bluegill welcomes every camper here on the very first day." },
-  { id: "arts-craft", title: "Arts & Crafts Hut", x: 44, y: 58, char: "ollie", desc: "Ollie's eight-armed sculpture lab. Bring your imagination." },
-  { id: "lunch-tables", title: "Lunch Tables", x: 72, y: 55, char: "louie", desc: "Picnic tables under the striped tent — Louie's drum kit is right behind." },
-  { id: "pool", title: "The Pool", x: 36, y: 36, char: "dani", desc: "Dani's high-dive home. Triple-flip splashes happen here." },
-  { id: "playground", title: "Playground", x: 80, y: 30, char: "frankie", desc: "Frankie teaches ballet on the sand near the wooden castle." },
-  { id: "soccer-field", title: "Sports Field", x: 78, y: 18, char: "sami", desc: "Sami cheers on every player on both teams." },
-  { id: "climbing-palms", title: "Climbing Palms", x: 56, y: 22, char: "izzy", desc: "Izzy knows the secret paths up the tallest palms." },
-  { id: "bunkhouses", title: "Bunkhouses", x: 16, y: 60, char: "myrtle", desc: "The colorful cottages where Sea Stars sleep. Myrtle's is the green one." },
-  { id: "sand-castle", title: "Sand Castle Beach", x: 90, y: 60, char: "casey", desc: "Casey builds the tallest, sturdiest towers right here." },
-];
+import { HOTSPOTS, MAP_IMG } from "../lib/mapData";
+import { Volume2, Palette, VolumeOff, Sparkles } from "lucide-react";
 
 export default function Story() {
   const [chars, setChars] = useState([]);
   const [flipped, setFlipped] = useState({});
   const [hotspot, setHotspot] = useState(null);
   const { playClip } = useAudio();
+  const nav = useNavigate();
 
   useEffect(() => {
     api.get("/characters").then(({ data }) => setChars(data)).catch(() => {});
@@ -78,7 +68,7 @@ export default function Story() {
           <p className="text-[#4a5568] mt-2">Tap a glowing spot to peek inside.</p>
         </header>
         <div className="relative rounded-[28px] overflow-hidden shadow-2xl border-4 border-white" data-testid="cay-map">
-          <img src="https://customer-assets.emergentagent.com/job_wave-of-excitement/artifacts/np2lq4do_IMG_2972.jpeg" alt="Stingray Cay map" className="w-full h-auto block" />
+          <img src={MAP_IMG} alt="Stingray Cay map" className="w-full h-auto block" />
           {HOTSPOTS.map((h) => (
             <button key={h.id} onClick={() => setHotspot(h)} className="absolute w-7 h-7 -ml-3.5 -mt-3.5 rounded-full bg-white/80 border-2 border-[#f0a988] shadow-md hover:scale-125 transition" style={{ left: `${h.x}%`, top: `${h.y}%` }} aria-label={h.title} data-testid={`map-hotspot-${h.id}`}>
               <span className="absolute inset-0 rounded-full animate-ping bg-[#f0a988]/50" />
@@ -97,7 +87,18 @@ export default function Story() {
                 </div>
               </div>
               <p className="text-[#4a5568] leading-relaxed">{hotspot.desc}</p>
-              {hotspotChar && <Link to={`/story#${hotspotChar.slug}`} onClick={() => setHotspot(null)} className="btn-primary mt-4 inline-flex">See bio →</Link>}
+              {hotspot.activity && (
+                <div className="bg-[#eef9fb] rounded-2xl px-4 py-3 mt-4 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-[#f0a988] shrink-0" />
+                  <div className="text-sm text-[#3a4a55]">Play <b>{hotspot.activity_label}</b></div>
+                </div>
+              )}
+              <div className="flex gap-2 mt-4 flex-wrap">
+                {hotspot.activity && (
+                  <button onClick={() => { setHotspot(null); nav(`/activities?game=${hotspot.activity}`); }} className="btn-primary flex-1 justify-center" data-testid={`map-play-${hotspot.activity}`}>Play game →</button>
+                )}
+                {hotspotChar && <Link to={`/story#${hotspotChar.slug}`} onClick={() => setHotspot(null)} className="btn-ghost text-sm">See bio</Link>}
+              </div>
             </div>
           </div>
         )}

@@ -120,6 +120,17 @@ Casey, Dani, Sami, Izzy, Louie, Billy, Frankie.
 - Tested: 28/28 backend pytest (iteration_5.json); all level rotation +
   badges page + audio toggle verified end-to-end.
 
+## What's been implemented (2026-02-14, pass 5)
+- **Map** now lives on a dedicated `/map` page and is linked from the
+  Header nav (between Story and Activities).
+- Each of the 9 map hotspots opens a character card with bio, a
+  "Play <activity>" CTA, and a link to the bio page. CTA opens the
+  game directly on `/activities?game=<key>` and auto-launches the
+  game modal (query param is stripped on open so back-button doesn't
+  loop).
+- Hotspot data moved to shared `/app/frontend/src/lib/mapData.js` —
+  reused by both `/map` and the map section still on `/story`.
+
 ## Prioritized backlog
 **P1 (next pass)**
 - Build the 8 activity games (Memory Match, Spot the Difference, Coloring

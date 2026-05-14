@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../lib/api";
 import { toast } from "sonner";
 import { useAudio } from "../lib/audio";
@@ -53,6 +53,22 @@ export default function Activities() {
   const [loading, setLoading] = useState(false);
   const [badges, setBadges] = useState(readBadges());
   const { pop } = useAudio();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Auto-open a specific game when /activities?game=<key> is used (e.g. from the Map)
+  useEffect(() => {
+    const key = searchParams.get("game");
+    if (!key) return;
+    const tile = TILES.find((t) => t.key === key);
+    if (tile) {
+      setActive(tile);
+      // strip the query param so back-button doesn't re-open
+      const next = new URLSearchParams(searchParams);
+      next.delete("game");
+      setSearchParams(next, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!active) { setActiveData(null); return; }

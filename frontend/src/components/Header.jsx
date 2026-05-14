@@ -7,6 +7,7 @@ import { Waves, Menu, Volume2, VolumeX, X, LogIn } from "lucide-react";
 const NAV = [
   { to: "/", label: "Home" },
   { to: "/story", label: "The Story" },
+  { to: "/map", label: "Map" },
   { to: "/activities", label: "Activities" },
   { to: "/read-aloud", label: "Read Aloud" },
   { to: "/shop", label: "Shop" },
