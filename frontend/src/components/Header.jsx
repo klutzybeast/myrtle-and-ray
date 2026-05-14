@@ -2,7 +2,7 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useSite } from "../lib/site";
 import { useAudio } from "../lib/audio";
-import { Waves, Menu, Volume2, VolumeX, X, LogIn } from "lucide-react";
+import { Waves, Menu, Volume2, VolumeX, SkipForward, X, LogIn } from "lucide-react";
 
 const NAV = [
   { to: "/", label: "Home" },
@@ -19,12 +19,11 @@ const NAV = [
 
 export default function Header() {
   const site = useSite();
-  const { enabled: audio, toggle: toggleAudio, hasTrack } = useAudio();
+  const { enabled: audio, toggle: toggleAudio, hasTracks, trackCount, trackIdx, nextTrack } = useAudio();
 
   const onAudioClick = () => {
-    if (!hasTrack) {
-      // No track configured — guide the admin/user instead of doing nothing silently.
-      const msg = "No music has been uploaded yet. Admins: go to Media Library to upload an MP3, then paste its URL into Site & Emails → Music loop URL.";
+    if (!hasTracks) {
+      const msg = "No music has been uploaded yet. Admins: Media Library → Upload your MP3s → Site & Emails → Music tracks (one URL per line).";
       try { window.alert(msg); } catch {}
       return;
     }
@@ -61,12 +60,23 @@ export default function Header() {
             <button
               onClick={onAudioClick}
               className="w-9 h-9 grid place-items-center rounded-full hover:bg-[#eef9fb] transition"
-              aria-label={!hasTrack ? "No music uploaded yet" : audio ? "Mute music" : "Play music"}
-              title={!hasTrack ? "No music yet — upload one in Admin → Media Library" : audio ? "Mute music" : "Play music"}
+              aria-label={!hasTracks ? "No music uploaded yet" : audio ? "Mute music" : "Play music"}
+              title={!hasTracks ? "No music yet — upload one in Admin → Media Library" : audio ? `Playing track ${trackIdx + 1}/${trackCount} — click to mute` : "Play music"}
               data-testid="audio-toggle"
             >
               {audio ? <Volume2 className="w-5 h-5 text-[#5a8a6f]" /> : <VolumeX className="w-5 h-5 text-[#5a6b76]" />}
             </button>
+            {audio && trackCount > 1 && (
+              <button
+                onClick={nextTrack}
+                className="w-9 h-9 grid place-items-center rounded-full hover:bg-[#eef9fb] transition"
+                aria-label="Skip to next track"
+                title={`Skip to next track (${trackCount} in playlist)`}
+                data-testid="audio-next"
+              >
+                <SkipForward className="w-5 h-5 text-[#5a8a6f]" />
+              </button>
+            )}
             <Link
               to="/admin/login"
               className="hidden md:inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border-2 border-[#f4e4c6] hover:border-[#7fcfc7] hover:bg-[#eef9fb] text-sm font-bold text-[#3a4a55] transition"

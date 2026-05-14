@@ -1,33 +1,49 @@
-// Audio context: plays an admin-supplied MP3 loop (set via Admin → Site & Emails → Ambient loop URL)
-// PLUS a soft tap-pop and per-character voice clips. No synthesized "music" — if the admin hasn't
-// uploaded a track, the toggle is hidden so we never play awkward tones.
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+// Audio context: plays an ADMIN-supplied playlist (multiple MP3 URLs) in order,
+// loops the whole playlist forever, supports next/prev. No synthesized "music".
+// Also exposes pop() for tile-click pop sounds and playClip() for character voices.
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 const AudioCtx = createContext(null);
 
-export function AudioProvider({ children, audioUrl }) {
-  const hasTrack = !!audioUrl;
+export function AudioProvider({ children, urls }) {
+  const playlist = useMemo(() => (Array.isArray(urls) ? urls : []).filter(Boolean), [urls]);
+  const hasTracks = playlist.length > 0;
+
   const [enabled, setEnabled] = useState(() => {
     if (typeof window === "undefined") return false;
     return localStorage.getItem("mr_audio") === "on";
   });
+  const [trackIdx, setTrackIdx] = useState(0);
   const elRef = useRef(null);
   const popCtxRef = useRef(null);
 
-  // Build / replace the audio element whenever the URL changes
+  // (Re)build the audio element whenever the URL for the current track changes
   useEffect(() => {
-    if (elRef.current) { try { elRef.current.pause(); } catch {} elRef.current = null; }
-    if (!audioUrl) return;
-    const el = new Audio(audioUrl);
-    el.loop = true;
+    if (!hasTracks) {
+      if (elRef.current) { try { elRef.current.pause(); } catch {} elRef.current = null; }
+      return;
+    }
+    const url = playlist[trackIdx % playlist.length];
+    if (elRef.current) { try { elRef.current.pause(); } catch {} }
+    const el = new Audio(url);
+    el.loop = false; // we manage looping via onended → next track
     el.volume = 0.5;
     el.preload = "auto";
     el.crossOrigin = "anonymous";
+    el.onended = () => setTrackIdx((i) => (i + 1) % playlist.length);
+    el.onerror = () => { // skip broken track after a brief delay
+      setTimeout(() => setTrackIdx((i) => (i + 1) % playlist.length), 800);
+    };
     elRef.current = el;
     if (enabled) el.play().catch(() => {});
     return () => { try { el.pause(); } catch {} };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [audioUrl]);
+  }, [playlist, trackIdx]);
+
+  // Reset index if playlist shrinks
+  useEffect(() => {
+    if (hasTracks && trackIdx >= playlist.length) setTrackIdx(0);
+  }, [playlist, hasTracks, trackIdx]);
 
   const start = () => { if (elRef.current) elRef.current.play().catch(() => {}); };
   const stop = () => { if (elRef.current) elRef.current.pause(); };
@@ -39,16 +55,19 @@ export function AudioProvider({ children, audioUrl }) {
     if (next) start(); else stop();
   };
 
-  // Auto-start once user interacts (browser autoplay policy) — only if a URL is set
+  const nextTrack = () => { setTrackIdx((i) => (i + 1) % Math.max(1, playlist.length)); };
+  const prevTrack = () => { setTrackIdx((i) => (i - 1 + playlist.length) % Math.max(1, playlist.length)); };
+
+  // Auto-start on first user interaction once enabled
   useEffect(() => {
-    if (!enabled || !audioUrl) return;
+    if (!enabled || !hasTracks) return;
     const onAny = () => { start(); window.removeEventListener("pointerdown", onAny); };
     window.addEventListener("pointerdown", onAny, { once: true });
     return () => window.removeEventListener("pointerdown", onAny);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, audioUrl]);
+  }, [enabled, hasTracks]);
 
-  // Soft tap-pop — used on game tile clicks
+  // Soft tap-pop
   const pop = () => {
     try {
       const AC = window.AudioContext || window.webkitAudioContext;
@@ -73,12 +92,19 @@ export function AudioProvider({ children, audioUrl }) {
   };
 
   return (
-    <AudioCtx.Provider value={{ enabled: hasTrack && enabled, hasTrack, toggle, pop, playClip }}>
+    <AudioCtx.Provider value={{
+      enabled: hasTracks && enabled,
+      hasTracks,
+      trackCount: playlist.length,
+      trackIdx,
+      currentUrl: playlist[trackIdx] || "",
+      toggle, nextTrack, prevTrack, pop, playClip,
+    }}>
       {children}
     </AudioCtx.Provider>
   );
 }
 
 export function useAudio() {
-  return useContext(AudioCtx) || { enabled: false, hasTrack: false, toggle: () => {}, pop: () => {}, playClip: () => {} };
+  return useContext(AudioCtx) || { enabled: false, hasTracks: false, trackCount: 0, trackIdx: 0, currentUrl: "", toggle: () => {}, nextTrack: () => {}, prevTrack: () => {}, pop: () => {}, playClip: () => {} };
 }

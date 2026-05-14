@@ -56,6 +56,19 @@ class ChatBody(BaseModel):
     page: str = ""
 
 
+def _parse_urls(urls_field, fallback_single):
+    """Accept list, multi-line string, or comma-separated string. Returns list[str]."""
+    if isinstance(urls_field, list):
+        out = [u.strip() for u in urls_field if isinstance(u, str) and u.strip()]
+    elif isinstance(urls_field, str) and urls_field.strip():
+        out = [u.strip() for u in urls_field.replace(",", "\n").splitlines() if u.strip()]
+    else:
+        out = []
+    if not out and isinstance(fallback_single, str) and fallback_single.strip():
+        out = [fallback_single.strip()]
+    return out
+
+
 def make_public_router(db):
     router = APIRouter(tags=["public"])
 
@@ -85,6 +98,7 @@ def make_public_router(db):
             "meta_pixel_id": s.get("meta_pixel_id", ""),
             "email_gate_enabled": s.get("email_gate_enabled", True),
             "ambient_audio_url": s.get("ambient_audio_url", ""),
+            "ambient_audio_urls": _parse_urls(s.get("ambient_audio_urls"), s.get("ambient_audio_url")),
         }
         return public
 

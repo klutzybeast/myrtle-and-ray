@@ -56,7 +56,10 @@ function RequireAdmin({ children }) {
 
 function AudioWrapper({ children }) {
   const site = useSite();
-  return <AudioProvider audioUrl={site?.ambient_audio_url || ""}>{children}</AudioProvider>;
+  const urls = Array.isArray(site?.ambient_audio_urls) && site.ambient_audio_urls.length
+    ? site.ambient_audio_urls
+    : (site?.ambient_audio_url ? [site.ambient_audio_url] : []);
+  return <AudioProvider urls={urls}>{children}</AudioProvider>;
 }
 
 function PublicShell({ children }) {

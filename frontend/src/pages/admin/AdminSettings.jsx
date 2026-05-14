@@ -10,8 +10,16 @@ const SECTIONS = [
   { title: "Outgoing email", fields: [["outgoing_from_email", "Outgoing 'from' address"]] },
   { title: "Social links", fields: [["facebook_url", "Facebook"], ["instagram_url", "Instagram"], ["tiktok_url", "TikTok"], ["youtube_url", "YouTube"], ["pinterest_url", "Pinterest"], ["twitter_url", "X/Twitter"], ["threads_url", "Threads"], ["linkedin_url", "LinkedIn"]] },
   { title: "Tracking", fields: [["google_analytics_id", "Google Analytics ID"], ["meta_pixel_id", "Meta Pixel ID"]] },
-  { title: "Background music", placeholder: "Paste an MP3/OGG URL (e.g. from Pixabay royalty-free music). Leave empty to hide the music button entirely.", fields: [["ambient_audio_url", "Music loop URL (MP3 or OGG)"]] },
 ];
+
+const TEXTAREA_FIELDS = {
+  ambient_audio_urls: {
+    title: "Background music playlist",
+    label: "Music tracks — one URL per line",
+    help: "Paste one MP3/OGG URL per line. The site will play them in order and loop the playlist. Upload your MP3s in Admin → Media Library, then paste each /api/uploads/... URL here.",
+    placeholder: "https://yourdomain.com/api/uploads/song1.mp3\nhttps://yourdomain.com/api/uploads/song2.mp3",
+  },
+};
 
 export default function AdminSettings() {
   const [s, setS] = useState(null);
@@ -47,6 +55,21 @@ export default function AdminSettings() {
             </div>
           </section>
         ))}
+        <section className="card-soft p-5">
+          <h3 className="font-accent text-lg font-bold mb-3">{TEXTAREA_FIELDS.ambient_audio_urls.title}</h3>
+          <label className="text-sm block">
+            <div className="font-semibold mb-1">{TEXTAREA_FIELDS.ambient_audio_urls.label}</div>
+            <p className="text-xs text-[#6b7280] mb-2">{TEXTAREA_FIELDS.ambient_audio_urls.help}</p>
+            <textarea
+              value={Array.isArray(s.ambient_audio_urls) ? s.ambient_audio_urls.join("\n") : (s.ambient_audio_urls || s.ambient_audio_url || "")}
+              onChange={(e) => set("ambient_audio_urls", e.target.value.split("\n").map((u) => u.trim()).filter(Boolean))}
+              placeholder={TEXTAREA_FIELDS.ambient_audio_urls.placeholder}
+              rows={6}
+              className="w-full p-3 rounded-2xl border-2 border-[#f4e4c6] focus:border-[#7fcfc7] focus:outline-none text-sm font-mono"
+              data-testid="setting-ambient_audio_urls"
+            />
+          </label>
+        </section>
         <section className="card-soft p-5">
           <h3 className="font-accent text-lg font-bold mb-3">Downloads & alerts</h3>
           <label className="flex items-center gap-2"><input type="checkbox" checked={!!s.email_gate_enabled} onChange={(e) => set("email_gate_enabled", e.target.checked)} data-testid="setting-email-gate" />Email gate enabled by default for downloads</label>
