@@ -373,13 +373,39 @@ def make_public_router(db):
                     "tags": [tag],
                     "created_at": _now(),
                 })
+        # No admin notification on download captures (intentional — keeps inbox light)
+        return {"ok": True}
+
+    class ChatBody(BaseModel):
+        name: str = ""
+        email: EmailStr
+        message: str
+        page: str = ""
+
+    @router.post("/chat")
+    async def chat_message(body: ChatBody):
+        email = str(body.email).lower()
+        doc = {
+            "id": str(uuid.uuid4()),
+            "type": "chat",
+            "name": body.name,
+            "email": email,
+            "subject": "Chat bubble question",
+            "message": body.message,
+            "page": body.page,
+            "read": False,
+            "created_at": _now(),
+        }
+        await db.submissions.insert_one(dict(doc))
         settings = await db.settings.find_one({"_id": "settings"}, {"_id": 0}) or {}
+        # Reply-to set to the visitor so admin can hit reply and respond directly
         await queue_email(
             db,
-            to=settings.get("download_capture_email", "community@rollingriver.com"),
-            subject=f"Download captured: {body.download_title or body.download_slug}",
-            html=f"<p>{body.name} &lt;{email}&gt; ({body.audience}) downloaded <b>{body.download_title or body.download_slug}</b>.</p>",
-            purpose="download_capture",
+            to=settings.get("contact_form_email", "community@rollingriver.com"),
+            subject=f"New chat from {body.name or email}",
+            html=f"<p><b>From:</b> {body.name or '(no name)'} &lt;{email}&gt;</p><p><b>Page:</b> {body.page or '/'}</p><p>{body.message}</p><p style='color:#888;font-size:12px'>Hit reply to respond directly to the visitor.</p>",
+            purpose="chat",
+            reply_to=email,
         )
         return {"ok": True}
 

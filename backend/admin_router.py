@@ -98,6 +98,29 @@ class BulkDownloadBody(BaseModel):
     value: Optional[str] = None
 
 
+class CampaignBody(BaseModel):
+    name: Optional[str] = None
+    subject: Optional[str] = None
+    preview_text: Optional[str] = None
+    from_email: Optional[str] = None
+    reply_to: Optional[str] = None
+    background_color: Optional[str] = None
+    content_background: Optional[str] = None
+    text_color: Optional[str] = None
+    accent_color: Optional[str] = None
+    content_width: Optional[int] = None
+    blocks: Optional[List[dict]] = None
+
+
+class CampaignSendBody(BaseModel):
+    recipient_emails: List[str] = []
+    recipient_filter: Optional[dict] = None  # {tags, source, audience}
+
+
+class CampaignTestBody(BaseModel):
+    to: str
+
+
 class CustomPageBody(BaseModel):
     title: Optional[str] = None
     slug: Optional[str] = None
@@ -332,6 +355,130 @@ def make_admin_router(db, require_admin):
         else:
             raise HTTPException(status_code=400, detail="Unknown action")
         return {"ok": True}
+
+    # ---------------- Email Campaigns ----------------
+    @router.get("/campaigns")
+    async def admin_list_campaigns():
+        return await db.campaigns.find({}, {"_id": 0}).sort("created_at", -1).to_list(500)
+
+    @router.get("/campaigns/{cid}")
+    async def admin_get_campaign(cid: str):
+        c = await db.campaigns.find_one({"id": cid}, {"_id": 0})
+        if not c:
+            raise HTTPException(status_code=404, detail="Not found")
+        return c
+
+    @router.post("/campaigns")
+    async def admin_create_campaign(body: CampaignBody):
+        if not body.name:
+            raise HTTPException(status_code=400, detail="Name required")
+        cid = uuid.uuid4().hex
+        doc = {k: v for k, v in body.model_dump().items() if v is not None}
+        doc.update({"id": cid, "status": "draft", "total_sent": 0, "created_at": _now(), "updated_at": _now()})
+        await db.campaigns.insert_one(dict(doc))
+        doc.pop("_id", None)
+        return doc
+
+    @router.put("/campaigns/{cid}")
+    async def admin_update_campaign(cid: str, body: CampaignBody):
+        update = {k: v for k, v in body.model_dump().items() if v is not None}
+        update["updated_at"] = _now()
+        r = await db.campaigns.update_one({"id": cid}, {"$set": update})
+        if r.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Not found")
+        return await db.campaigns.find_one({"id": cid}, {"_id": 0})
+
+    @router.delete("/campaigns/{cid}")
+    async def admin_delete_campaign(cid: str):
+        r = await db.campaigns.delete_one({"id": cid})
+        if r.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Not found")
+        return {"ok": True}
+
+    @router.get("/campaigns/{cid}/preview")
+    async def admin_preview_campaign(cid: str):
+        c = await db.campaigns.find_one({"id": cid}, {"_id": 0})
+        if not c:
+            raise HTTPException(status_code=404, detail="Not found")
+        from email_renderer import render_campaign_html
+        settings = await db.settings.find_one({"_id": "settings"}, {"_id": 0}) or {}
+        c.setdefault("site_name", settings.get("site_name", "Myrtle and Ray"))
+        return {"html": render_campaign_html(c)}
+
+    @router.post("/campaigns/{cid}/test")
+    async def admin_test_send_campaign(cid: str, body: CampaignTestBody):
+        c = await db.campaigns.find_one({"id": cid}, {"_id": 0})
+        if not c:
+            raise HTTPException(status_code=404, detail="Not found")
+        from email_renderer import render_campaign_html
+        from email_service import queue_email
+        settings = await db.settings.find_one({"_id": "settings"}, {"_id": 0}) or {}
+        c.setdefault("site_name", settings.get("site_name", "Myrtle and Ray"))
+        html = render_campaign_html(c)
+        await queue_email(
+            db,
+            to=body.to,
+            subject=f"[TEST] {c.get('subject') or c.get('name', 'Campaign')}",
+            html=html,
+            purpose="campaign_test",
+            from_email=c.get("from_email") or None,
+            reply_to=c.get("reply_to") or None,
+        )
+        return {"ok": True}
+
+    @router.post("/campaigns/{cid}/send")
+    async def admin_send_campaign(cid: str, body: CampaignSendBody):
+        c = await db.campaigns.find_one({"id": cid}, {"_id": 0})
+        if not c:
+            raise HTTPException(status_code=404, detail="Not found")
+        from email_renderer import render_campaign_html
+        from email_service import queue_email
+        settings = await db.settings.find_one({"_id": "settings"}, {"_id": 0}) or {}
+        c.setdefault("site_name", settings.get("site_name", "Myrtle and Ray"))
+
+        # Resolve recipient list
+        recipients = set()
+        for e in (body.recipient_emails or []):
+            if e:
+                recipients.add(e.lower().strip())
+        if body.recipient_filter:
+            q = {}
+            tags = body.recipient_filter.get("tags") or []
+            if tags:
+                q["tags"] = {"$in": tags}
+            source = body.recipient_filter.get("source")
+            if source:
+                q["source"] = source
+            audience = body.recipient_filter.get("audience")
+            if audience:
+                q["audience"] = audience
+            async for sub in db.mailing_list.find(q, {"_id": 0, "email": 1}):
+                recipients.add(sub["email"])
+        if not recipients:
+            raise HTTPException(status_code=400, detail="No recipients selected")
+
+        html = render_campaign_html(c)
+        subject = c.get("subject") or c.get("name") or "A note from Myrtle and Ray"
+        sent = 0; failed = 0
+        for email in recipients:
+            try:
+                await queue_email(
+                    db,
+                    to=email,
+                    subject=subject,
+                    html=html,
+                    purpose=f"campaign:{cid}",
+                    from_email=c.get("from_email") or None,
+                    reply_to=c.get("reply_to") or None,
+                )
+                sent += 1
+            except Exception:
+                failed += 1
+        await db.campaigns.update_one(
+            {"id": cid},
+            {"$set": {"status": "sent", "last_sent_at": _now(), "total_sent": (c.get("total_sent") or 0) + sent, "updated_at": _now()}},
+        )
+        return {"ok": True, "sent": sent, "failed": failed, "total_recipients": len(recipients)}
 
     # ---------------- Custom Pages (block builder) ----------------
     @router.get("/custom-pages")

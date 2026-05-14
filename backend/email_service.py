@@ -21,8 +21,7 @@ async def queue_email(
     from_email: Optional[str] = None,
     reply_to: Optional[str] = None,
 ) -> dict:
-    """Queue an email. If RESEND_API_KEY is set, attempt to send immediately.
-    Always persists to email_outbox for visibility."""
+    """Queue an email. If RESEND_API_KEY is set, attempt to send immediately."""
     settings_doc = await db.settings.find_one({"_id": "settings"}, {"_id": 0}) or {}
     from_addr = from_email or settings_doc.get("outgoing_from_email") or os.environ.get("RESEND_FROM_EMAIL", "hello@myrtleandray.com")
     reply_addr = reply_to or settings_doc.get("mailing_list_reply_to") or os.environ.get("RESEND_REPLY_TO", "community@rollingriver.com")
