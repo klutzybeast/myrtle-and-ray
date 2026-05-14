@@ -67,8 +67,9 @@ export function AudioProvider({ children, audioUrl }) {
   const synthRef = useRef(null);
   const elRef = useRef(null);
 
-  const start = () => {
-    if (!enabled) return;
+  const start = (forceOn = false) => {
+    // forceOn lets the toggle pass `true` even when `enabled` state hasn't flushed yet (it's async via setState).
+    if (!forceOn && !enabled) return;
     if (audioUrl) {
       if (!elRef.current) {
         const el = new Audio(audioUrl);
@@ -85,14 +86,16 @@ export function AudioProvider({ children, audioUrl }) {
         synthRef.current = makeHappyTones(ctxRef.current);
       } catch { return; }
     }
-    const c = ctxRef.current; if (c.state === "suspended") c.resume();
-    // Snap to audible volume right away so the first note is heard, then a quick smooth ramp.
+    const c = ctxRef.current;
+    // Resume from suspended (required after every user gesture on iOS / some Chrome builds).
+    if (c.state === "suspended") c.resume().catch(() => {});
+    // Snap master gain to an audible level immediately. 0.18 = clearly heard but still gentle.
     const g = synthRef.current?.masterGain.gain;
     if (g) {
       g.cancelScheduledValues(c.currentTime);
-      g.setValueAtTime(0.06, c.currentTime);
+      g.setValueAtTime(0.18, c.currentTime);
     }
-    // Trigger a note immediately so user hears music instantly on toggle.
+    // Trigger the first note now so the user hears music the instant they toggle.
     synthRef.current?.playNow?.();
   };
 
@@ -109,7 +112,7 @@ export function AudioProvider({ children, audioUrl }) {
     const next = !enabled;
     setEnabled(next);
     localStorage.setItem("mr_audio", next ? "on" : "off");
-    if (next) start(); else stop();
+    if (next) start(true); else stop();
   };
 
   // Restart loop when audioUrl changes
