@@ -104,7 +104,7 @@ PAGES = [
         "book_cover": "https://customer-assets.emergentagent.com/job_wave-of-excitement/artifacts/np2lq4do_IMG_2972.jpeg",
     }},
     {"key": "about", "title": "About", "content": {
-        "intro": "Myrtle and Ray and the First Day of Camp is a rhyming picture book about being brave even when something is new.",
+        "intro": "Myrtle and Ray and the First Day of Camp is a book about being brave even when something is new.",
         "why_we_wrote": "We wrote this book because every camper deserves a friend to wave hello on the first day. Brave does not mean fearless — it means trying anyway.",
         "authors": [
             {"name": "Marissa Allaben", "bio": "Marissa is a second-generation director at Rolling River Day Camp in East Rockaway, NY. She has spent her life welcoming campers on their very first day.", "image": ""},

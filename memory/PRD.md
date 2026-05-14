@@ -72,6 +72,19 @@ Casey, Dani, Sami, Izzy, Louie, Billy, Frankie.
 - Backend tested: 16/16 new-feature pytest passing
   (see /app/test_reports/iteration_2.json).
 
+## What's been implemented (2026-02-14, pass 2)
+- Hero badge replaced: now reads "Catch the W.A.V.E. of Excitement"
+  (was "A rhyming picture book · Ages 3–8").
+- Removed all "rhyming picture book" wording site-wide (Footer copy,
+  index.html meta description, seed.py about_book.intro, and live
+  about_book DB content) — now reads "A book…".
+- Removed "Shop my stuffie" CTA from each Sea Star character card on
+  /story (Hear my voice + Color me remain).
+- Admin panel mobile UX: new top bar with hamburger + drawer at <1024px.
+  All 14 nav items work, drawer auto-closes on nav, X button and
+  backdrop tap also close. Desktop sidebar unchanged.
+- Frontend tested: all 4 changes verified (see iteration_3.json).
+
 ## Prioritized backlog
 **P1 (next pass)**
 - Build the 8 activity games (Memory Match, Spot the Difference, Coloring
