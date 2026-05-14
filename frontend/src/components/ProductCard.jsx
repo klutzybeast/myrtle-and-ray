@@ -5,8 +5,8 @@ export default function ProductCard({ p }) {
   const showCompare = p.compare_at_price && p.compare_at_price > p.price;
   return (
     <Link to={`/shop/${p.slug}`} className="card-soft block overflow-hidden" data-testid={`product-card-${p.slug}`}>
-      <div className="aspect-square bg-[#eef9fb] overflow-hidden">
-        {img ? <img src={img} alt={p.name} loading="lazy" className="w-full h-full object-cover" /> : <div className="w-full h-full grid place-items-center text-[#8fbfe0] font-accent text-2xl">{p.name}</div>}
+      <div className="aspect-square bg-[#eef9fb] overflow-hidden p-3">
+        {img ? <img src={img} alt={p.name} loading="lazy" className="w-full h-full object-contain" /> : <div className="w-full h-full grid place-items-center text-[#8fbfe0] font-accent text-2xl">{p.name}</div>}
       </div>
       <div className="p-4">
         <div className="flex items-start justify-between gap-2">

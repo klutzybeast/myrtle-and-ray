@@ -26,7 +26,7 @@ export default function AdminCharacters() {
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {items.map((c) => (
           <div key={c.slug} className="bg-white rounded-3xl border border-[#f4e4c6] p-5 flex gap-4" data-testid={`char-row-${c.slug}`}>
-            <div className="gradient-ring flex-shrink-0" style={{ width: 64, height: 64 }}><img src={c.image_url} alt="" className="w-full h-full rounded-full object-cover bg-white" /></div>
+            <div className="gradient-ring flex-shrink-0" style={{ width: 64, height: 64 }}><img src={c.image_url} alt="" className="w-full h-full rounded-full object-contain bg-[#fffbf3]" /></div>
             <div className="flex-1 min-w-0">
               <div className="font-bold text-[#2e3a3a]">{c.name}</div>
               <div className="text-xs text-[#6b7280] truncate">{c.role}</div>

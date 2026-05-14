@@ -47,7 +47,7 @@ export default function MapPage() {
               <div className="flex items-center gap-3 mb-3">
                 {hotspotChar && (
                   <div className="gradient-ring shrink-0" style={{ width: 72, height: 72 }}>
-                    <img src={hotspotChar.image_url} alt="" className="w-full h-full rounded-full object-cover bg-white" />
+                    <img src={hotspotChar.image_url} alt="" className="w-full h-full rounded-full object-contain bg-[#fffbf3]" />
                   </div>
                 )}
                 <div className="min-w-0">

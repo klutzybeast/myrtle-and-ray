@@ -59,7 +59,7 @@ export default function DownloadDetail() {
 
         <div className="grid lg:grid-cols-2 gap-10">
           <div className="aspect-[4/3] bg-[#eef9fb] rounded-[28px] overflow-hidden">
-            {d.cover_image ? <img src={d.cover_image} alt={d.title} className="w-full h-full object-cover" /> : <div className="w-full h-full grid place-items-center"><FileText className="w-16 h-16 text-[#8fbfe0]" /></div>}
+            {d.cover_image ? <img src={d.cover_image} alt={d.title} className="w-full h-full object-contain" /> : <div className="w-full h-full grid place-items-center"><FileText className="w-16 h-16 text-[#8fbfe0]" /></div>}
           </div>
           <div>
             <h1 className="font-accent text-4xl md:text-5xl font-bold leading-tight" data-testid="download-title">{d.title}</h1>
@@ -70,7 +70,7 @@ export default function DownloadDetail() {
             </div>
             {char && (
               <Link to={`/story#${char.slug}`} className="mt-3 inline-flex items-center gap-2 text-sm text-[#7cbf94] font-semibold">
-                <div className="gradient-ring" style={{ width: 32, height: 32 }}><img src={char.image_url} alt="" className="w-full h-full rounded-full object-cover bg-white" /></div>
+                <div className="gradient-ring" style={{ width: 32, height: 32 }}><img src={char.image_url} alt="" className="w-full h-full rounded-full object-contain bg-[#fffbf3]" /></div>
                 Featuring {char.name}
               </Link>
             )}

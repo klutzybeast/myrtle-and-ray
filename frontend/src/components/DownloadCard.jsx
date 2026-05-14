@@ -5,7 +5,7 @@ export default function DownloadCard({ d, characterImage }) {
   return (
     <Link to={`/downloads/${d.slug}`} className="card-soft block overflow-hidden group" data-testid={`download-card-${d.slug}`}>
       <div className="aspect-[4/3] bg-[#eef9fb] relative overflow-hidden">
-        {d.cover_image ? <img src={d.cover_image} alt={d.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition" /> : <div className="w-full h-full grid place-items-center text-[#8fbfe0] font-accent text-2xl"><FileText className="w-12 h-12" /></div>}
+        {d.cover_image ? <img src={d.cover_image} alt={d.title} loading="lazy" className="w-full h-full object-contain group-hover:scale-105 transition" /> : <div className="w-full h-full grid place-items-center text-[#8fbfe0] font-accent text-2xl"><FileText className="w-12 h-12" /></div>}
         {d.is_new && <span className="absolute top-3 left-3 bg-[#f0a988] text-white text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-full" data-testid="download-new-badge"><Sparkles className="w-3 h-3 inline mr-1" />New</span>}
         {characterImage && <div className="absolute -bottom-4 right-4 portrait-pill" style={{ width: 56, height: 56 }}><img src={characterImage} alt="" /></div>}
       </div>

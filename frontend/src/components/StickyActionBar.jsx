@@ -11,7 +11,7 @@ export default function StickyActionBar() {
           <BookOpen className="w-5 h-5" strokeWidth={2.5} /> Buy the Book on Amazon
         </a>
         <Link to="/shop" className="btn-secondary text-base md:text-lg" data-testid="bottom-shop-cta">
-          <ShoppingBag className="w-5 h-5" strokeWidth={2.5} /> Shop Myrtle and Ray Stuffies
+          <ShoppingBag className="w-5 h-5" strokeWidth={2.5} /> Shop Myrtle and Ray's Store
         </Link>
       </div>
     </div>

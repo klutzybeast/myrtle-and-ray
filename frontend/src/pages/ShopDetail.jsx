@@ -39,14 +39,14 @@ export default function ShopDetail() {
 
         <div className="grid lg:grid-cols-2 gap-10">
           <div>
-            <div className="aspect-square bg-[#eef9fb] rounded-[28px] overflow-hidden mb-3">
-              {images[activeImage] && <img src={images[activeImage]} alt={p.name} className="w-full h-full object-cover" />}
+            <div className="aspect-square bg-[#eef9fb] rounded-[28px] overflow-hidden mb-3 p-4">
+              {images[activeImage] && <img src={images[activeImage]} alt={p.name} className="w-full h-full object-contain" />}
             </div>
             {images.length > 1 && (
               <div className="flex gap-2 overflow-x-auto no-scrollbar">
                 {images.map((img, i) => (
-                  <button key={i} onClick={() => setActiveImage(i)} className={`flex-shrink-0 w-20 h-20 rounded-2xl overflow-hidden border-2 ${activeImage === i ? "border-[#7fcfc7]" : "border-transparent"}`} data-testid={`thumb-${i}`}>
-                    <img src={img} alt="" className="w-full h-full object-cover" />
+                  <button key={i} onClick={() => setActiveImage(i)} className={`flex-shrink-0 w-20 h-20 rounded-2xl overflow-hidden border-2 bg-[#eef9fb] p-1 ${activeImage === i ? "border-[#7fcfc7]" : "border-transparent"}`} data-testid={`thumb-${i}`}>
+                    <img src={img} alt="" className="w-full h-full object-contain" />
                   </button>
                 ))}
               </div>

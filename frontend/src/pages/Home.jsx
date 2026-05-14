@@ -123,7 +123,7 @@ export default function Home() {
               <h2 className="font-accent text-4xl md:text-5xl font-bold">Shop the Crew</h2>
               <p className="text-[#4a5568] mt-2">Take a Sea Star home with you.</p>
             </div>
-            <Link to="/shop" className="btn-secondary">All Stuffies <ArrowRight className="w-4 h-4" /></Link>
+            <Link to="/shop" className="btn-secondary">Shop the Store <ArrowRight className="w-4 h-4" /></Link>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
             {products.map((p) => <ProductCard key={p.slug} p={p} />)}

@@ -31,7 +31,7 @@ export default function Story() {
           {chars.map((c) => (
             <div key={c.slug} id={c.slug} className="relative pt-14" data-testid={`character-card-${c.slug}`}>
               <div className="absolute left-1/2 -translate-x-1/2 -top-4 z-10 gradient-ring animate-bob" style={{ width: 132, height: 132 }}>
-                <img src={c.image_url} alt={c.name} className="w-full h-full rounded-full object-cover bg-white" />
+                <img src={c.image_url} alt={c.name} className="w-full h-full rounded-full object-contain bg-[#fffbf3]" />
               </div>
               <div className="card-soft p-6 pt-20 text-center min-h-[320px]">
                 <h3 className="font-accent text-2xl font-bold">{c.name}</h3>
@@ -80,7 +80,7 @@ export default function Story() {
           <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4" onClick={() => setHotspot(null)} data-testid="map-modal">
             <div className="bg-white rounded-[24px] max-w-md w-full p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center gap-3 mb-3">
-                {hotspotChar && <div className="gradient-ring" style={{ width: 64, height: 64 }}><img src={hotspotChar.image_url} alt="" className="w-full h-full rounded-full object-cover bg-white" /></div>}
+                {hotspotChar && <div className="gradient-ring" style={{ width: 64, height: 64 }}><img src={hotspotChar.image_url} alt="" className="w-full h-full rounded-full object-contain bg-[#fffbf3]" /></div>}
                 <div>
                   <h3 className="font-accent text-2xl font-bold">{hotspot.title}</h3>
                   {hotspotChar && <div className="text-sm text-[#7cbf94]">With {hotspotChar.name}</div>}

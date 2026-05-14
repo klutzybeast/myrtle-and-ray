@@ -44,7 +44,7 @@ export default function Quiz({ data, onComplete }) {
           <p className="text-[#4a5568]">You are most like…</p>
           {winnerChar && (
             <>
-              <img src={winnerChar.image_url} alt={winnerChar.name} className="w-40 h-40 mx-auto rounded-full mt-3 border-4 border-[#f4e4c6] object-cover" />
+              <img src={winnerChar.image_url} alt={winnerChar.name} className="w-40 h-40 mx-auto rounded-full mt-3 border-4 border-[#f4e4c6] object-contain bg-[#fffbf3]" />
               <div className="font-accent text-4xl font-bold mt-3 text-[#5a8a6f]">{winnerChar.name}!</div>
               <p className="text-xs uppercase tracking-widest text-[#7cbf94] font-bold">{winnerChar.role}</p>
               <p className="text-[#4a5568] mt-3 max-w-md mx-auto">{winnerChar.bio}</p>
