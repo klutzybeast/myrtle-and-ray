@@ -5,11 +5,10 @@ const AudioCtx = createContext(null);
 
 function makeHappyTones(audioCtx) {
   // Gentle marimba/music-box style: soft sine notes from a C-major pentatonic
-  // scale (C4 E4 G4 A4 C5 D5 E5 G5) played at random ~2.4s intervals, with
-  // a tiny fifth harmonic for warmth. Master gain stays low (0.0 by default).
+  // scale played at random ~2.4s intervals. Master gain starts at 0 — caller
+  // bumps it up when the toggle is on, then calls playNow() to hear the first note.
   const masterGain = audioCtx.createGain();
   masterGain.gain.value = 0.0;
-  // Soft reverb-y feel via a short delay line
   const delay = audioCtx.createDelay(0.6);
   delay.delayTime.value = 0.32;
   const feedback = audioCtx.createGain();
@@ -23,9 +22,9 @@ function makeHappyTones(audioCtx) {
 
   const SCALE = [261.63, 329.63, 392.0, 440.0, 523.25, 587.33, 659.25, 783.99];
   let stopped = false;
+  let timer = null;
 
-  const playNote = () => {
-    if (stopped) return;
+  const playOnce = () => {
     const t = audioCtx.currentTime;
     const f = SCALE[Math.floor(Math.random() * SCALE.length)];
     const o1 = audioCtx.createOscillator();
@@ -44,13 +43,19 @@ function makeHappyTones(audioCtx) {
     o2.connect(h).connect(masterGain);
     o1.start(t); o2.start(t);
     o1.stop(t + 1.8); o2.stop(t + 1.3);
-    // Random next note 1.6–3.0s
-    const next = 1600 + Math.random() * 1400;
-    setTimeout(playNote, next);
   };
-  playNote();
 
-  return { masterGain, stop: () => { stopped = true; } };
+  const loop = () => {
+    if (stopped) return;
+    playOnce();
+    timer = setTimeout(loop, 1600 + Math.random() * 1400);
+  };
+
+  return {
+    masterGain,
+    playNow: () => { stopped = false; if (timer) clearTimeout(timer); loop(); },
+    stop: () => { stopped = true; if (timer) clearTimeout(timer); },
+  };
 }
 
 export function AudioProvider({ children, audioUrl }) {
@@ -81,8 +86,14 @@ export function AudioProvider({ children, audioUrl }) {
       } catch { return; }
     }
     const c = ctxRef.current; if (c.state === "suspended") c.resume();
-    // Very soft target volume — happy tones, not a foreground sound.
-    synthRef.current?.masterGain.gain.linearRampToValueAtTime(0.06, c.currentTime + 0.6);
+    // Snap to audible volume right away so the first note is heard, then a quick smooth ramp.
+    const g = synthRef.current?.masterGain.gain;
+    if (g) {
+      g.cancelScheduledValues(c.currentTime);
+      g.setValueAtTime(0.06, c.currentTime);
+    }
+    // Trigger a note immediately so user hears music instantly on toggle.
+    synthRef.current?.playNow?.();
   };
 
   const stop = () => {
@@ -90,6 +101,7 @@ export function AudioProvider({ children, audioUrl }) {
     if (synthRef.current && ctxRef.current) {
       synthRef.current.masterGain.gain.cancelScheduledValues(ctxRef.current.currentTime);
       synthRef.current.masterGain.gain.linearRampToValueAtTime(0, ctxRef.current.currentTime + 0.4);
+      synthRef.current.stop?.();
     }
   };
 
