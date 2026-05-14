@@ -59,6 +59,19 @@ Casey, Dani, Sami, Izzy, Louie, Billy, Frankie.
   content editor.
 - Backend tested: 38/38 pytest passing (see /app/test_reports/iteration_1.json).
 
+## What's been implemented (2026-02-14)
+- Floating Chat Bubble on all public pages — posts to `/api/chat`,
+  emails community@rollingriver.com with reply_to set to the visitor.
+- Email Campaigns module (Constant-Contact-style block builder):
+  Heading / Paragraph / Image / Button / Divider / Spacer / Quote /
+  Raw HTML; drag-to-reorder; live preview iframe; color/width
+  controls; recipient picker with tag + audience filter; test-send;
+  batch send via Resend. Admin sidebar entry `Campaigns`.
+- Admin login + mailing-list signup admin-notification emails removed
+  (visitor welcome email still sent).
+- Backend tested: 16/16 new-feature pytest passing
+  (see /app/test_reports/iteration_2.json).
+
 ## Prioritized backlog
 **P1 (next pass)**
 - Build the 8 activity games (Memory Match, Spot the Difference, Coloring

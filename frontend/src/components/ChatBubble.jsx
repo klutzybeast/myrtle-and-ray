@@ -2,7 +2,6 @@ import { useState } from "react";
 import { api } from "../lib/api";
 import { toast } from "sonner";
 import { MessageCircle, X, Send } from "lucide-react";
-
 export default function ChatBubble() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
@@ -17,7 +16,6 @@ export default function ChatBubble() {
     try {
       await api.post("/chat", { name, email, message, page: window.location.pathname });
       setSent(true);
-      toast.success("Sent! We'll reply at your email.");
     } catch { toast.error("Try again in a moment."); }
     finally { setBusy(false); }
   };
