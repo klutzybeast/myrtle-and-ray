@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import DownloadCard from "../components/DownloadCard";
+import SEO from "../components/SEO";
 
 const AUDIENCES = ["All", "Parents", "Teachers", "Camp Directors", "Kids"];
 const WAVE = [{ v: "W", l: "Welcome" }, { v: "A", l: "Act" }, { v: "V", l: "Value" }, { v: "E", l: "Encourage" }];
@@ -41,6 +42,7 @@ export default function Downloads() {
 
   return (
     <main className="pt-24 pb-12 bg-foam-grad min-h-screen" data-testid="downloads-page">
+      <SEO title="Free Printable Downloads" description="Free coloring pages, activity sheets, and W.A.V.E. resources for parents, teachers, and camp directors." />
       <div className="max-w-7xl mx-auto px-4 md:px-6">
         <header className="text-center mb-10">
           <h1 className="font-accent text-5xl md:text-6xl font-bold">Free Activities and Resources</h1>

@@ -99,6 +99,9 @@ def make_public_router(db):
             "email_gate_enabled": s.get("email_gate_enabled", True),
             "ambient_audio_url": s.get("ambient_audio_url", ""),
             "ambient_audio_urls": _parse_urls(s.get("ambient_audio_urls"), s.get("ambient_audio_url")),
+            "og_image_default": s.get("og_image_default", ""),
+            "seo_title_default": s.get("seo_title_default", ""),
+            "meta_description_default": s.get("meta_description_default", ""),
         }
         return public
 

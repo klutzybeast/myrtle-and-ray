@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { api } from "../lib/api";
 import { renderBlock } from "./admin/BlockPreview";
+import SEO from "../components/SEO";
 
 export default function CustomPage() {
   const { slug } = useParams();
@@ -16,6 +17,7 @@ export default function CustomPage() {
 
   return (
     <main className="pt-24 pb-12 bg-foam-grad min-h-screen" data-testid="custom-page-public">
+      <SEO title={page.seo_title || page.title} description={page.meta_description || page.intro || ""} image={page.og_image || page.hero_image} />
       {page.hero_image && (
         <div className="max-w-7xl mx-auto px-4 md:px-6 mb-8">
           <div className="rounded-[28px] overflow-hidden shadow-2xl border-4 border-white">

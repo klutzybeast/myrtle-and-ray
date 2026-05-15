@@ -3,6 +3,7 @@ import { useSite } from "../lib/site";
 import { api } from "../lib/api";
 import { toast } from "sonner";
 import { Mail, MessageCircle } from "lucide-react";
+import SEO from "../components/SEO";
 
 export default function Contact() {
   const site = useSite();
@@ -19,6 +20,7 @@ export default function Contact() {
 
   return (
     <main className="pt-24 pb-12 bg-foam-grad min-h-screen" data-testid="contact-page">
+      <SEO title="Contact Us" description="Get in touch with Marissa, Alison, and the Myrtle & Ray team." />
       <div className="max-w-3xl mx-auto px-4 md:px-6">
         <header className="text-center mb-8">
           <MessageCircle className="w-10 h-10 text-[#7cbf94] mx-auto mb-3" />

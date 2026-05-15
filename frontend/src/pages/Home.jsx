@@ -8,6 +8,7 @@ import DownloadCard from "../components/DownloadCard";
 import WaveDivider from "../components/WaveDivider";
 import { BookOpen, Heart, Users, Sparkles, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
+import SEO from "../components/SEO";
 
 const HERO_IMG = "https://customer-assets.emergentagent.com/job_wave-of-excitement/artifacts/np2lq4do_IMG_2972.jpeg";
 
@@ -39,6 +40,7 @@ export default function Home() {
 
   return (
     <main className="pt-16">
+      <SEO title="Welcome to Stingray Cay" description={hero.subheadline || ""} image={hero.background_image || HERO_IMG} />
       {/* HERO */}
       <section className="relative bg-wave-hero overflow-hidden" data-testid="hero-section">
         <div className="absolute inset-0">

@@ -5,6 +5,7 @@ import { useSite } from "../lib/site";
 import DownloadCard from "../components/DownloadCard";
 import EmailCaptureModal from "../components/EmailCaptureModal";
 import { FileText, Download as DLIcon, Printer, Share2, ChevronRight } from "lucide-react";
+import SEO from "../components/SEO";
 import { toast } from "sonner";
 
 export default function DownloadDetail() {
@@ -50,6 +51,7 @@ export default function DownloadDetail() {
 
   return (
     <main className="pt-24 pb-12 bg-[#fffbf3] min-h-screen" data-testid="download-detail-page">
+      <SEO title={d.title} description={d.description || `Free download: ${d.title}`} image={d.cover_image} />
       <div className="max-w-6xl mx-auto px-4 md:px-6">
         <nav className="text-sm text-[#6b7280] mb-4 flex items-center gap-1 flex-wrap">
           <Link to="/">Home</Link><ChevronRight className="w-4 h-4" />

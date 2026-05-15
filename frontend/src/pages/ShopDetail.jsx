@@ -4,6 +4,7 @@ import { api } from "../lib/api";
 import ProductCard from "../components/ProductCard";
 import { ChevronRight, ShoppingBag, Heart, Share2 } from "lucide-react";
 import { toast } from "sonner";
+import SEO from "../components/SEO";
 
 export default function ShopDetail() {
   const { slug } = useParams();
@@ -29,6 +30,12 @@ export default function ShopDetail() {
 
   return (
     <main className="pt-24 pb-12 bg-[#fffbf3] min-h-screen" data-testid="product-detail-page">
+      <SEO
+        title={p.seo_title || p.name}
+        description={p.meta_description || p.short_description}
+        image={p.og_image || p.primary_image}
+        type="product"
+      />
       <div className="max-w-7xl mx-auto px-4 md:px-6">
         <nav className="text-sm text-[#6b7280] mb-4 flex items-center gap-1 flex-wrap" data-testid="breadcrumb">
           <Link to="/">Home</Link><ChevronRight className="w-4 h-4" />

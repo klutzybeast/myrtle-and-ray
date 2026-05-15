@@ -12,6 +12,7 @@ const SECTIONS = [
   { title: "Outgoing email", fields: [["outgoing_from_email", "Outgoing 'from' address"]] },
   { title: "Social links", fields: [["facebook_url", "Facebook"], ["instagram_url", "Instagram"], ["tiktok_url", "TikTok"], ["youtube_url", "YouTube"], ["pinterest_url", "Pinterest"], ["twitter_url", "X/Twitter"], ["threads_url", "Threads"], ["linkedin_url", "LinkedIn"]] },
   { title: "Tracking", fields: [["google_analytics_id", "Google Analytics ID"], ["meta_pixel_id", "Meta Pixel ID"]] },
+  { title: "SEO defaults (used when a page doesn't set its own)", customRender: "seo_defaults", fields: [["seo_title_default", "Default page title"], ["meta_description_default", "Default meta description (≤160 chars)"]] },
 ];
 
 export default function AdminSettings() {
@@ -56,6 +57,11 @@ export default function AdminSettings() {
               <div className="flex flex-wrap gap-6 mb-4">
                 <ImageUploader label="Site logo" value={s.logo_url || ""} onChange={(u) => set("logo_url", u)} testid="setting-logo" />
                 <ImageUploader label="Favicon (square)" value={s.favicon_url || ""} onChange={(u) => set("favicon_url", u)} testid="setting-favicon" />
+              </div>
+            )}
+            {sec.customRender === "seo_defaults" && (
+              <div className="mb-4">
+                <ImageUploader label="Default sharing image (1200×630 ideal — shows on Facebook, iMessage, X)" value={s.og_image_default || ""} onChange={(u) => set("og_image_default", u)} testid="setting-og-image" />
               </div>
             )}
             <div className="grid sm:grid-cols-2 gap-3">

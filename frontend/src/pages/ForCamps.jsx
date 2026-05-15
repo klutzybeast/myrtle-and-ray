@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import { toast } from "sonner";
 import { Tent } from "lucide-react";
+import SEO from "../components/SEO";
 
 export default function ForCamps() {
   const [content, setContent] = useState({ benefits: [], tiers: [], intro: "" });
@@ -22,6 +23,7 @@ export default function ForCamps() {
 
   return (
     <main className="pt-24 pb-12 bg-foam-grad min-h-screen" data-testid="for-camps-page">
+      <SEO title="For Camps & Wholesale" description="Bulk pricing, camp partnerships, and wholesale inquiries for Myrtle and Ray." />
       <div className="max-w-5xl mx-auto px-4 md:px-6">
         <header className="text-center mb-8">
           <Tent className="w-10 h-10 text-[#7cbf94] mx-auto mb-3" />

@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
+import SEO from "../components/SEO";
 
 export default function ReadAloud() {
   const [content, setContent] = useState({});
   useEffect(() => { api.get("/pages/read_aloud").then(({ data }) => setContent(data.content || {})); }, []);
   return (
     <main className="pt-24 pb-12 bg-foam-grad min-h-screen" data-testid="read-aloud-page">
+      <SEO title="Read Aloud" description={content.intro || "Press play and ride the wave — read-aloud video of Myrtle and Ray and the First Day of Camp."} />
       <div className="max-w-5xl mx-auto px-4 md:px-6">
         <header className="text-center mb-10">
           <h1 className="font-accent text-5xl md:text-6xl font-bold">Read Aloud</h1>

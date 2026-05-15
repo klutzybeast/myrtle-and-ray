@@ -51,6 +51,7 @@ class ProductBody(BaseModel):
     tags: Optional[List[str]] = None
     seo_title: Optional[str] = None
     meta_description: Optional[str] = None
+    og_image: Optional[str] = None
     published: Optional[bool] = None
 
 

@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { api } from "../lib/api";
 import ProductCard from "../components/ProductCard";
+import SEO from "../components/SEO";
 
 const CATS = ["All", "Stuffies", "Apparel", "Drinkware", "Stickers", "Bundles", "Books", "Accessories"];
 const SORTS = [
@@ -28,6 +29,7 @@ export default function Shop() {
 
   return (
     <main className="pt-24 pb-12 bg-[#fffbf3] min-h-screen" data-testid="shop-page">
+      <SEO title="Shop the Store" description="Stuffies, apparel, books, and accessories from Stingray Cay. Every item ships from our Printify partner." />
       <div className="max-w-7xl mx-auto px-4 md:px-6">
         <header className="text-center mb-8">
           <h1 className="font-accent text-5xl md:text-6xl font-bold">Take the Sea Stars Home With You</h1>

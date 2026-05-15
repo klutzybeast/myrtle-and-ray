@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import { Toaster } from "sonner";
 import "@/App.css";
 
@@ -78,6 +79,7 @@ function PublicShell({ children }) {
 function App() {
   return (
     <div className="App">
+      <HelmetProvider>
       <BrowserRouter>
         <AuthProvider>
           <SiteProvider>
@@ -124,6 +126,7 @@ function App() {
           </SiteProvider>
         </AuthProvider>
       </BrowserRouter>
+      </HelmetProvider>
     </div>
   );
 }

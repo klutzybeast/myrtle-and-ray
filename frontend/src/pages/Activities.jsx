@@ -4,6 +4,7 @@ import { api } from "../lib/api";
 import { toast } from "sonner";
 import { useAudio } from "../lib/audio";
 import { Puzzle, Search, Map as MapIcon, Award, Star, Palette, Music, Sticker, X } from "lucide-react";
+import SEO from "../components/SEO";
 
 import MemoryMatch from "./games/MemoryMatch";
 import Quiz from "./games/Quiz";
@@ -89,6 +90,7 @@ export default function Activities() {
 
   return (
     <main className="pt-24 pb-12 bg-foam-grad min-h-screen" data-testid="activities-page">
+      <SEO title="Activities & Games" description="Eight little games for kids — memory match, word search, mazes, coloring, and more. Earn Wave badges and become Captain of the Cay." />
       <div className="max-w-7xl mx-auto px-4 md:px-6">
         <header className="text-center mb-10">
           <Award className="w-10 h-10 text-[#f0a988] mx-auto mb-3" />

@@ -72,6 +72,7 @@ class Product(BaseModel):
     tags: List[str] = Field(default_factory=list)
     seo_title: str = ""
     meta_description: str = ""
+    og_image: str = ""
     published: bool = True
     created_at: str = Field(default_factory=_now)
     updated_at: str = Field(default_factory=_now)
@@ -95,6 +96,7 @@ class ProductCreate(BaseModel):
     tags: List[str] = Field(default_factory=list)
     seo_title: str = ""
     meta_description: str = ""
+    og_image: str = ""
     published: bool = True
 
 

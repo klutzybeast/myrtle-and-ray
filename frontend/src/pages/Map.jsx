@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
 import { HOTSPOTS, MAP_IMG } from "../lib/mapData";
 import { Sparkles, MapPin } from "lucide-react";
+import SEO from "../components/SEO";
 
 export default function MapPage() {
   const [chars, setChars] = useState([]);
@@ -21,6 +22,7 @@ export default function MapPage() {
 
   return (
     <main className="pt-24 pb-16 bg-foam-grad min-h-screen" data-testid="map-page">
+      <SEO title="Map of Stingray Cay" description="Tour Stingray Cay — tap any glowing dot to meet a Sea Star and play their favorite game." />
       <div className="max-w-6xl mx-auto px-4 md:px-6">
         <header className="text-center mb-8">
           <MapPin className="w-10 h-10 text-[#7fcfc7] mx-auto mb-2" />

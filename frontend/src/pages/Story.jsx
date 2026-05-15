@@ -4,6 +4,7 @@ import { api } from "../lib/api";
 import { useAudio } from "../lib/audio";
 import { HOTSPOTS, MAP_IMG } from "../lib/mapData";
 import { Volume2, Palette, VolumeOff, Sparkles } from "lucide-react";
+import SEO from "../components/SEO";
 
 export default function Story() {
   const [chars, setChars] = useState([]);
@@ -21,6 +22,7 @@ export default function Story() {
 
   return (
     <main className="pt-24 pb-12 bg-foam-grad min-h-screen" data-testid="story-page">
+      <SEO title="Meet the Sea Stars" description="Eleven Sea Stars from Stingray Cay — meet Myrtle, Ray, Ollie, and the whole crew of camp characters." />
       <div className="max-w-7xl mx-auto px-4 md:px-6">
         <header className="text-center mb-10">
           <h1 className="font-accent text-5xl md:text-6xl font-bold">Meet the Sea Stars of Stingray Cay</h1>

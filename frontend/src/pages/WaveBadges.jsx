@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Award, ArrowLeft, Puzzle, Search, Map as MapIcon, Star, Palette, Music, Sticker } from "lucide-react";
+import SEO from "../components/SEO";
 
 const BADGES = [
   { key: "memory_match", title: "Memory Master", subtitle: "Matched every pair", icon: Puzzle, color: "#7fcfc7" },
@@ -29,6 +30,7 @@ export default function WaveBadges() {
 
   return (
     <main className="pt-24 pb-16 bg-foam-grad min-h-screen" data-testid="wave-badges-page">
+      <SEO title="My Wave Badges" description="Track your progress through the Stingray Cay activity games. Collect all 8 badges to become Captain of the Cay." />
       <div className="max-w-5xl mx-auto px-4 md:px-6">
         <Link to="/activities" className="inline-flex items-center gap-2 text-sm font-bold text-[#5a8a6f] hover:underline mb-3" data-testid="back-to-activities"><ArrowLeft className="w-4 h-4" />Back to Activities</Link>
         <header className="text-center mb-8">

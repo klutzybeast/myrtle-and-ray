@@ -2,8 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { api } from "../../lib/api";
 import { toast } from "sonner";
 import { Plus, Trash2, Pencil, X, Save, ChevronLeft, Search, Star } from "lucide-react";
-import { ImageGalleryUploader } from "./ImageUploader";
+import { ImageGalleryUploader, ImageUploader } from "./ImageUploader";
 import TagsInput from "./TagsInput";
+import { slugify, autoTags, truncate } from "../../lib/seo";
 
 const CATS = ["Stuffies", "Apparel", "Drinkware", "Stickers", "Bundles", "Books", "Accessories"];
 const STATUS = ["In Stock", "Low Stock", "Sold Out", "Coming Soon"];
@@ -17,11 +18,16 @@ export default function AdminProducts() {
   const load = () => api.get("/admin/products").then(({ data }) => setItems(data));
   useEffect(() => { load(); api.get("/admin/characters").then(({ data }) => setChars(data)); }, []);
 
-  const blank = { name: "", slug: "", category: "Stuffies", character_slug: "", short_description: "", long_description: "", price: null, compare_at_price: null, images: [], primary_image: "", printify_url: "", inventory_status: "In Stock", featured: false, tags: [], published: true };
+  const blank = { name: "", slug: "", category: "Stuffies", character_slug: "", short_description: "", long_description: "", price: null, compare_at_price: null, images: [], primary_image: "", printify_url: "", inventory_status: "In Stock", featured: false, tags: [], seo_title: "", meta_description: "", og_image: "", published: true };
 
   const save = async (data) => {
     try {
-      const payload = { ...data, price: data.price == null || data.price === "" ? 0 : Number(data.price) };
+      const payload = {
+        ...data,
+        slug: (data.slug || slugify(data.name || "")),
+        price: data.price == null || data.price === "" ? 0 : Number(data.price),
+        og_image: data.og_image || data.primary_image || "",
+      };
       if (creating) await api.post("/admin/products", payload);
       else await api.put(`/admin/products/${editing.slug}`, payload);
       toast.success("Saved!");
@@ -58,6 +64,32 @@ export default function AdminProducts() {
 
 function Editor({ item, setItem, cats, chars, statuses, onSave, onCancel }) {
   const set = (k, v) => setItem({ ...item, [k]: v });
+
+  // Auto-derive slug + tags from name/category/character — only when those user-editable
+  // fields are still blank, so admins can override later.
+  const setName = (name) => {
+    const next = { ...item, name };
+    if (!item.slug || item.slug === slugify(item.name || "")) next.slug = slugify(name);
+    if (!item.tags || item.tags.length === 0) next.tags = autoTags({ name, category: item.category, character_slug: item.character_slug });
+    if (!item.seo_title) next.seo_title = name;
+    setItem(next);
+  };
+  const setCategory = (category) => {
+    const next = { ...item, category };
+    if (!item.tags || item.tags.length === 0) next.tags = autoTags({ name: item.name, category, character_slug: item.character_slug });
+    setItem(next);
+  };
+  const setCharacter = (character_slug) => {
+    const next = { ...item, character_slug };
+    if (!item.tags || item.tags.length === 0) next.tags = autoTags({ name: item.name, category: item.category, character_slug });
+    setItem(next);
+  };
+  const setShortDesc = (short_description) => {
+    const next = { ...item, short_description };
+    if (!item.meta_description) next.meta_description = truncate(short_description, 160);
+    setItem(next);
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-black/40 grid place-items-center p-4" onClick={onCancel} data-testid="product-editor">
       <div className="bg-white rounded-[24px] max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
@@ -66,10 +98,10 @@ function Editor({ item, setItem, cats, chars, statuses, onSave, onCancel }) {
           <button onClick={onCancel}><X /></button>
         </div>
         <div className="grid sm:grid-cols-2 gap-3">
-          <Field label="Name"><input value={item.name || ""} onChange={(e) => set("name", e.target.value)} className="inp" data-testid="product-edit-name" /></Field>
-          <Field label="Slug (auto if blank)"><input value={item.slug || ""} onChange={(e) => set("slug", e.target.value)} className="inp" /></Field>
-          <Field label="Category"><select value={item.category} onChange={(e) => set("category", e.target.value)} className="inp">{cats.map((c) => <option key={c}>{c}</option>)}</select></Field>
-          <Field label="Character (optional)"><select value={item.character_slug || ""} onChange={(e) => set("character_slug", e.target.value)} className="inp"><option value="">None</option>{chars.map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}</select></Field>
+          <Field label="Name"><input value={item.name || ""} onChange={(e) => setName(e.target.value)} className="inp" data-testid="product-edit-name" /></Field>
+          <Field label="Slug (auto from name)"><input value={item.slug || ""} onChange={(e) => set("slug", slugify(e.target.value))} placeholder="my-product-name" className="inp" data-testid="product-edit-slug" /></Field>
+          <Field label="Category"><select value={item.category} onChange={(e) => setCategory(e.target.value)} className="inp">{cats.map((c) => <option key={c}>{c}</option>)}</select></Field>
+          <Field label="Character (optional)"><select value={item.character_slug || ""} onChange={(e) => setCharacter(e.target.value)} className="inp"><option value="">None</option>{chars.map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}</select></Field>
           <Field label="Price (USD)"><input type="number" inputMode="decimal" step="0.01" min="0" value={item.price === 0 || item.price == null ? "" : item.price} onChange={(e) => set("price", e.target.value === "" ? null : e.target.value)} placeholder="0.00" className="inp" data-testid="product-edit-price" /></Field>
           <Field label="Compare-at price"><input type="number" inputMode="decimal" step="0.01" min="0" value={item.compare_at_price === 0 || item.compare_at_price == null ? "" : item.compare_at_price} onChange={(e) => set("compare_at_price", e.target.value === "" ? null : parseFloat(e.target.value))} placeholder="optional" className="inp" /></Field>
           <Field label="Inventory Status"><select value={item.inventory_status} onChange={(e) => set("inventory_status", e.target.value)} className="inp">{statuses.map((s) => <option key={s}>{s}</option>)}</select></Field>
@@ -78,15 +110,29 @@ function Editor({ item, setItem, cats, chars, statuses, onSave, onCancel }) {
             <ImageGalleryUploader
               label="Product images (drop files or click)"
               images={item.images && item.images.length ? item.images : (item.primary_image ? [item.primary_image] : [])}
-              onChange={(urls) => setItem({ ...item, images: urls, primary_image: urls[0] || "" })}
+              onChange={(urls) => setItem({ ...item, images: urls, primary_image: urls[0] || "", og_image: item.og_image || urls[0] || "" })}
               testid="product-images"
             />
           </div>
-          <Field label="Short Description" full><input value={item.short_description || ""} onChange={(e) => set("short_description", e.target.value)} className="inp" /></Field>
+          <Field label="Short Description" full><input value={item.short_description || ""} onChange={(e) => setShortDesc(e.target.value)} className="inp" /></Field>
           <Field label="Long Description" full><textarea value={item.long_description || ""} onChange={(e) => set("long_description", e.target.value)} className="inp min-h-[100px]" rows={4} /></Field>
           <Field label="Tags" full>
             <TagsInput value={item.tags || []} onChange={(tags) => set("tags", tags)} testid="product-edit-tags" />
           </Field>
+
+          {/* SEO + Sharing */}
+          <div className="sm:col-span-2 mt-4 bg-[#fffbf3] rounded-2xl p-4 border-2 border-[#f4e4c6]">
+            <div className="font-accent font-bold text-[#3a4a55] mb-2">SEO & sharing (search engines + social cards)</div>
+            <p className="text-xs text-[#6b7280] mb-3">All optional — we'll auto-fill from name + short description if you leave them blank.</p>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <Field label="SEO title"><input value={item.seo_title || ""} onChange={(e) => set("seo_title", e.target.value)} placeholder={item.name || "Page title"} className="inp" data-testid="product-edit-seo-title" /></Field>
+              <Field label="Meta description (≤160 chars)"><input value={item.meta_description || ""} maxLength={160} onChange={(e) => set("meta_description", e.target.value)} placeholder={truncate(item.short_description || "", 160)} className="inp" data-testid="product-edit-meta-desc" /></Field>
+              <div className="sm:col-span-2">
+                <ImageUploader label="Sharing image (1200×630 ideal — shows on Facebook, iMessage, X)" value={item.og_image || item.primary_image || ""} onChange={(u) => set("og_image", u)} testid="product-edit-og-image" />
+              </div>
+            </div>
+          </div>
+
           <label className="flex items-center gap-2 mt-2"><input type="checkbox" checked={!!item.featured} onChange={(e) => set("featured", e.target.checked)} data-testid="product-edit-featured" />Featured (shows in Shop the Crew band)</label>
           <label className="flex items-center gap-2 mt-2"><input type="checkbox" checked={item.published !== false} onChange={(e) => set("published", e.target.checked)} />Published</label>
         </div>
