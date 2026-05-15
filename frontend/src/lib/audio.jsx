@@ -5,8 +5,29 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState } from 
 
 const AudioCtx = createContext(null);
 
+// Resolve a stored URL to an absolute, reachable URL.
+// - Relative `/api/uploads/...` -> prepend REACT_APP_BACKEND_URL
+// - Absolute URLs pointing to a stale emergent.host backend -> rewrite to current backend
+// - Absolute URLs to other hosts -> leave alone
+function resolveUrl(u) {
+  if (!u) return u;
+  const backend = process.env.REACT_APP_BACKEND_URL || "";
+  if (u.startsWith("/")) return `${backend}${u}`;
+  // Rewrite stale emergent-host backend paths to the current backend
+  try {
+    const parsed = new URL(u);
+    if (parsed.pathname.startsWith("/api/uploads/") && /emergent(agent\.com|\.host)$/i.test(parsed.hostname)) {
+      return `${backend}${parsed.pathname}${parsed.search || ""}`;
+    }
+  } catch {}
+  return u;
+}
+
 export function AudioProvider({ children, urls }) {
-  const playlist = useMemo(() => (Array.isArray(urls) ? urls : []).filter(Boolean), [urls]);
+  const playlist = useMemo(
+    () => (Array.isArray(urls) ? urls : []).map(resolveUrl).filter(Boolean),
+    [urls]
+  );
   const hasTracks = playlist.length > 0;
 
   const [enabled, setEnabled] = useState(() => {
@@ -116,7 +137,7 @@ export function AudioProvider({ children, urls }) {
 
   const playClip = (url) => {
     if (!url) return;
-    try { const a = new Audio(url); a.volume = 0.9; a.play(); } catch {}
+    try { const a = new Audio(resolveUrl(url)); a.volume = 0.9; a.play(); } catch {}
   };
 
   return (
