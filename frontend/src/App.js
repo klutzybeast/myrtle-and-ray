@@ -43,6 +43,7 @@ import AdminCustomPages from "@/pages/admin/AdminCustomPages";
 import AdminCustomPageEditor from "@/pages/admin/AdminCustomPageEditor";
 import AdminCampaigns from "@/pages/admin/AdminCampaigns";
 import AdminCampaignEditor from "@/pages/admin/AdminCampaignEditor";
+import AdminAnalytics from "@/pages/admin/AdminAnalytics";
 import CustomPage from "@/pages/CustomPage";
 import WaveBadges from "@/pages/WaveBadges";
 import MapPage from "@/pages/Map";
@@ -119,6 +120,7 @@ function App() {
                 <Route path="custom-pages/:slug" element={<AdminCustomPageEditor />} />
                 <Route path="campaigns" element={<AdminCampaigns />} />
                 <Route path="campaigns/:id" element={<AdminCampaignEditor />} />
+                <Route path="analytics" element={<AdminAnalytics />} />
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

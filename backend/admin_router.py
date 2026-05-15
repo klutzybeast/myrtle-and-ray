@@ -168,6 +168,73 @@ def make_admin_router(db, require_admin):
             "since": start_month,
         }
 
+    @router.get("/analytics/downloads")
+    async def analytics_downloads():
+        from datetime import timedelta
+        now = datetime.now(timezone.utc)
+        start_week = (now - timedelta(days=7)).isoformat()
+        start_month = (now - timedelta(days=30)).isoformat()
+        start_today = now.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+
+        # Total file-click downloads (sum of per-item total_downloads counters)
+        total_pipeline = [{"$group": {"_id": None, "total": {"$sum": "$total_downloads"}}}]
+        total_agg = await db.downloads.aggregate(total_pipeline).to_list(1)
+        total_file_clicks = (total_agg[0]["total"] if total_agg else 0) or 0
+
+        # Email captures
+        captures_total = await db.submissions.count_documents({"type": "download_capture"})
+        captures_week = await db.submissions.count_documents({"type": "download_capture", "created_at": {"$gte": start_week}})
+        captures_month = await db.submissions.count_documents({"type": "download_capture", "created_at": {"$gte": start_month}})
+        captures_today = await db.submissions.count_documents({"type": "download_capture", "created_at": {"$gte": start_today}})
+
+        # Audience breakdown
+        audience_pipeline = [
+            {"$match": {"type": "download_capture"}},
+            {"$group": {"_id": {"$ifNull": ["$audience", "Unspecified"]}, "count": {"$sum": 1}}},
+            {"$sort": {"count": -1}},
+        ]
+        audience_raw = await db.submissions.aggregate(audience_pipeline).to_list(20)
+        audience_breakdown = [
+            {"audience": (a["_id"] or "Unspecified"), "count": a["count"]}
+            for a in audience_raw
+        ]
+
+        # Top downloads (by total_downloads counter)
+        top_downloads = await db.downloads.find(
+            {}, {"_id": 0, "slug": 1, "title": 1, "total_downloads": 1, "cover_image": 1}
+        ).sort("total_downloads", -1).limit(8).to_list(8)
+
+        # Captures-per-download breakdown
+        per_dl_pipeline = [
+            {"$match": {"type": "download_capture"}},
+            {"$group": {"_id": "$download_slug", "captures": {"$sum": 1}, "last_at": {"$max": "$created_at"}, "title": {"$last": "$download_title"}}},
+            {"$sort": {"captures": -1}},
+            {"$limit": 8},
+        ]
+        per_dl_raw = await db.submissions.aggregate(per_dl_pipeline).to_list(8)
+        captures_by_download = [
+            {"slug": d["_id"] or "", "title": d.get("title") or d["_id"] or "", "captures": d["captures"], "last_at": d.get("last_at", "")}
+            for d in per_dl_raw if d["_id"]
+        ]
+
+        # Recent captures (latest 15)
+        recent_raw = await db.submissions.find(
+            {"type": "download_capture"},
+            {"_id": 0, "name": 1, "email": 1, "audience": 1, "download_slug": 1, "download_title": 1, "created_at": 1},
+        ).sort("created_at", -1).limit(15).to_list(15)
+
+        return {
+            "total_file_clicks": total_file_clicks,
+            "captures_total": captures_total,
+            "captures_today": captures_today,
+            "captures_week": captures_week,
+            "captures_month": captures_month,
+            "audience_breakdown": audience_breakdown,
+            "top_downloads": top_downloads,
+            "captures_by_download": captures_by_download,
+            "recent_captures": recent_raw,
+        }
+
     # ---------------- Characters ----------------
     @router.get("/characters")
     async def admin_list_characters():

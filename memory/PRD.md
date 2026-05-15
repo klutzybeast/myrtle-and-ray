@@ -131,15 +131,39 @@ Casey, Dani, Sami, Izzy, Louie, Billy, Frankie.
 - Hotspot data moved to shared `/app/frontend/src/lib/mapData.js` —
   reused by both `/map` and the map section still on `/story`.
 
+## What's been implemented (2026-05-15, pass 6 – SEO + Analytics)
+- **SEO infrastructure verified**: Removed duplicate static og:*/twitter:*
+  meta tags from `public/index.html`. `<SEO>` component injects unique
+  per-page `<title>`, `<meta description>`, `og:image`, `og:title`,
+  `og:description`, `og:type`, `og:url`, `twitter:card`, `twitter:image`,
+  and canonical link across Home, Story, Shop, ShopDetail, Activities,
+  Downloads, DownloadDetail, ForCamps, About, Contact, WaveBadges, Map,
+  and Custom Pages. Verified live via DOM inspection — no duplicate OG
+  tags.
+- **Download Analytics page** at `/admin/analytics`:
+  - Total file clicks + email captures (all-time / today / week / month).
+  - Audience breakdown (Parents / Teachers / Camp Directors / Kids /
+    Grandparents) with horizontal bars.
+  - Top Downloads (by `total_downloads` counter) with cover images.
+  - Captures-by-download list with last-capture timestamp.
+  - Recent Captures feed (latest 15 with email + audience + slug + date).
+  - Backed by new GET `/api/admin/analytics/downloads` endpoint.
+  - Linked from admin sidebar with BarChart3 icon.
+- **Mailing-list tag enhancements**:
+  - Every download-capture submission appends `download:<slug>` tag to
+    the subscriber (already in `/api/download-capture`).
+  - Admin Mailing List page now renders tags as pills + adds a tag
+    filter chip row so the owner can segment by download in one click.
+  - CSV export respects the current tag filter.
+
 ## Prioritized backlog
 **P1 (next pass)**
 - Build the 8 activity games (Memory Match, Spot the Difference, Coloring
   canvas, Word Search, Quiz w/ result mapping, Rhyme Time, Maze, Sticker
-  Beach drag-drop).
+  Beach drag-drop). — DONE in pass 4.
 - Bulk PDF folder upload UI (server already accepts).
-- Per-download analytics (totals, week/month, audience breakdown).
-- Wave-badge tracking + dedicated "My Wave Badges" page.
-- Audio ambient loop + UI tap pop sounds.
+- Wave-badge tracking + dedicated "My Wave Badges" page. — DONE.
+- Audio ambient loop + UI tap pop sounds. — DONE.
 - Real animations (parallax, sparkles, bubbles).
 - Variants editor UI in product editor (currently JSON via API only).
 - Forced password change on first login screen (backend already supports it).
@@ -151,10 +175,12 @@ Casey, Dani, Sami, Izzy, Louie, Billy, Frankie.
 - Spot-the-Difference scene assets.
 - Cross-product cart / multi-Printify order helper.
 - Rich-text WYSIWYG (currently JSON for pages / plain textarea for products).
+- Auto-saving star toggle on products dashboard (P3 polish).
+- Campus-tour glow for earned badges on the Map (P3 polish).
 
 ## Next tasks
-1. Build P1 activity games and badge tracking.
-2. Add per-download analytics dashboard widgets.
-3. Replace placeholder character portraits when user uploads the real
-   JPEGs (use Admin → Media + Admin → Characters).
-4. Plug in real `RESEND_API_KEY` and click Retry on any queued emails.
+1. Bulk PDF folder upload UI for printables.
+2. Variants editor UI in product editor.
+3. Sitemap.xml + robots.txt + structured data.
+4. Replace placeholder character portraits when user uploads real JPEGs.
+5. Plug in real `RESEND_API_KEY` and click Retry on any queued emails.
