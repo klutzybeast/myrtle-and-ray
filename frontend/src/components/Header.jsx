@@ -39,8 +39,12 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 md:px-6">
         <div className="h-14 flex items-center justify-between gap-3">
           <Link to="/" className="flex items-center gap-2.5 group" data-testid="header-logo">
-            <div className="w-10 h-10 rounded-full gradient-wave grid place-items-center shadow-sm group-hover:scale-105 transition">
-              <Waves className="w-5 h-5 text-white" strokeWidth={2.5} />
+            <div className="w-10 h-10 rounded-full gradient-wave grid place-items-center shadow-sm group-hover:scale-105 transition overflow-hidden">
+              {site.logo_url ? (
+                <img src={site.logo_url} alt={site.site_name || "Myrtle and Ray"} className="w-full h-full object-contain" data-testid="header-logo-image" />
+              ) : (
+                <Waves className="w-5 h-5 text-white" strokeWidth={2.5} />
+              )}
             </div>
             <div className="leading-tight">
               <div className="font-accent font-bold text-[18px] text-[#3a4a55]">{site.site_name || "Myrtle and Ray"}</div>
