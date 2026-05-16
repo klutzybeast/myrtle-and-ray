@@ -64,7 +64,17 @@ export function AudioProvider({ children, urls }) {
     };
 
     el.addEventListener("ended", goNext);
-    el.addEventListener("error", () => setTimeout(goNext, 800));
+    // Only skip on a *real* load/network failure — not on transient seek/range errors
+    // that fire while a track is actively playing. Otherwise the playlist becomes a
+    // 1-second-per-track skip loop.
+    let hasPlayedSuccessfully = false;
+    el.addEventListener("playing", () => { hasPlayedSuccessfully = true; });
+    el.addEventListener("error", () => {
+      const code = el.error?.code;
+      const fatal = code === 4 /* MEDIA_ERR_SRC_NOT_SUPPORTED */ || code === 2 /* NETWORK */;
+      if (!hasPlayedSuccessfully && fatal) setTimeout(goNext, 800);
+      // else: ignore — transient decode hiccup, audio element will recover
+    });
     // Safety: if 'ended' never fires (some MP3s lack metadata), poll a watchdog
     let watchdog = null;
     const startWatchdog = () => {
