@@ -8,6 +8,7 @@ import { FileText, Download as DLIcon, Printer, Share2, ChevronRight } from "luc
 import SEO from "../components/SEO";
 import Lightbox from "../components/Lightbox";
 import JsonLd from "../components/JsonLd";
+import { hasStoredVisitor, getStoredVisitor } from "../lib/visitor";
 import { toast } from "sonner";
 
 export default function DownloadDetail() {
@@ -33,7 +34,21 @@ export default function DownloadDetail() {
   const gate = d.email_gate_override == null ? site.email_gate_enabled : d.email_gate_override;
 
   const triggerDownload = (file) => {
+    // Track download click
     api.post(`/downloads/${slug}/track`).catch(() => {});
+    // If we already know the visitor, re-submit silently so this
+    // download counts toward analytics with proper audience tagging.
+    const v = getStoredVisitor();
+    if (v && v.email) {
+      api.post("/download-capture", {
+        name: v.name,
+        email: v.email,
+        audience: v.audience || "",
+        subscribe: false, // already subscribed; backend dedupes anyway
+        download_slug: slug,
+        download_title: d.title,
+      }).catch(() => {});
+    }
     if (file?.url) {
       const a = document.createElement("a");
       a.href = file.url.startsWith("http") ? file.url : `${process.env.REACT_APP_BACKEND_URL}${file.url}`;
@@ -48,7 +63,8 @@ export default function DownloadDetail() {
   };
 
   const onDownloadClick = (file) => {
-    if (gate) { setPendingFile(file); setShowGate(true); }
+    // Skip the gate for returning visitors who already gave us their email
+    if (gate && !hasStoredVisitor()) { setPendingFile(file); setShowGate(true); }
     else triggerDownload(file);
   };
 

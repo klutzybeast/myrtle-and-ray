@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import { toast } from "sonner";
 import { X } from "lucide-react";
+import { hasStoredVisitor, setStoredVisitor } from "../lib/visitor";
 
 export default function PopupSignup() {
   const [open, setOpen] = useState(false);
@@ -10,6 +11,8 @@ export default function PopupSignup() {
 
   useEffect(() => {
     if (localStorage.getItem("mr_popup_dismissed")) return;
+    // Skip entirely if we already know this visitor (they captured an email before).
+    if (hasStoredVisitor()) return;
     // Don't pop while user is on /activities (a game modal is likely in flight)
     if (window.location.pathname.startsWith("/activities")) return;
     const t = setTimeout(() => setOpen(true), 12000);
@@ -26,6 +29,7 @@ export default function PopupSignup() {
     setBusy(true);
     try {
       await api.post("/mailing-list", { email, source: "popup" });
+      setStoredVisitor({ email });
       toast.success("Thanks! See you in the inbox.");
       dismiss();
     } catch { toast.error("Try again in a moment."); }

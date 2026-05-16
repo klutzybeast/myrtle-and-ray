@@ -2,11 +2,13 @@ import { useState } from "react";
 import { api } from "../lib/api";
 import { toast } from "sonner";
 import { X } from "lucide-react";
+import { getStoredVisitor, setStoredVisitor } from "../lib/visitor";
 
 export default function EmailCaptureModal({ open, onClose, downloadSlug, downloadTitle, onSuccess }) {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [audience, setAudience] = useState("Parent");
+  const stored = getStoredVisitor();
+  const [name, setName] = useState(stored?.name || "");
+  const [email, setEmail] = useState(stored?.email || "");
+  const [audience, setAudience] = useState(stored?.audience || "Parent");
   const [subscribe, setSubscribe] = useState(true);
   const [busy, setBusy] = useState(false);
 
@@ -20,6 +22,7 @@ export default function EmailCaptureModal({ open, onClose, downloadSlug, downloa
         name, email, audience, subscribe,
         download_slug: downloadSlug, download_title: downloadTitle,
       });
+      setStoredVisitor({ name, email, audience });
       toast.success("Sent! Your download is starting...");
       onSuccess?.();
       onClose?.();
