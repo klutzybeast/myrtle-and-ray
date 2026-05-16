@@ -1,11 +1,13 @@
 """Public API endpoints (no auth)."""
 from __future__ import annotations
+import os
 import uuid
 from datetime import datetime, timezone
 from typing import Optional, List
+from xml.sax.saxutils import escape as _xml_escape
 
 from fastapi import APIRouter, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel, EmailStr
 
 from email_service import queue_email
@@ -71,6 +73,60 @@ def _parse_urls(urls_field, fallback_single):
 
 def make_public_router(db):
     router = APIRouter(tags=["public"])
+
+    def _site_origin() -> str:
+        # Prefer explicit env var; fall back to PUBLIC_SITE_URL or empty.
+        return (os.environ.get("PUBLIC_SITE_URL") or "https://myrtleandray.com").rstrip("/")
+
+    @router.get("/sitemap.xml")
+    async def sitemap_xml():
+        origin = _site_origin()
+        urls: list[tuple[str, str, str]] = []  # (loc, changefreq, priority)
+        static = [
+            ("/", "weekly", "1.0"),
+            ("/story", "weekly", "0.9"),
+            ("/map", "weekly", "0.7"),
+            ("/activities", "weekly", "0.8"),
+            ("/wave-badges", "monthly", "0.5"),
+            ("/read-aloud", "monthly", "0.6"),
+            ("/shop", "weekly", "0.9"),
+            ("/downloads", "weekly", "0.9"),
+            ("/for-camps", "monthly", "0.8"),
+            ("/about", "monthly", "0.5"),
+            ("/contact", "monthly", "0.4"),
+        ]
+        for path, freq, pri in static:
+            urls.append((f"{origin}{path}", freq, pri))
+
+        async for p in db.products.find({"published": True}, {"_id": 0, "slug": 1, "updated_at": 1}):
+            urls.append((f"{origin}/shop/{p['slug']}", "weekly", "0.8"))
+        async for d in db.downloads.find({"published": True}, {"_id": 0, "slug": 1, "updated_at": 1}):
+            urls.append((f"{origin}/downloads/{d['slug']}", "monthly", "0.7"))
+        async for c in db.custom_pages.find({"published": True}, {"_id": 0, "slug": 1, "updated_at": 1}):
+            urls.append((f"{origin}/p/{c['slug']}", "monthly", "0.6"))
+
+        body = ['<?xml version="1.0" encoding="UTF-8"?>',
+                '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+        for loc, freq, pri in urls:
+            body.append("  <url>")
+            body.append(f"    <loc>{_xml_escape(loc)}</loc>")
+            body.append(f"    <changefreq>{freq}</changefreq>")
+            body.append(f"    <priority>{pri}</priority>")
+            body.append("  </url>")
+        body.append("</urlset>")
+        return Response(content="\n".join(body), media_type="application/xml")
+
+    @router.get("/robots.txt")
+    async def robots_txt():
+        origin = _site_origin()
+        body = (
+            "User-agent: *\n"
+            "Allow: /\n"
+            "Disallow: /admin\n"
+            "Disallow: /api/\n"
+            f"Sitemap: {origin}/api/sitemap.xml\n"
+        )
+        return Response(content=body, media_type="text/plain")
 
     @router.get("/site")
     async def site_settings():

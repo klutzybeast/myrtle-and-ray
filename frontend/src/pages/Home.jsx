@@ -9,6 +9,7 @@ import WaveDivider from "../components/WaveDivider";
 import { BookOpen, Heart, Users, Sparkles, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import SEO from "../components/SEO";
+import JsonLd from "../components/JsonLd";
 
 const HERO_IMG = "https://customer-assets.emergentagent.com/job_wave-of-excitement/artifacts/np2lq4do_IMG_2972.jpeg";
 
@@ -41,6 +42,41 @@ export default function Home() {
   return (
     <main className="pt-16">
       <SEO title="Welcome to Stingray Cay" description={hero.subheadline || ""} image={hero.background_image || HERO_IMG} />
+      <JsonLd data={[
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": site.site_name || "Myrtle and Ray",
+          "url": typeof window !== "undefined" ? window.location.origin : "",
+          "logo": site.logo_url || hero.background_image || HERO_IMG,
+          "sameAs": [site.facebook_url, site.instagram_url, site.tiktok_url, site.youtube_url, site.pinterest_url, site.twitter_url].filter(Boolean),
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          "name": site.site_name || "Myrtle and Ray",
+          "url": typeof window !== "undefined" ? window.location.origin : "",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": `${typeof window !== "undefined" ? window.location.origin : ""}/shop?q={search_term_string}`,
+            "query-input": "required name=search_term_string",
+          },
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "Book",
+          "name": "Myrtle and Ray and the First Day of Camp",
+          "author": [
+            { "@type": "Person", "name": "Marissa Allaben" },
+            { "@type": "Person", "name": "Alison Rothenberg" },
+          ],
+          "publisher": { "@type": "Organization", "name": "KingApe Media" },
+          "audience": { "@type": "Audience", "suggestedMinAge": 3, "suggestedMaxAge": 8 },
+          "image": hero.background_image || HERO_IMG,
+          "url": site.amazon_book_url || undefined,
+          "inLanguage": "en",
+        },
+      ]} />
       {/* HERO */}
       <section className="relative bg-wave-hero overflow-hidden" data-testid="hero-section">
         <div className="absolute inset-0">

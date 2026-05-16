@@ -5,11 +5,13 @@ import { useAudio } from "../lib/audio";
 import { HOTSPOTS, MAP_IMG } from "../lib/mapData";
 import { Volume2, Palette, VolumeOff, Sparkles } from "lucide-react";
 import SEO from "../components/SEO";
+import Lightbox from "../components/Lightbox";
 
 export default function Story() {
   const [chars, setChars] = useState([]);
   const [flipped, setFlipped] = useState({});
   const [hotspot, setHotspot] = useState(null);
+  const [lightbox, setLightbox] = useState(null); // { images, index, alt }
   const { playClip } = useAudio();
   const nav = useNavigate();
 
@@ -32,9 +34,21 @@ export default function Story() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
           {chars.map((c) => (
             <div key={c.slug} id={c.slug} className="relative pt-14" data-testid={`character-card-${c.slug}`}>
-              <div className="absolute left-1/2 -translate-x-1/2 -top-4 z-10 gradient-ring animate-bob" style={{ width: 132, height: 132 }}>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const allImgs = chars.map((x) => x.image_url).filter(Boolean);
+                  const idx = allImgs.indexOf(c.image_url);
+                  setLightbox({ images: allImgs, index: idx >= 0 ? idx : 0, alt: c.name });
+                }}
+                className="absolute left-1/2 -translate-x-1/2 -top-4 z-10 gradient-ring animate-bob cursor-zoom-in"
+                style={{ width: 132, height: 132 }}
+                aria-label={`View larger portrait of ${c.name}`}
+                data-testid={`character-portrait-${c.slug}`}
+              >
                 <img src={c.image_url} alt={c.name} className="w-full h-full rounded-full object-contain bg-[#fffbf3]" />
-              </div>
+              </button>
               <div className="card-soft p-6 pt-20 text-center min-h-[320px]">
                 <h3 className="font-accent text-2xl font-bold">{c.name}</h3>
                 <p className="text-xs uppercase tracking-widest text-[#7cbf94] font-bold mt-1">{c.role}</p>
@@ -70,7 +84,15 @@ export default function Story() {
           <p className="text-[#4a5568] mt-2">Tap a glowing spot to peek inside.</p>
         </header>
         <div className="relative rounded-[28px] overflow-hidden shadow-2xl border-4 border-white" data-testid="cay-map">
-          <img src={MAP_IMG} alt="Stingray Cay map" className="w-full h-auto block" />
+          <button
+            type="button"
+            onClick={() => setLightbox({ images: [MAP_IMG], index: 0, alt: "Stingray Cay map" })}
+            className="block w-full cursor-zoom-in"
+            aria-label="View larger map"
+            data-testid="map-zoom"
+          >
+            <img src={MAP_IMG} alt="Stingray Cay map" className="w-full h-auto block" />
+          </button>
           {HOTSPOTS.map((h) => (
             <button key={h.id} onClick={() => setHotspot(h)} className="absolute w-7 h-7 -ml-3.5 -mt-3.5 rounded-full bg-white/80 border-2 border-[#f0a988] shadow-md hover:scale-125 transition" style={{ left: `${h.x}%`, top: `${h.y}%` }} aria-label={h.title} data-testid={`map-hotspot-${h.id}`}>
               <span className="absolute inset-0 rounded-full animate-ping bg-[#f0a988]/50" />
@@ -103,6 +125,10 @@ export default function Story() {
               </div>
             </div>
           </div>
+        )}
+
+        {lightbox && (
+          <Lightbox images={lightbox.images} index={lightbox.index} alt={lightbox.alt} onClose={() => setLightbox(null)} />
         )}
       </div>
     </main>

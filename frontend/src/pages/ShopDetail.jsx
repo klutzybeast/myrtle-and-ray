@@ -5,6 +5,8 @@ import ProductCard from "../components/ProductCard";
 import { ChevronRight, ShoppingBag, Heart, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import SEO from "../components/SEO";
+import Lightbox from "../components/Lightbox";
+import JsonLd from "../components/JsonLd";
 
 export default function ShopDetail() {
   const { slug } = useParams();
@@ -12,6 +14,7 @@ export default function ShopDetail() {
   const [activeImage, setActiveImage] = useState(0);
   const [qty, setQty] = useState(1);
   const [variantIdx, setVariantIdx] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   useEffect(() => {
     setData(null);
@@ -36,6 +39,27 @@ export default function ShopDetail() {
         image={p.og_image || p.primary_image}
         type="product"
       />
+      <JsonLd data={{
+        "@context": "https://schema.org",
+        "@type": "Product",
+        "name": p.name,
+        "description": p.short_description || p.long_description || "",
+        "image": images.length ? images : [p.primary_image].filter(Boolean),
+        "sku": p.slug,
+        "category": p.category,
+        "brand": { "@type": "Brand", "name": "Myrtle and Ray" },
+        "offers": p.price > 0 ? {
+          "@type": "Offer",
+          "url": typeof window !== "undefined" ? window.location.href : "",
+          "priceCurrency": "USD",
+          "price": p.price.toFixed(2),
+          "availability": p.inventory_status === "Sold Out"
+            ? "https://schema.org/OutOfStock"
+            : p.inventory_status === "Coming Soon"
+              ? "https://schema.org/PreOrder"
+              : "https://schema.org/InStock",
+        } : undefined,
+      }} />
       <div className="max-w-7xl mx-auto px-4 md:px-6">
         <nav className="text-sm text-[#6b7280] mb-4 flex items-center gap-1 flex-wrap" data-testid="breadcrumb">
           <Link to="/">Home</Link><ChevronRight className="w-4 h-4" />
@@ -46,9 +70,15 @@ export default function ShopDetail() {
 
         <div className="grid lg:grid-cols-2 gap-10">
           <div>
-            <div className="aspect-square bg-[#eef9fb] rounded-[28px] overflow-hidden mb-3 p-4">
+            <button
+              type="button"
+              onClick={() => images.length && setLightboxOpen(true)}
+              className="aspect-square bg-[#eef9fb] rounded-[28px] overflow-hidden mb-3 p-4 w-full block cursor-zoom-in"
+              data-testid="product-image-main"
+              aria-label="View larger image"
+            >
               {images[activeImage] && <img src={images[activeImage]} alt={p.name} className="w-full h-full object-contain" />}
-            </div>
+            </button>
             {images.length > 1 && (
               <div className="flex gap-2 overflow-x-auto no-scrollbar">
                 {images.map((img, i) => (
@@ -58,6 +88,7 @@ export default function ShopDetail() {
                 ))}
               </div>
             )}
+            {lightboxOpen && <Lightbox images={images} index={activeImage} onClose={() => setLightboxOpen(false)} alt={p.name} />}
           </div>
 
           <div>

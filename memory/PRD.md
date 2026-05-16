@@ -158,6 +158,24 @@ Casey, Dani, Sami, Izzy, Louie, Billy, Frankie.
   Edit): add/remove variant rows inline with label, SKU, Buy URL,
   and per-variant price. Empty rows are filtered out on save. Works
   with the existing ShopDetail.jsx variant picker (already wired).
+- **Lightbox + pinch-zoom** (`/components/Lightbox.jsx`): reusable
+  full-screen viewer wired into Shop product gallery, Download cover,
+  Custom Page hero, Story character portraits (all 13 cycle through
+  prev/next), and Story map. Pinch-zoom + double-tap zoom on mobile,
+  mouse wheel + drag-to-pan on desktop, ESC/arrow keyboard nav, full
+  control bar (zoom in/out/reset/close).
+- **Sitemap.xml** at `/api/sitemap.xml` — dynamic XML sitemap with
+  static routes + every published product / download / custom page
+  pulled from MongoDB. Includes `<changefreq>` + `<priority>`.
+- **robots.txt** at `/robots.txt` (static, also fallback at
+  `/api/robots.txt`) with `Sitemap:` directive pointing to the dynamic
+  sitemap. Cloudflare-managed signals append automatically.
+- **Structured data (JSON-LD)** via new `<JsonLd>` component:
+  - Home → Organization + WebSite + Book (the children's book itself,
+    authors, publisher, audience age range, language)
+  - ShopDetail → Product schema with offers (price, currency,
+    availability mapped from inventory_status to schema.org values)
+  - DownloadDetail → CreativeWork with audience + free access flag
 
 ## What's been implemented (2026-05-15, pass 6 – SEO + Analytics)
 - **SEO infrastructure verified**: Removed duplicate static og:*/twitter:*

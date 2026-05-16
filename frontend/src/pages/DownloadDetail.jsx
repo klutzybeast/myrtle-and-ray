@@ -6,6 +6,8 @@ import DownloadCard from "../components/DownloadCard";
 import EmailCaptureModal from "../components/EmailCaptureModal";
 import { FileText, Download as DLIcon, Printer, Share2, ChevronRight } from "lucide-react";
 import SEO from "../components/SEO";
+import Lightbox from "../components/Lightbox";
+import JsonLd from "../components/JsonLd";
 import { toast } from "sonner";
 
 export default function DownloadDetail() {
@@ -15,6 +17,7 @@ export default function DownloadDetail() {
   const [showGate, setShowGate] = useState(false);
   const [pendingFile, setPendingFile] = useState(null);
   const [chars, setChars] = useState([]);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   useEffect(() => {
     setData(null);
@@ -52,6 +55,22 @@ export default function DownloadDetail() {
   return (
     <main className="pt-24 pb-12 bg-[#fffbf3] min-h-screen" data-testid="download-detail-page">
       <SEO title={d.title} description={d.description || `Free download: ${d.title}`} image={d.cover_image} />
+      <JsonLd data={{
+        "@context": "https://schema.org",
+        "@type": "CreativeWork",
+        "name": d.title,
+        "description": d.short_description || d.long_description || `Free printable: ${d.title}`,
+        "image": d.cover_image || undefined,
+        "url": typeof window !== "undefined" ? window.location.href : "",
+        "isAccessibleForFree": true,
+        "inLanguage": "en",
+        "audience": (d.audiences || []).length ? {
+          "@type": "Audience",
+          "audienceType": (d.audiences || []).join(", "),
+        } : undefined,
+        "publisher": { "@type": "Organization", "name": "Myrtle and Ray" },
+        "license": "https://myrtleandray.com/about",
+      }} />
       <div className="max-w-6xl mx-auto px-4 md:px-6">
         <nav className="text-sm text-[#6b7280] mb-4 flex items-center gap-1 flex-wrap">
           <Link to="/">Home</Link><ChevronRight className="w-4 h-4" />
@@ -60,9 +79,16 @@ export default function DownloadDetail() {
         </nav>
 
         <div className="grid lg:grid-cols-2 gap-10">
-          <div className="aspect-[4/3] bg-[#eef9fb] rounded-[28px] overflow-hidden">
+          <button
+            type="button"
+            onClick={() => d.cover_image && setLightboxOpen(true)}
+            className="aspect-[4/3] bg-[#eef9fb] rounded-[28px] overflow-hidden block w-full cursor-zoom-in"
+            data-testid="download-cover-main"
+            aria-label="View larger cover"
+          >
             {d.cover_image ? <img src={d.cover_image} alt={d.title} className="w-full h-full object-contain" /> : <div className="w-full h-full grid place-items-center"><FileText className="w-16 h-16 text-[#8fbfe0]" /></div>}
-          </div>
+          </button>
+          {lightboxOpen && d.cover_image && <Lightbox images={[d.cover_image]} index={0} onClose={() => setLightboxOpen(false)} alt={d.title} />}
           <div>
             <h1 className="font-accent text-4xl md:text-5xl font-bold leading-tight" data-testid="download-title">{d.title}</h1>
             <div className="flex flex-wrap gap-2 mt-3">

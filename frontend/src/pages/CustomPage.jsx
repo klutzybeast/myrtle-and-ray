@@ -3,10 +3,12 @@ import { useParams } from "react-router-dom";
 import { api } from "../lib/api";
 import { renderBlock } from "./admin/BlockPreview";
 import SEO from "../components/SEO";
+import Lightbox from "../components/Lightbox";
 
 export default function CustomPage() {
   const { slug } = useParams();
   const [page, setPage] = useState(null);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   useEffect(() => {
     setPage(null);
     api.get(`/custom-pages/${slug}`).then(({ data }) => setPage(data)).catch(() => setPage("notfound"));
@@ -20,9 +22,16 @@ export default function CustomPage() {
       <SEO title={page.seo_title || page.title} description={page.meta_description || page.intro || ""} image={page.og_image || page.hero_image} />
       {page.hero_image && (
         <div className="max-w-7xl mx-auto px-4 md:px-6 mb-8">
-          <div className="rounded-[28px] overflow-hidden shadow-2xl border-4 border-white">
+          <button
+            type="button"
+            onClick={() => setLightboxOpen(true)}
+            className="rounded-[28px] overflow-hidden shadow-2xl border-4 border-white block w-full cursor-zoom-in"
+            data-testid="custom-page-hero"
+            aria-label="View larger image"
+          >
             <img src={page.hero_image} alt={page.title} className="w-full h-auto block" />
-          </div>
+          </button>
+          {lightboxOpen && <Lightbox images={[page.hero_image]} index={0} onClose={() => setLightboxOpen(false)} alt={page.title} />}
         </div>
       )}
       <header className="text-center mb-8 max-w-3xl mx-auto px-4">
