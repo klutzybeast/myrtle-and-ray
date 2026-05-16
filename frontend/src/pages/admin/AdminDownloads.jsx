@@ -1,10 +1,19 @@
 import { useEffect, useState, useRef } from "react";
 import { api } from "../../lib/api";
 import { toast } from "sonner";
-import { Plus, Trash2, Pencil, X, Save, Upload, FileText, GripVertical } from "lucide-react";
+import { Plus, Trash2, Pencil, X, Save, Upload, FileText, GripVertical, FolderUp } from "lucide-react";
 
 const AUDIENCES = ["Parents", "Teachers", "Camp Directors", "Kids"];
 const WAVE = ["W", "A", "V", "E"];
+
+function slugifyTitle(s) {
+  return (s || "")
+    .toString().toLowerCase()
+    .normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
 
 export default function AdminDownloads() {
   const [items, setItems] = useState([]);
@@ -12,6 +21,7 @@ export default function AdminDownloads() {
   const [chars, setChars] = useState([]);
   const [editing, setEditing] = useState(null);
   const [creating, setCreating] = useState(false);
+  const [bulkOpen, setBulkOpen] = useState(false);
 
   const load = () => api.get("/admin/downloads").then(({ data }) => setItems(data));
   useEffect(() => {
@@ -39,9 +49,12 @@ export default function AdminDownloads() {
 
   return (
     <div data-testid="admin-downloads">
-      <header className="flex items-center justify-between mb-6">
+      <header className="flex items-center justify-between mb-6 flex-wrap gap-2">
         <div><h1 className="font-accent text-3xl font-bold">Downloads</h1><p className="text-[#5a6b76]">{items.length} item{items.length === 1 ? "" : "s"}</p></div>
-        <button onClick={() => { setEditing(blank); setCreating(true); }} className="btn-primary" data-testid="download-new"><Plus className="w-5 h-5" />New Download</button>
+        <div className="flex gap-2">
+          <button onClick={() => setBulkOpen(true)} className="btn-secondary" data-testid="download-bulk-open"><FolderUp className="w-5 h-5" />Bulk upload</button>
+          <button onClick={() => { setEditing(blank); setCreating(true); }} className="btn-primary" data-testid="download-new"><Plus className="w-5 h-5" />New Download</button>
+        </div>
       </header>
       <div className="bg-white rounded-3xl border border-[#f4e4c6] overflow-hidden">
         <table className="w-full text-sm">
@@ -62,6 +75,7 @@ export default function AdminDownloads() {
         </table>
       </div>
       {editing && <Editor item={editing} setItem={setEditing} cats={cats} chars={chars} onSave={save} onCancel={() => { setEditing(null); setCreating(false); }} />}
+      {bulkOpen && <BulkUpload cats={cats} existingSlugs={items.map((d) => d.slug)} onDone={() => { setBulkOpen(false); load(); }} onCancel={() => setBulkOpen(false)} />}
     </div>
   );
 }
@@ -215,4 +229,168 @@ function humanLabelFor(name = "") {
   // strip extension, replace separators with spaces, title-case
   const base = name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").trim();
   return base.replace(/\b\w/g, (c) => c.toUpperCase()) || "File";
+}
+
+function BulkUpload({ cats, existingSlugs, onDone, onCancel }) {
+  const inputRef = useRef(null);
+  const [pending, setPending] = useState([]); // [{file, title, slug, status, error}]
+  const [defaultCat, setDefaultCat] = useState(cats?.[0]?.slug || "");
+  const [audience, setAudience] = useState("Parents");
+  const [running, setRunning] = useState(false);
+
+  const onPick = (filesList) => {
+    const fs = Array.from(filesList).filter((f) => /\.pdf$/i.test(f.name));
+    if (!fs.length) { toast.error("Drop or pick PDF files only"); return; }
+    const taken = new Set([...existingSlugs, ...pending.map((p) => p.slug)]);
+    const next = fs.map((f) => {
+      const title = humanLabelFor(f.name);
+      let slug = slugifyTitle(title);
+      let n = 2;
+      while (taken.has(slug)) { slug = `${slugifyTitle(title)}-${n++}`; }
+      taken.add(slug);
+      return { file: f, title, slug, status: "pending", error: "" };
+    });
+    setPending((cur) => [...cur, ...next]);
+  };
+
+  const updateRow = (idx, patch) => setPending((cur) => cur.map((r, i) => i === idx ? { ...r, ...patch } : r));
+  const removeRow = (idx) => setPending((cur) => cur.filter((_, i) => i !== idx));
+
+  const run = async () => {
+    if (!pending.length) { toast.error("Add some PDFs first"); return; }
+    if (!defaultCat) { toast.error("Pick a default category"); return; }
+    setRunning(true);
+    let okCount = 0;
+    for (let i = 0; i < pending.length; i++) {
+      const row = pending[i];
+      if (row.status === "done") { okCount++; continue; }
+      updateRow(i, { status: "uploading", error: "" });
+      try {
+        // 1. Upload the file to media
+        const fd = new FormData(); fd.append("file", row.file); fd.append("tags", "downloads");
+        const { data: media } = await api.post("/admin/media/upload", fd, { headers: { "Content-Type": "multipart/form-data" } });
+        // 2. Create a Download item
+        const fileEntry = {
+          label: "Print-friendly PDF",
+          url: `/api/media/download/${media.id}`,
+          filename: media.filename,
+          size_kb: media.size_kb,
+          page_count: media.page_count,
+          mime: media.mime,
+          media_id: media.id,
+        };
+        const payload = {
+          title: row.title,
+          slug: row.slug,
+          category_slugs: [defaultCat],
+          audiences: [audience],
+          age_range: "Ages 3 to 8",
+          files: [fileEntry],
+          published: true,
+          is_new: true,
+          short_description: "",
+        };
+        await api.post("/admin/downloads", payload);
+        updateRow(i, { status: "done" });
+        okCount++;
+      } catch (err) {
+        const msg = err.response?.data?.detail || err.message || "Failed";
+        updateRow(i, { status: "error", error: msg });
+      }
+    }
+    setRunning(false);
+    if (okCount) toast.success(`Created ${okCount} download${okCount === 1 ? "" : "s"}`);
+    if (okCount === pending.length) {
+      setTimeout(() => onDone(), 500);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 grid place-items-center p-4" onClick={running ? undefined : onCancel} data-testid="bulk-upload-modal">
+      <div className="bg-white rounded-[24px] max-w-3xl w-full max-h-[92vh] overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h3 className="font-accent text-2xl font-bold">Bulk PDF Upload</h3>
+            <p className="text-sm text-[#5a6b76]">Drop in a folder of PDFs — we'll create one Download per file. Edit titles below before publishing.</p>
+          </div>
+          <button onClick={onCancel} disabled={running}><X /></button>
+        </div>
+
+        {/* Defaults */}
+        <div className="grid sm:grid-cols-2 gap-3 mb-4">
+          <label className="text-sm">
+            <div className="font-semibold mb-1">Default category</div>
+            <select value={defaultCat} onChange={(e) => setDefaultCat(e.target.value)} className="w-full px-4 py-2 rounded-full border-2 border-[#f4e4c6]" data-testid="bulk-default-category">
+              <option value="">— pick one —</option>
+              {(cats || []).map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}
+            </select>
+          </label>
+          <label className="text-sm">
+            <div className="font-semibold mb-1">Default audience</div>
+            <select value={audience} onChange={(e) => setAudience(e.target.value)} className="w-full px-4 py-2 rounded-full border-2 border-[#f4e4c6]" data-testid="bulk-default-audience">
+              {AUDIENCES.map((a) => <option key={a}>{a}</option>)}
+            </select>
+          </label>
+        </div>
+
+        {/* Dropzone */}
+        <div
+          onClick={() => !running && inputRef.current?.click()}
+          onDragOver={(e) => { e.preventDefault(); }}
+          onDrop={(e) => { e.preventDefault(); if (!running) onPick(e.dataTransfer.files); }}
+          className="border-4 border-dashed border-[#f4e4c6] rounded-3xl p-8 text-center cursor-pointer hover:bg-[#fffbf3]"
+          data-testid="bulk-dropzone"
+        >
+          <FolderUp className="w-10 h-10 mx-auto text-[#7fcfc7]" />
+          <div className="font-bold mt-2">Drop PDFs here or click to browse</div>
+          <div className="text-xs text-[#5a6b76]">Multiple files supported. Up to 25 MB each.</div>
+          <input ref={inputRef} type="file" multiple hidden accept=".pdf" onChange={(e) => { if (e.target.files) onPick(e.target.files); e.target.value = ""; }} data-testid="bulk-file-input" />
+        </div>
+
+        {/* Pending rows */}
+        {pending.length > 0 && (
+          <div className="mt-4 space-y-2" data-testid="bulk-rows">
+            {pending.map((row, idx) => (
+              <div key={idx} className="bg-[#fffbf3] border-2 border-[#f4e4c6] rounded-2xl p-3 flex items-center gap-3" data-testid={`bulk-row-${idx}`}>
+                <FileText className="w-5 h-5 text-[#f0a988] shrink-0" />
+                <div className="flex-1 min-w-0 grid sm:grid-cols-2 gap-2 items-center">
+                  <input
+                    value={row.title}
+                    onChange={(e) => updateRow(idx, { title: e.target.value, slug: slugifyTitle(e.target.value) || row.slug })}
+                    disabled={running || row.status === "done"}
+                    className="px-3 py-1.5 rounded-lg border border-[#f4e4c6] text-sm font-semibold"
+                    data-testid={`bulk-title-${idx}`}
+                  />
+                  <div className="text-xs text-[#6b7280] truncate">
+                    /{row.slug} · {(row.file.size / 1024 / 1024).toFixed(1)} MB
+                  </div>
+                </div>
+                <div className="text-xs font-semibold shrink-0 min-w-[80px] text-right">
+                  {row.status === "pending" && <span className="text-[#6b7280]">queued</span>}
+                  {row.status === "uploading" && <span className="text-[#5a8a6f]">uploading…</span>}
+                  {row.status === "done" && <span className="text-green-600">✓ done</span>}
+                  {row.status === "error" && <span className="text-red-500" title={row.error}>✗ {row.error.slice(0, 30)}</span>}
+                </div>
+                {row.status !== "done" && (
+                  <button onClick={() => removeRow(idx)} disabled={running} className="text-red-500 p-1.5 hover:bg-red-50 rounded-full" data-testid={`bulk-remove-${idx}`}><Trash2 className="w-4 h-4" /></button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="flex justify-between items-center mt-5">
+          <div className="text-sm text-[#6b7280]">
+            {pending.length > 0 && `${pending.filter((p) => p.status === "done").length} of ${pending.length} created`}
+          </div>
+          <div className="flex gap-2">
+            <button onClick={onCancel} disabled={running} className="btn-ghost">Close</button>
+            <button onClick={run} disabled={running || !pending.length || !defaultCat} className="btn-primary" data-testid="bulk-run">
+              <Save className="w-4 h-4" />{running ? "Uploading…" : `Create ${pending.filter((p) => p.status !== "done").length || 0} downloads`}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }

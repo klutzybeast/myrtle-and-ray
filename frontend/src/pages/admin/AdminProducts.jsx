@@ -18,7 +18,7 @@ export default function AdminProducts() {
   const load = () => api.get("/admin/products").then(({ data }) => setItems(data));
   useEffect(() => { load(); api.get("/admin/characters").then(({ data }) => setChars(data)); }, []);
 
-  const blank = { name: "", slug: "", category: "Stuffies", character_slug: "", short_description: "", long_description: "", price: null, compare_at_price: null, images: [], primary_image: "", printify_url: "", inventory_status: "In Stock", featured: false, tags: [], seo_title: "", meta_description: "", og_image: "", published: true };
+  const blank = { name: "", slug: "", category: "Stuffies", character_slug: "", short_description: "", long_description: "", price: null, compare_at_price: null, images: [], primary_image: "", printify_url: "", variants: [], inventory_status: "In Stock", featured: false, tags: [], seo_title: "", meta_description: "", og_image: "", published: true };
 
   const save = async (data) => {
     try {
@@ -27,6 +27,12 @@ export default function AdminProducts() {
         slug: (data.slug || slugify(data.name || "")),
         price: data.price == null || data.price === "" ? 0 : Number(data.price),
         og_image: data.og_image || data.primary_image || "",
+        variants: (data.variants || []).filter((v) => (v.label || v.printify_url || v.sku)).map((v) => ({
+          label: v.label || "",
+          sku: v.sku || "",
+          printify_url: v.printify_url || "",
+          price: v.price == null || v.price === "" ? null : Number(v.price),
+        })),
       };
       if (creating) await api.post("/admin/products", payload);
       else await api.put(`/admin/products/${editing.slug}`, payload);
@@ -119,6 +125,77 @@ function Editor({ item, setItem, cats, chars, statuses, onSave, onCancel }) {
           <Field label="Tags" full>
             <TagsInput value={item.tags || []} onChange={(tags) => set("tags", tags)} testid="product-edit-tags" />
           </Field>
+
+          {/* Variants */}
+          <div className="sm:col-span-2 mt-2 bg-[#eef9fb] rounded-2xl p-4 border-2 border-[#dff3f6]" data-testid="product-variants-section">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <div className="font-accent font-bold text-[#3a4a55]">Variants (optional)</div>
+                <p className="text-xs text-[#6b7280]">Sizes, colors, bundles — each gets its own Buy URL on the product page.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => set("variants", [...(item.variants || []), { label: "", sku: "", printify_url: "", price: null }])}
+                className="btn-ghost text-xs"
+                data-testid="variant-add"
+              ><Plus className="w-4 h-4" />Add variant</button>
+            </div>
+            {(item.variants || []).length === 0 ? (
+              <p className="text-xs text-[#6b7280] italic">No variants — buyers will use the main Buy Now URL above.</p>
+            ) : (
+              <div className="space-y-2">
+                {(item.variants || []).map((v, idx) => (
+                  <div key={idx} className="bg-white rounded-2xl border border-[#dff3f6] p-3 grid sm:grid-cols-[1fr_1fr_2fr_100px_36px] gap-2 items-center" data-testid={`variant-row-${idx}`}>
+                    <input
+                      value={v.label || ""}
+                      onChange={(e) => {
+                        const next = [...item.variants]; next[idx] = { ...next[idx], label: e.target.value }; set("variants", next);
+                      }}
+                      placeholder="Label (e.g. Small / Blue)"
+                      className="inp"
+                      data-testid={`variant-label-${idx}`}
+                    />
+                    <input
+                      value={v.sku || ""}
+                      onChange={(e) => { const next = [...item.variants]; next[idx] = { ...next[idx], sku: e.target.value }; set("variants", next); }}
+                      placeholder="SKU (optional)"
+                      className="inp"
+                      data-testid={`variant-sku-${idx}`}
+                    />
+                    <input
+                      value={v.printify_url || ""}
+                      onChange={(e) => { const next = [...item.variants]; next[idx] = { ...next[idx], printify_url: e.target.value }; set("variants", next); }}
+                      placeholder="Buy URL for this variant"
+                      className="inp"
+                      data-testid={`variant-url-${idx}`}
+                    />
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      step="0.01"
+                      min="0"
+                      value={v.price == null || v.price === "" ? "" : v.price}
+                      onChange={(e) => {
+                        const next = [...item.variants];
+                        next[idx] = { ...next[idx], price: e.target.value === "" ? null : parseFloat(e.target.value) };
+                        set("variants", next);
+                      }}
+                      placeholder="$"
+                      className="inp"
+                      data-testid={`variant-price-${idx}`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => set("variants", item.variants.filter((_, i) => i !== idx))}
+                      className="p-2 rounded-full text-red-500 hover:bg-red-50 justify-self-center"
+                      title="Remove variant"
+                      data-testid={`variant-remove-${idx}`}
+                    ><Trash2 className="w-4 h-4" /></button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* SEO + Sharing */}
           <div className="sm:col-span-2 mt-4 bg-[#fffbf3] rounded-2xl p-4 border-2 border-[#f4e4c6]">

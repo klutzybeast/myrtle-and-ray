@@ -131,7 +131,7 @@ Casey, Dani, Sami, Izzy, Louie, Billy, Frankie.
 - Hotspot data moved to shared `/app/frontend/src/lib/mapData.js` —
   reused by both `/map` and the map section still on `/story`.
 
-## What's been implemented (2026-05-16, pass 7 – persistent media storage)
+## What's been implemented (2026-05-16, pass 7 – persistent media storage + admin polish)
 - **Integrated Emergent Object Storage** for all admin uploads (MP3s,
   images, PDFs, zips, SVGs). Files now survive production redeploys.
 - New `backend/storage.py` wraps the Emergent Object Storage API with
@@ -149,6 +149,15 @@ Casey, Dani, Sami, Izzy, Louie, Billy, Frankie.
   defensively (`resolveUrl()`) so audio plays regardless of how the
   URL is stored.
 - Required env var: `EMERGENT_LLM_KEY` (already set in preview).
+- **Bulk PDF Upload** on `/admin/downloads`: new "Bulk upload" button
+  opens a modal with a dropzone + default category/audience selectors.
+  Drop in many PDFs → one Download item per file is auto-created
+  (title from filename, slug auto-generated, file attached, published,
+  NEW badge). Per-row status indicators + retry for failed rows.
+- **Variants editor** in the Product editor (`/admin/products` →
+  Edit): add/remove variant rows inline with label, SKU, Buy URL,
+  and per-variant price. Empty rows are filtered out on save. Works
+  with the existing ShopDetail.jsx variant picker (already wired).
 
 ## What's been implemented (2026-05-15, pass 6 – SEO + Analytics)
 - **SEO infrastructure verified**: Removed duplicate static og:*/twitter:*
