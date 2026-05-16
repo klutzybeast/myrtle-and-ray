@@ -730,11 +730,28 @@ def make_admin_router(db, require_admin):
                     width, height = img.size
             except Exception:
                 pass
+        # Push to Emergent persistent object storage so the file survives redeploys.
+        import storage as _storage
+        content_type = file.content_type or ""
+        if not content_type:
+            mime_guess = {
+                "mp3": "audio/mpeg", "ogg": "audio/ogg", "wav": "audio/wav",
+                "m4a": "audio/mp4", "aac": "audio/aac",
+                "jpg": "image/jpeg", "jpeg": "image/jpeg", "png": "image/png",
+                "webp": "image/webp", "gif": "image/gif", "svg": "image/svg+xml",
+                "pdf": "application/pdf", "zip": "application/zip",
+            }
+            content_type = mime_guess.get(ext, "application/octet-stream")
+        persisted = _storage.put_object(safe_name, contents, content_type)
+        if _storage.is_enabled() and not persisted:
+            # Persistent storage configured but upload failed — refuse rather than silently lose the file.
+            raise HTTPException(status_code=502, detail="Persistent storage upload failed. Try again.")
         url = f"/api/uploads/{safe_name}"
         doc = {
             "id": uid, "url": url, "filename": file.filename or safe_name,
-            "mime": file.content_type or "", "size_kb": size_kb, "width": width, "height": height,
+            "mime": content_type, "size_kb": size_kb, "width": width, "height": height,
             "page_count": page_count, "tags": [t.strip() for t in tags.split(",") if t.strip()],
+            "persisted": bool(persisted),
             "created_at": _now(),
         }
         await db.media.insert_one(dict(doc))

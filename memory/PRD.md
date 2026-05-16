@@ -131,6 +131,25 @@ Casey, Dani, Sami, Izzy, Louie, Billy, Frankie.
 - Hotspot data moved to shared `/app/frontend/src/lib/mapData.js` —
   reused by both `/map` and the map section still on `/story`.
 
+## What's been implemented (2026-05-16, pass 7 – persistent media storage)
+- **Integrated Emergent Object Storage** for all admin uploads (MP3s,
+  images, PDFs, zips, SVGs). Files now survive production redeploys.
+- New `backend/storage.py` wraps the Emergent Object Storage API with
+  init/put/get + automatic session-key refresh on 403.
+- `POST /api/admin/media/upload` now: (1) writes to local disk for fast
+  reads + metadata extraction (PDF page count, image dimensions),
+  (2) pushes bytes to persistent storage, (3) marks `persisted: true`
+  in the `media` doc. If persistent storage is configured but fails,
+  upload is rejected with 502 (no silent data loss).
+- `/api/uploads/{filename}` switched from a static mount to a dynamic
+  GET/HEAD handler that tries local disk first then falls back to
+  persistent storage. Backward-compatible — every existing URL format
+  continues to work after files are re-uploaded.
+- Frontend `lib/audio.jsx` now resolves relative + stale-domain URLs
+  defensively (`resolveUrl()`) so audio plays regardless of how the
+  URL is stored.
+- Required env var: `EMERGENT_LLM_KEY` (already set in preview).
+
 ## What's been implemented (2026-05-15, pass 6 – SEO + Analytics)
 - **SEO infrastructure verified**: Removed duplicate static og:*/twitter:*
   meta tags from `public/index.html`. `<SEO>` component injects unique
