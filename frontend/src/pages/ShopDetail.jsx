@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
+import { useCart } from "../lib/cart";
 import ProductCard from "../components/ProductCard";
 import { ChevronRight, ShoppingBag, Heart, Share2 } from "lucide-react";
 import { toast } from "sonner";
@@ -10,6 +11,8 @@ import JsonLd from "../components/JsonLd";
 
 export default function ShopDetail() {
   const { slug } = useParams();
+  const nav = useNavigate();
+  const { addItem } = useCart();
   const [data, setData] = useState(null);
   const [activeImage, setActiveImage] = useState(0);
   const [qty, setQty] = useState(1);
@@ -122,9 +125,52 @@ export default function ShopDetail() {
             </div>
 
             <div className="mt-6 flex flex-wrap gap-3">
-              <a href={buyUrl || "#"} target="_blank" rel="noopener noreferrer" className="btn-primary text-lg" data-testid="buy-now-btn">
-                <ShoppingBag className="w-5 h-5" /> Buy Now
-              </a>
+              {(p.category || "").toLowerCase() === "stuffies" && p.inventory_status === "In Stock" ? (
+                <>
+                  <button
+                    onClick={() => {
+                      const unit = variant?.price != null ? variant.price : p.price;
+                      addItem({
+                        product_slug: p.slug,
+                        variant_sku: variant?.sku || "",
+                        variant_label: variant?.label || "",
+                        name: p.name,
+                        unit_price_cents: Math.round((unit || 0) * 100),
+                        image: p.primary_image,
+                        quantity: qty,
+                      });
+                      toast.success("Added to cart");
+                    }}
+                    className="btn-primary text-lg"
+                    data-testid="add-to-cart-btn"
+                  >
+                    <ShoppingBag className="w-5 h-5" /> Add to Cart
+                  </button>
+                  <button
+                    onClick={() => {
+                      const unit = variant?.price != null ? variant.price : p.price;
+                      addItem({
+                        product_slug: p.slug,
+                        variant_sku: variant?.sku || "",
+                        variant_label: variant?.label || "",
+                        name: p.name,
+                        unit_price_cents: Math.round((unit || 0) * 100),
+                        image: p.primary_image,
+                        quantity: qty,
+                      });
+                      nav("/checkout");
+                    }}
+                    className="btn-secondary text-lg"
+                    data-testid="buy-now-checkout-btn"
+                  >
+                    Buy Now
+                  </button>
+                </>
+              ) : (
+                <a href={buyUrl || "#"} target="_blank" rel="noopener noreferrer" className="btn-primary text-lg" data-testid="buy-now-btn">
+                  <ShoppingBag className="w-5 h-5" /> Buy Now
+                </a>
+              )}
               <button onClick={() => {
                 const list = JSON.parse(localStorage.getItem("mr_wishlist") || "[]");
                 if (!list.includes(p.slug)) { list.push(p.slug); localStorage.setItem("mr_wishlist", JSON.stringify(list)); toast.success("Added to wishlist"); }

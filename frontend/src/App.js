@@ -6,6 +6,7 @@ import "@/App.css";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { SiteProvider, useSite } from "@/lib/site";
 import { AudioProvider } from "@/lib/audio";
+import { CartProvider } from "@/lib/cart";
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -19,6 +20,8 @@ import Activities from "@/pages/Activities";
 import ReadAloud from "@/pages/ReadAloud";
 import Shop from "@/pages/Shop";
 import ShopDetail from "@/pages/ShopDetail";
+import Cart from "@/pages/Cart";
+import Checkout from "@/pages/Checkout";
 import Downloads from "@/pages/Downloads";
 import DownloadDetail from "@/pages/DownloadDetail";
 import ForCamps from "@/pages/ForCamps";
@@ -44,6 +47,7 @@ import AdminCustomPageEditor from "@/pages/admin/AdminCustomPageEditor";
 import AdminCampaigns from "@/pages/admin/AdminCampaigns";
 import AdminCampaignEditor from "@/pages/admin/AdminCampaignEditor";
 import AdminAnalytics from "@/pages/admin/AdminAnalytics";
+import AdminOrders from "@/pages/admin/AdminOrders";
 import CustomPage from "@/pages/CustomPage";
 import WaveBadges from "@/pages/WaveBadges";
 import MapPage from "@/pages/Map";
@@ -84,6 +88,7 @@ function App() {
       <BrowserRouter>
         <AuthProvider>
           <SiteProvider>
+            <CartProvider>
             <AudioWrapper>
               <Toaster position="top-center" richColors />
               <Routes>
@@ -95,6 +100,8 @@ function App() {
               <Route path="/read-aloud" element={<PublicShell><ReadAloud /></PublicShell>} />
               <Route path="/shop" element={<PublicShell><Shop /></PublicShell>} />
               <Route path="/shop/:slug" element={<PublicShell><ShopDetail /></PublicShell>} />
+              <Route path="/cart" element={<PublicShell><Cart /></PublicShell>} />
+              <Route path="/checkout" element={<PublicShell><Checkout /></PublicShell>} />
               <Route path="/downloads" element={<PublicShell><Downloads /></PublicShell>} />
               <Route path="/downloads/:slug" element={<PublicShell><DownloadDetail /></PublicShell>} />
               <Route path="/for-camps" element={<PublicShell><ForCamps /></PublicShell>} />
@@ -121,10 +128,12 @@ function App() {
                 <Route path="campaigns" element={<AdminCampaigns />} />
                 <Route path="campaigns/:id" element={<AdminCampaignEditor />} />
                 <Route path="analytics" element={<AdminAnalytics />} />
+                <Route path="orders" element={<AdminOrders />} />
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
             </AudioWrapper>
+            </CartProvider>
           </SiteProvider>
         </AuthProvider>
       </BrowserRouter>

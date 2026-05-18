@@ -2,7 +2,8 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useSite } from "../lib/site";
 import { useAudio } from "../lib/audio";
-import { Waves, Menu, Volume2, VolumeX, SkipForward, X, LogIn } from "lucide-react";
+import { useCart } from "../lib/cart";
+import { Waves, Menu, Volume2, VolumeX, SkipForward, X, LogIn, ShoppingBag } from "lucide-react";
 
 const NAV = [
   { to: "/", label: "Home" },
@@ -20,6 +21,7 @@ const NAV = [
 export default function Header() {
   const site = useSite();
   const { enabled: audio, toggle: toggleAudio, hasTracks, trackCount, trackIdx, nextTrack } = useAudio();
+  const { count: cartCount } = useCart();
 
   const onAudioClick = () => {
     if (!hasTracks) {
@@ -81,6 +83,17 @@ export default function Header() {
                 <SkipForward className="w-5 h-5 text-[#5a8a6f]" />
               </button>
             )}
+            <Link
+              to="/cart"
+              className="relative w-9 h-9 grid place-items-center rounded-full hover:bg-[#eef9fb] transition"
+              aria-label={`Cart with ${cartCount} item${cartCount === 1 ? "" : "s"}`}
+              data-testid="header-cart"
+            >
+              <ShoppingBag className="w-5 h-5 text-[#3a4a55]" />
+              {cartCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 bg-[#f0a988] text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] grid place-items-center px-1" data-testid="cart-count">{cartCount}</span>
+              )}
+            </Link>
             <Link
               to="/admin/login"
               className="hidden md:inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border-2 border-[#f4e4c6] hover:border-[#7fcfc7] hover:bg-[#eef9fb] text-sm font-bold text-[#3a4a55] transition"
