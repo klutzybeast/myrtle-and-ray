@@ -58,6 +58,7 @@ export function reopenCookieSettings() {
 export default function CookieBanner() {
   const [open, setOpen] = useState(false);
   const [customizing, setCustomizing] = useState(false);
+  const [rejectedNotice, setRejectedNotice] = useState(false);
   // Necessary cookies are always on; visitor only toggles analytics.
   const [analyticsOn, setAnalyticsOn] = useState(true);
 
@@ -66,7 +67,7 @@ export default function CookieBanner() {
     const t = setTimeout(() => {
       if (!getConsent()) setOpen(true);
     }, 1200);
-    const reopen = () => { setOpen(true); setCustomizing(false); };
+    const reopen = () => { setOpen(true); setCustomizing(false); setRejectedNotice(false); };
     window.addEventListener("mr:open-cookie-banner", reopen);
     return () => {
       clearTimeout(t);
@@ -79,20 +80,19 @@ export default function CookieBanner() {
   const accept = () => { setConsent("accepted"); setOpen(false); };
   const reject = () => {
     setConsent("rejected");
-    setOpen(false);
-    // Per owner request: visitors who decline are redirected to the
-    // sister camp site. (Note: pure "cookie walls" are discouraged
-    // under GDPR; consider switching to a soft prompt if EU traffic.)
-    if (typeof window !== "undefined") {
-      try { window.location.href = "https://rollingriver.com"; } catch {}
-    }
+    // Show a friendly "you can still browse, here's our camp site too" panel
+    // instead of a hard redirect. Visitors can dismiss and keep reading.
+    setRejectedNotice(true);
+    setCustomizing(false);
   };
   const saveCustom = () => {
     const choice = analyticsOn ? "accepted" : "rejected";
     setConsent(choice);
-    setOpen(false);
-    if (choice === "rejected" && typeof window !== "undefined") {
-      try { window.location.href = "https://rollingriver.com"; } catch {}
+    if (choice === "rejected") {
+      setRejectedNotice(true);
+      setCustomizing(false);
+    } else {
+      setOpen(false);
     }
   };
 
@@ -128,7 +128,32 @@ export default function CookieBanner() {
             </button>
           </div>
 
-          {!customizing ? (
+          {rejectedNotice ? (
+            <div className="mt-4 space-y-3" data-testid="cookie-banner-rejected-notice">
+              <p className="text-sm text-[#4a5568] leading-snug">
+                No worries — we won't track you. You can keep exploring the site, or visit our home camp <span className="font-bold">Rolling River Day Camp</span> on Long Island.
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => setOpen(false)}
+                  className="btn-secondary text-sm justify-center"
+                  data-testid="cookie-banner-stay"
+                >
+                  Stay here
+                </button>
+                <a
+                  href="https://rollingriver.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setOpen(false)}
+                  className="btn-primary text-sm justify-center"
+                  data-testid="cookie-banner-visit-rolling-river"
+                >
+                  Visit Rolling River
+                </a>
+              </div>
+            </div>
+          ) : !customizing ? (
             <div className="mt-4 flex flex-col-reverse sm:flex-row gap-2">
               <button
                 onClick={() => setCustomizing(true)}
