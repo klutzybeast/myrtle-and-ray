@@ -86,12 +86,13 @@ WAVE_CARDS = [
 
 DOWNLOAD_CATEGORIES = [
     {"slug": "coloring-pages", "name": "Coloring Pages", "icon": "Palette", "description": "Print-and-color sheets of every Sea Star.", "color": "#FF9B71", "order": 1},
-    {"slug": "activity-sheets", "name": "Activity Sheets", "icon": "PencilRuler", "description": "Puzzles, mazes, and challenges for kids.", "color": "#40E0D0", "order": 2},
-    {"slug": "parent-guides", "name": "Parent Guides", "icon": "BookOpen", "description": "Conversation starters and read-along tips.", "color": "#87CEEB", "order": 3},
-    {"slug": "classroom-resources", "name": "Classroom and Educator Resources", "icon": "GraduationCap", "description": "Lesson plans and classroom printables.", "color": "#3CB371", "order": 4},
-    {"slug": "camp-director-resources", "name": "Camp Director Resources", "icon": "Tent", "description": "Welcome packets and orientation tools.", "color": "#FFB347", "order": 5},
-    {"slug": "posters-printables", "name": "Posters and Printables", "icon": "ImageIcon", "description": "Wall posters and bulletin board art.", "color": "#FF6F91", "order": 6},
-    {"slug": "wave-lessons", "name": "W.A.V.E. Lessons", "icon": "Waves", "description": "Mini-lessons on the W.A.V.E. values.", "color": "#9B72CB", "order": 7},
+    {"slug": "word-searches", "name": "Word Searches", "icon": "Search", "description": "Printable word search puzzles featuring the Sea Stars.", "color": "#5EC2C9", "order": 2},
+    {"slug": "activity-sheets", "name": "Activity Sheets", "icon": "PencilRuler", "description": "Puzzles, mazes, and challenges for kids.", "color": "#40E0D0", "order": 3},
+    {"slug": "parent-guides", "name": "Parent Guides", "icon": "BookOpen", "description": "Conversation starters and read-along tips.", "color": "#87CEEB", "order": 4},
+    {"slug": "classroom-resources", "name": "Classroom and Educator Resources", "icon": "GraduationCap", "description": "Lesson plans and classroom printables.", "color": "#3CB371", "order": 5},
+    {"slug": "camp-director-resources", "name": "Camp Director Resources", "icon": "Tent", "description": "Welcome packets and orientation tools.", "color": "#FFB347", "order": 6},
+    {"slug": "posters-printables", "name": "Posters and Printables", "icon": "ImageIcon", "description": "Wall posters and bulletin board art.", "color": "#FF6F91", "order": 7},
+    {"slug": "wave-lessons", "name": "W.A.V.E. Lessons", "icon": "Waves", "description": "Mini-lessons on the W.A.V.E. values.", "color": "#9B72CB", "order": 8},
 ]
 
 PAGES = [
@@ -220,7 +221,8 @@ async def seed_database(db) -> None:
 
     # --- Download categories ---
     for cat in DOWNLOAD_CATEGORIES:
-        if not await db.download_categories.find_one({"slug": cat["slug"]}):
+        existing = await db.download_categories.find_one({"slug": cat["slug"]})
+        if not existing:
             await db.download_categories.insert_one({
                 "id": cat["slug"],
                 "slug": cat["slug"],
@@ -232,6 +234,11 @@ async def seed_database(db) -> None:
                 "visible": True,
                 "created_at": _now_iso(),
             })
+        elif existing.get("order") != cat["order"]:
+            # Keep ordering in sync with code so re-ordering ships via deploy.
+            await db.download_categories.update_one(
+                {"slug": cat["slug"]}, {"$set": {"order": cat["order"]}}
+            )
 
     # --- Placeholder products: one stuffie per character ---
     for ch in CHARACTERS:
