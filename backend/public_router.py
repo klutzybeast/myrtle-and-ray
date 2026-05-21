@@ -175,6 +175,7 @@ def make_public_router(db):
     @router.get("/media/download/{media_id}")
     async def download_media(media_id: str):
         import os
+        import storage as _storage
         m = await db.media.find_one({"id": media_id}, {"_id": 0})
         if not m:
             raise HTTPException(status_code=404, detail="Not found")
@@ -182,12 +183,34 @@ def make_public_router(db):
         url = m.get("url", "")
         filename_on_disk = url.rsplit("/", 1)[-1]
         full_path = os.path.join(upload_dir, filename_on_disk)
+        download_name = m.get("filename") or filename_on_disk
+        mime = m.get("mime") or "application/octet-stream"
+
+        # Fall back to persistent storage if the local copy was wiped by a redeploy.
         if not os.path.exists(full_path):
-            raise HTTPException(status_code=404, detail="File missing")
+            fetched = _storage.get_object(filename_on_disk)
+            if fetched is None:
+                raise HTTPException(status_code=404, detail="File missing")
+            data, ct = fetched
+            try:
+                tmp_path = f"{full_path}.{os.getpid()}.part"
+                os.makedirs(os.path.dirname(full_path) or upload_dir, exist_ok=True)
+                with open(tmp_path, "wb") as fh:
+                    fh.write(data)
+                os.replace(tmp_path, full_path)
+            except Exception:
+                # Last-resort: stream from memory with the download filename
+                from fastapi.responses import Response
+                return Response(
+                    content=data,
+                    media_type=mime or ct or "application/octet-stream",
+                    headers={"Content-Disposition": f'attachment; filename="{download_name}"'},
+                )
+
         return FileResponse(
             full_path,
-            filename=m.get("filename") or filename_on_disk,
-            media_type=m.get("mime") or "application/octet-stream",
+            filename=download_name,
+            media_type=mime,
             content_disposition_type="attachment",
         )
 
