@@ -77,8 +77,24 @@ export default function CookieBanner() {
   if (!open) return null;
 
   const accept = () => { setConsent("accepted"); setOpen(false); };
-  const reject = () => { setConsent("rejected"); setOpen(false); };
-  const saveCustom = () => { setConsent(analyticsOn ? "accepted" : "rejected"); setOpen(false); };
+  const reject = () => {
+    setConsent("rejected");
+    setOpen(false);
+    // Per owner request: visitors who decline are redirected to the
+    // sister camp site. (Note: pure "cookie walls" are discouraged
+    // under GDPR; consider switching to a soft prompt if EU traffic.)
+    if (typeof window !== "undefined") {
+      try { window.location.href = "https://rollingriver.com"; } catch {}
+    }
+  };
+  const saveCustom = () => {
+    const choice = analyticsOn ? "accepted" : "rejected";
+    setConsent(choice);
+    setOpen(false);
+    if (choice === "rejected" && typeof window !== "undefined") {
+      try { window.location.href = "https://rollingriver.com"; } catch {}
+    }
+  };
 
   return (
     <div
@@ -103,8 +119,8 @@ export default function CookieBanner() {
               </p>
             </div>
             <button
-              onClick={reject}
-              aria-label="Close"
+              onClick={() => setOpen(false)}
+              aria-label="Close for now"
               className="p-1 -mr-1 -mt-1 rounded-full hover:bg-gray-100 text-[#6b7280]"
               data-testid="cookie-banner-dismiss"
             >
