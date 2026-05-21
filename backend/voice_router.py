@@ -19,10 +19,11 @@ DAILY_BUDGET = int(os.environ.get("ELEVENLABS_DAILY_CHAR_BUDGET", "50000") or 50
 MAX_CHARS = int(os.environ.get("ELEVENLABS_MAX_CHARS_PER_REQUEST", "300") or 300)
 MAX_PER_VISITOR = int(os.environ.get("ELEVENLABS_MAX_REQUESTS_PER_VISITOR_PER_DAY", "5") or 5)
 
-# Voice settings tuned for warm, kid-friendly storytelling
-DEFAULT_STABILITY = 0.55
-DEFAULT_SIMILARITY = 0.8
-DEFAULT_STYLE = 0.2
+# Voice settings tuned for warm, kid-friendly storytelling.
+# Lower stability = more expressive/emotional, higher = more consistent/calm.
+DEFAULT_STABILITY = 0.45
+DEFAULT_SIMILARITY = 0.85
+DEFAULT_STYLE = 0.35
 
 
 class TTSRequest(BaseModel):
