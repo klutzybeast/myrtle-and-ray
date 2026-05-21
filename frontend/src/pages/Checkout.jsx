@@ -6,6 +6,7 @@ import { useCart } from "../lib/cart";
 import { getStoredVisitor, setStoredVisitor } from "../lib/visitor";
 import { Lock, Loader2 } from "lucide-react";
 import SEO from "../components/SEO";
+import AddressAutocomplete from "../components/AddressAutocomplete";
 import { toast } from "sonner";
 
 function money(cents) { return `$${((cents || 0) / 100).toFixed(2)}`; }
@@ -106,7 +107,22 @@ export default function Checkout() {
               <div className="grid sm:grid-cols-2 gap-3">
                 <Field label="Full name" full><input value={fullName} onChange={(e) => setFullName(e.target.value)} className="inp" data-testid="ship-name" autoComplete="name" /></Field>
                 <Field label="Email" full><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="inp" data-testid="ship-email" autoComplete="email" /></Field>
-                <Field label="Address line 1" full><input value={line1} onChange={(e) => setLine1(e.target.value)} className="inp" data-testid="ship-line1" autoComplete="address-line1" /></Field>
+                <Field label="Address line 1" full>
+                  <AddressAutocomplete
+                    value={line1}
+                    onChange={(v) => setLine1(v)}
+                    onPlaceSelected={(p) => {
+                      setLine1(p.line1 || "");
+                      if (p.city) setCity(p.city);
+                      if (p.state) setState(p.state);
+                      if (p.postal_code) setPostal(p.postal_code);
+                      if (p.country) setCountry(p.country);
+                    }}
+                    placeholder="Start typing your address..."
+                    className="inp"
+                    testid="ship-line1"
+                  />
+                </Field>
                 <Field label="Address line 2 (optional)" full><input value={line2} onChange={(e) => setLine2(e.target.value)} className="inp" data-testid="ship-line2" autoComplete="address-line2" /></Field>
                 <Field label="City"><input value={city} onChange={(e) => setCity(e.target.value)} className="inp" data-testid="ship-city" autoComplete="address-level2" /></Field>
                 <Field label="State / Province"><input value={state} onChange={(e) => setState(e.target.value)} className="inp" data-testid="ship-state" autoComplete="address-level1" /></Field>

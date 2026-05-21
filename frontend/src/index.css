@@ -104,6 +104,32 @@ h1, h2, h3, h4, h5 {
 }
 .inp:focus { border-color: #7fcfc7; }
 
+/* Google Places Autocomplete dropdown — match the site's pastel style */
+.pac-container {
+  border-radius: 18px;
+  border: 2px solid #f4e4c6;
+  box-shadow: 0 12px 32px rgba(30,42,53,0.15);
+  margin-top: 6px;
+  font-family: inherit;
+  z-index: 9999;
+  padding: 6px;
+  background: white;
+}
+.pac-item {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 0;
+  cursor: pointer;
+  font-size: 14px;
+  color: #3a4a55;
+}
+.pac-item:hover, .pac-item-selected { background: #eef9fb; }
+.pac-icon { display: none; }
+.pac-item-query { font-weight: 700; color: #3a4a55; }
+.pac-matched { color: #5a8a6f; }
+/* Make sure children don't block clicks on touch / playwright */
+.pac-item * { pointer-events: none; }
+
 /* Buttons — pastel with deeper text for contrast */
 .btn-primary {
   background: linear-gradient(90deg, var(--turquoise) 0%, var(--peach) 100%);
