@@ -21,6 +21,7 @@ from admin_router import make_admin_router
 from seed import seed_database
 from email_service import queue_email
 from square_router import make_public_square_router, make_admin_orders_router
+from voice_router import make_voice_router
 import storage as _storage
 
 
@@ -41,6 +42,7 @@ auth_router, get_current_user, require_admin = make_auth_router(db)
 api_router.include_router(auth_router)
 api_router.include_router(make_public_router(db))
 api_router.include_router(make_public_square_router(db, queue_email))
+api_router.include_router(make_voice_router(db))
 admin_router_obj = make_admin_router(db, require_admin)
 # Mount admin orders under the existing /admin prefix
 admin_router_obj.include_router(make_admin_orders_router(db))

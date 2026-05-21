@@ -79,6 +79,7 @@ def make_public_router(db):
         return (os.environ.get("PUBLIC_SITE_URL") or "https://myrtleandray.com").rstrip("/")
 
     @router.get("/sitemap.xml")
+    @router.head("/sitemap.xml")
     async def sitemap_xml():
         origin = _site_origin()
         urls: list[tuple[str, str, str]] = []  # (loc, changefreq, priority)
@@ -122,9 +123,12 @@ def make_public_router(db):
         body = (
             "User-agent: *\n"
             "Allow: /\n"
+            "Allow: /api/sitemap.xml\n"
+            "Allow: /api/uploads/\n"
             "Disallow: /admin\n"
-            "Disallow: /api/\n"
-            f"Sitemap: {origin}/api/sitemap.xml\n"
+            "Disallow: /api/admin\n"
+            "Disallow: /api/auth\n"
+            f"\nSitemap: {origin}/api/sitemap.xml\n"
         )
         return Response(content=body, media_type="text/plain")
 

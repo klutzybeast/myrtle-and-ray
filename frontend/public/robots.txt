@@ -1,6 +1,9 @@
 User-agent: *
 Allow: /
+Allow: /api/sitemap.xml
+Allow: /api/uploads/
 Disallow: /admin
-Disallow: /api/
+Disallow: /api/admin
+Disallow: /api/auth
 
 Sitemap: https://myrtleandray.com/api/sitemap.xml

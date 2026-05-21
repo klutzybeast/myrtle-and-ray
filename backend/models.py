@@ -26,6 +26,8 @@ class Character(BaseModel):
     fun_fact: str = ""
     linked_product_slug: str = ""
     audio_url: str = ""
+    voice_id: str = ""
+    voice_greeting: str = ""
     is_core: bool = False
     order: int = 0
     created_at: str = Field(default_factory=_now)
@@ -42,6 +44,8 @@ class CharacterUpdate(BaseModel):
     fun_fact: Optional[str] = None
     linked_product_slug: Optional[str] = None
     audio_url: Optional[str] = None
+    voice_id: Optional[str] = None
+    voice_greeting: Optional[str] = None
     order: Optional[int] = None
 
 

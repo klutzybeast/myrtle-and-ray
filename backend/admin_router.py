@@ -30,6 +30,8 @@ class CharacterBody(BaseModel):
     fun_fact: Optional[str] = None
     linked_product_slug: Optional[str] = None
     audio_url: Optional[str] = None
+    voice_id: Optional[str] = None
+    voice_greeting: Optional[str] = None
     order: Optional[int] = None
 
 

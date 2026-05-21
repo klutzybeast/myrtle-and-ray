@@ -28,3 +28,4 @@ emergentintegrations==0.1.0
 squareup==44.0.1.20260122
 pypdf>=4.2.0
 Pillow>=10.3.0
+elevenlabs==2.49.0

@@ -6,6 +6,7 @@ import { HOTSPOTS, MAP_IMG } from "../lib/mapData";
 import { Volume2, Palette, VolumeOff, Sparkles } from "lucide-react";
 import SEO from "../components/SEO";
 import Lightbox from "../components/Lightbox";
+import SayItBox from "../components/SayItBox";
 
 export default function Story() {
   const [chars, setChars] = useState([]);
@@ -66,13 +67,23 @@ export default function Story() {
                   </div>
                 )}
                 <div className="mt-5 flex flex-wrap gap-2 justify-center">
-                  {c.audio_url ? (
+                  {c.voice_id ? (
+                    <button
+                      onClick={() => {
+                        const url = `${process.env.REACT_APP_BACKEND_URL}/api/voice/character/${c.slug}/greeting`;
+                        const a = new Audio(url); a.play().catch(() => {});
+                      }}
+                      className="btn-ghost text-xs"
+                      data-testid={`voice-${c.slug}`}
+                    ><Volume2 className="w-4 h-4" />Hear my voice</button>
+                  ) : c.audio_url ? (
                     <button onClick={() => playClip(c.audio_url)} className="btn-ghost text-xs" data-testid={`voice-${c.slug}`}><Volume2 className="w-4 h-4" />Hear my voice</button>
                   ) : (
-                    <button disabled title="Coming soon — admin can upload an audio clip" className="btn-ghost text-xs opacity-50 cursor-not-allowed" data-testid={`voice-${c.slug}`}><VolumeOff className="w-4 h-4" />Hear my voice</button>
+                    <button disabled title="Coming soon" className="btn-ghost text-xs opacity-50 cursor-not-allowed" data-testid={`voice-${c.slug}`}><VolumeOff className="w-4 h-4" />Hear my voice</button>
                   )}
                   <Link to={`/downloads/color-${c.slug}`} className="btn-ghost text-xs"><Palette className="w-4 h-4" />Color me</Link>
                 </div>
+                {c.voice_id && <SayItBox slug={c.slug} characterName={c.name} />}
               </div>
             </div>
           ))}
@@ -118,6 +129,16 @@ export default function Story() {
                 </div>
               )}
               <div className="flex gap-2 mt-4 flex-wrap">
+                {hotspotChar?.voice_id && (
+                  <button
+                    onClick={() => {
+                      const url = `${process.env.REACT_APP_BACKEND_URL}/api/voice/character/${hotspotChar.slug}/greeting`;
+                      new Audio(url).play().catch(() => {});
+                    }}
+                    className="btn-secondary text-sm"
+                    data-testid={`map-voice-${hotspotChar.slug}`}
+                  ><Volume2 className="w-4 h-4" />Hear them</button>
+                )}
                 {hotspot.activity && (
                   <button onClick={() => { setHotspot(null); nav(`/activities?game=${hotspot.activity}`); }} className="btn-primary flex-1 justify-center" data-testid={`map-play-${hotspot.activity}`}>Play game →</button>
                 )}

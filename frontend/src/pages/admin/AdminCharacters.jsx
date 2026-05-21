@@ -56,6 +56,8 @@ function Editor({ item, setItem, onSave, onCancel }) {
           <F label="Image URL" full><input value={item.image_url || ""} onChange={(e) => set("image_url", e.target.value)} className="inp" data-testid="char-edit-image" /></F>
           <F label="Linked product slug"><input value={item.linked_product_slug || ""} onChange={(e) => set("linked_product_slug", e.target.value)} className="inp" /></F>
           <F label="Audio URL"><input value={item.audio_url || ""} onChange={(e) => set("audio_url", e.target.value)} className="inp" /></F>
+          <F label="ElevenLabs Voice ID"><input value={item.voice_id || ""} onChange={(e) => set("voice_id", e.target.value)} className="inp" placeholder="e.g. EXAVITQu4vr4xnSDxMaL" data-testid="char-edit-voice-id" /></F>
+          <F label="Voice Greeting (what they say when tapped)" full><textarea value={item.voice_greeting || ""} onChange={(e) => set("voice_greeting", e.target.value)} className="inp min-h-[60px]" rows={2} maxLength={300} data-testid="char-edit-voice-greeting" /></F>
           <F label="Bio" full><textarea value={item.bio || ""} onChange={(e) => set("bio", e.target.value)} className="inp min-h-[80px]" rows={3} /></F>
           <F label="Fun Fact" full><input value={item.fun_fact || ""} onChange={(e) => set("fun_fact", e.target.value)} className="inp" /></F>
         </div>
