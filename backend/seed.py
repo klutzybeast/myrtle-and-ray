@@ -610,7 +610,12 @@ def _readaloud_cache_key(model_id: str, voice_id: str, text: str) -> str:
 
 async def _seed_readaloud_book(db) -> None:
     """Insert/refresh the 21-page Read-Aloud book content. Preserves any audio_url
-    and image_url already present for unchanged (voice + text) pages."""
+    and image_url already present for unchanged (voice + text) pages.
+
+    Pre-generated MP3s shipped in /app/backend/seed_assets/readaloud/ are
+    imported into local uploads + persistent Object Storage on first deploy
+    so production never has to call ElevenLabs for the book."""
+    import storage as _storage  # local import — avoids circular deps in tests
     model_id = os.environ.get("ELEVENLABS_MODEL_ID", "eleven_v3")
     # Map slug -> voice_id from the seeded characters
     voice_by_slug: dict = {}
@@ -621,20 +626,73 @@ async def _seed_readaloud_book(db) -> None:
     existing = await db.read_aloud_book.find_one({"id": "main"}, {"_id": 0}) or {}
     prev_pages = {p["page"]: p for p in existing.get("pages", [])}
 
+    asset_dir = os.path.join(os.path.dirname(__file__), "seed_assets", "readaloud")
+    upload_dir = os.environ.get("UPLOAD_DIR", "/app/backend/uploads")
+    voice_dir = os.path.join(upload_dir, "voice")
+    os.makedirs(voice_dir, exist_ok=True)
+
     pages_out = []
     for num, slug, text in READALOUD_PAGES:
         voice_id = voice_by_slug.get(slug, "")
         cache_key = _readaloud_cache_key(model_id, voice_id, text) if voice_id else ""
         prev = prev_pages.get(num) or {}
-        # Keep cached audio if voice + text are unchanged
-        keep_audio = prev.get("cache_key") == cache_key and prev.get("audio_url")
+
+        audio_url = ""
+        if cache_key:
+            storage_name = f"voice/{cache_key}.mp3"
+            local_path = os.path.join(voice_dir, f"{cache_key}.mp3")
+
+            # 1) If we already cached this MP3 locally OR in persistent storage, keep it.
+            if os.path.exists(local_path):
+                audio_url = f"/api/uploads/{storage_name}"
+            else:
+                fetched = _storage.get_object(storage_name) if _storage.is_enabled() else None
+                if fetched is not None:
+                    audio_url = f"/api/uploads/{storage_name}"
+
+            # 2) Otherwise, try to import the bundled MP3 that ships with the deploy.
+            if not audio_url:
+                bundled = os.path.join(asset_dir, f"{cache_key}.mp3")
+                if os.path.exists(bundled):
+                    try:
+                        with open(bundled, "rb") as fh:
+                            data = fh.read()
+                        # Write to local cache
+                        with open(local_path, "wb") as fh:
+                            fh.write(data)
+                        # And push to persistent storage so it survives redeploys
+                        if _storage.is_enabled():
+                            _storage.put_object(storage_name, data, "audio/mpeg")
+                        # And ensure the voice_cache row exists so admin "regenerate"
+                        # is a free no-op (cache hit) for these pages.
+                        await db.voice_cache.update_one(
+                            {"key": cache_key},
+                            {"$setOnInsert": {
+                                "key": cache_key,
+                                "voice_id": voice_id,
+                                "text": text,
+                                "model_id": model_id,
+                                "chars": len(text),
+                                "storage_filename": storage_name,
+                                "created_at": _now_iso(),
+                            }},
+                            upsert=True,
+                        )
+                        audio_url = f"/api/uploads/{storage_name}"
+                    except Exception:  # noqa: BLE001
+                        audio_url = ""
+
+        # If we still have nothing but the previous page had something, keep the previous URL
+        if not audio_url and prev.get("audio_url") and prev.get("cache_key") == cache_key:
+            audio_url = prev["audio_url"]
+
         pages_out.append({
             "page": num,
             "character_slug": slug,
             "text": text,
             "image_url": prev.get("image_url", ""),
             "voice_id": voice_id,
-            "audio_url": prev.get("audio_url", "") if keep_audio else "",
+            "audio_url": audio_url,
             "cache_key": cache_key,
         })
 
