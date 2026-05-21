@@ -148,11 +148,26 @@
             posthog.init("phc_xAvL2Iq4tFmANRE7kzbKwaSqp1HJjN7x48s3vr0CMjs", {
                 api_host: "https://us.i.posthog.com",
                 person_profiles: "identified_only", // or 'always' to create profiles for anonymous users as well,
+                // GDPR/UK compliance: don't capture or set cookies until the
+                // visitor accepts via our CookieBanner. The banner calls
+                // posthog.opt_in_capturing() on accept and posthog.opt_out_capturing() on reject.
+                opt_out_capturing_by_default: true,
+                disable_session_recording: true,
                 session_recording: {
                     recordCrossOriginIframes: true,
                     capturePerformance: false,
                 },
             });
+            // Re-apply any prior visitor choice immediately so reloads honor it.
+            try {
+                var consent = (document.cookie.match(/(?:^|; )mr_cookie_consent=([^;]+)/) || [])[1];
+                if (consent === "accepted") {
+                    posthog.opt_in_capturing();
+                    if (posthog.startSessionRecording) posthog.startSessionRecording();
+                } else if (consent === "rejected") {
+                    posthog.opt_out_capturing();
+                }
+            } catch (e) {}
         </script>
         <script>
             (function () {

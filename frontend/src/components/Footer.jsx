@@ -3,6 +3,7 @@ import { useSite } from "../lib/site";
 import { api } from "../lib/api";
 import { Facebook, Instagram, Youtube, Twitter, Linkedin } from "lucide-react";
 import { toast } from "sonner";
+import { reopenCookieSettings } from "./CookieBanner";
 
 export default function Footer() {
   const site = useSite();
@@ -72,7 +73,11 @@ export default function Footer() {
           </ul>
         </div>
       </div>
-      <div className="border-t border-[#f4e4c6] py-4 text-center text-xs text-[#6b7280]" data-testid="footer-copyright">{site.footer_text || "© 2026 KingApe Media. All rights reserved."}</div>
+      <div className="border-t border-[#f4e4c6] py-4 text-center text-xs text-[#6b7280]" data-testid="footer-copyright">
+        <span>{site.footer_text || "© 2026 KingApe Media. All rights reserved."}</span>
+        <span className="mx-2 text-[#d8d0c0]">·</span>
+        <button onClick={reopenCookieSettings} className="underline hover:text-[#5a8a6f]" data-testid="footer-cookie-settings">Cookie settings</button>
+      </div>
     </footer>
   );
 }

@@ -13,6 +13,7 @@ import Footer from "@/components/Footer";
 import StickyActionBar from "@/components/StickyActionBar";
 import PopupSignup from "@/components/PopupSignup";
 import ChatBubble from "@/components/ChatBubble";
+import CookieBanner from "@/components/CookieBanner";
 
 import Home from "@/pages/Home";
 import Story from "@/pages/Story";
@@ -78,6 +79,7 @@ function PublicShell({ children }) {
       <StickyActionBar />
       <PopupSignup />
       <ChatBubble />
+      <CookieBanner />
     </>
   );
 }
