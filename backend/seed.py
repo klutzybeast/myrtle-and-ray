@@ -5,6 +5,25 @@ import os
 from datetime import datetime, timezone
 import bcrypt
 
+# Per-character ElevenLabs voice IDs + greetings. These ship with the seed
+# so a fresh production deploy has fully voiced characters and a working
+# Read-Aloud audiobook on the very first request.
+CHARACTER_VOICES = {
+    "ray":         ("6OzrBCQf8cjERkYgzSg8", "Hey, I'm Ray! Ready to ride the W.A.V.E. of excitement?"),
+    "myrtle":      ("Z3R5wn05IrDiVCyEkUrK", "Hi! I'm Myrtle the Turtle. I'm so glad you came to camp with me!"),
+    "ms-bluegill": ("6qL48o1LBmtR94hIYAQh", "Welcome to Stingray Cay! I'm Ms. Bluegill, your camp director."),
+    "ollie":       ("q0IMILNRPxOgtBTS4taI", "Hiya! I'm Ollie the Octopus. Eight arms means eight high-fives - let's go!"),
+    "sally":       ("K7W7zLWeGoxU9YqWoB7A", "Hi sweetie, I'm Sally the Seahorse. Welcome, welcome, welcome!"),
+    "jessie":      ("FLj50PrMa40MhGHappOt", "Hi! I'm Jessie the Jellyfish. Float with me and we'll act so brave!"),
+    "casey":       ("Uq9DKccXXKZ6lc53ATJV", "I'm Casey the Crab! You're valued just the way you are."),
+    "dani":        ("qBDvhofpxp92JgXJxDjB", "Hi friend! I'm Dani the Dolphin - let me encourage you today!"),
+    "sami":        ("xMagNCpMgZ83QOEsHNre", "I'm Sami the Shark. Don't be scared - I'm here to encourage you!"),
+    "izzy":        ("8zu9JdWzG7LvGSTz3uf7", "Welcome to camp! I'm Izzy the Iguana. So happy you're here."),
+    "louie":       ("nucVFUFVgPmKHjgXNbJ7", "Hey buddy, Louie the Lobster here. Let's act with big hearts today!"),
+    "billy":       ("iiidtqDt9FBdT1vfBluA", "Hello, little one. I'm Billy the Beluga. You are so valued."),
+    "frankie":     ("85DL3i4Z7PIWbcOYSlQl", "Hi there, sweet pea! I'm Frankie the Flamingo. Let's act with kindness today!"),
+}
+
 # Character portrait URLs (placeholders that admin can swap)
 CHARACTER_PORTRAITS = {
     "ray": "https://images.unsplash.com/photo-1599663369941-884b3e7fab34?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAxODF8MHwxfHNlYXJjaHwxfHxjdXRlJTIwbWFudGElMjByYXklMjBpbGx1c3RyYXRpb258ZW58MHx8fHwxNzc4NzA2MTE0fDA&ixlib=rb-4.1.0&q=85",
@@ -178,7 +197,20 @@ async def seed_database(db) -> None:
 
     # --- Characters ---
     for idx, ch in enumerate(CHARACTERS):
-        if await db.characters.find_one({"slug": ch["slug"]}):
+        voice_id, voice_greeting = CHARACTER_VOICES.get(ch["slug"], ("", ""))
+        existing_ch = await db.characters.find_one({"slug": ch["slug"]})
+        if existing_ch:
+            # Retroactively populate voice_id / voice_greeting if missing —
+            # this is what lets a production environment pick up voices
+            # on the next deploy without manual admin work.
+            patch: dict = {}
+            if voice_id and not existing_ch.get("voice_id"):
+                patch["voice_id"] = voice_id
+            if voice_greeting and not (existing_ch.get("voice_greeting") or "").strip():
+                patch["voice_greeting"] = voice_greeting
+            if patch:
+                patch["updated_at"] = _now_iso()
+                await db.characters.update_one({"slug": ch["slug"]}, {"$set": patch})
             continue
         await db.characters.insert_one({
             "id": ch["slug"],
@@ -192,6 +224,8 @@ async def seed_database(db) -> None:
             "fun_fact": ch["fun_fact"],
             "linked_product_slug": f"{ch['slug']}-stuffie",
             "audio_url": "",
+            "voice_id": voice_id,
+            "voice_greeting": voice_greeting,
             "is_core": True,
             "order": idx,
             "original_filename": ch["original_filename"],
