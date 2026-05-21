@@ -102,15 +102,18 @@ def _synthesize(voice_id: str, text: str) -> bytes:
     return data
 
 
-def _audio_response(audio: bytes, filename: str, attachment: bool = False) -> Response:
+def _audio_response(audio: bytes, filename: str, attachment: bool = False, extra_headers: Optional[dict] = None) -> Response:
     disp = "attachment" if attachment else "inline"
+    headers = {
+        "Content-Disposition": f'{disp}; filename="{filename}"',
+        "Cache-Control": "public, max-age=31536000, immutable",
+    }
+    if extra_headers:
+        headers.update(extra_headers)
     return Response(
         content=audio,
         media_type="audio/mpeg",
-        headers={
-            "Content-Disposition": f'{disp}; filename="{filename}"',
-            "Cache-Control": "public, max-age=31536000, immutable",
-        },
+        headers=headers,
     )
 
 
@@ -160,7 +163,35 @@ def make_voice_router(db):
         await _check_quota(db, visitor, len(text))
         return await _resolve(db, char["voice_id"], text, f"{slug}-message.mp3", record_quota=True, visitor=visitor)
 
+    @router.get("/voice/quota")
+    async def get_quota(request: Request):
+        """Returns remaining message quota for the current visitor."""
+        visitor = _visitor_id(request)
+        today = _today_key()
+        per_visitor = await db.voice_quota_visitor.find_one({"day": today, "visitor": visitor}, {"_id": 0})
+        used = (per_visitor or {}).get("count", 0)
+        remaining = max(0, MAX_PER_VISITOR - used)
+        return {
+            "used": used,
+            "limit": MAX_PER_VISITOR,
+            "remaining": remaining,
+        }
+
     async def _resolve(db, voice_id: str, text: str, filename: str, record_quota: bool, visitor: Optional[str]):
+        # Cache hit also records as a use so analytics + per-day visitor count stay consistent.
+        if record_quota and visitor:
+            await _record_use(db, visitor, len(text))
+
+        # Compute remaining quota for headers
+        extra_headers = {}
+        if visitor:
+            today = _today_key()
+            row = await db.voice_quota_visitor.find_one({"day": today, "visitor": visitor}, {"_id": 0})
+            used = (row or {}).get("count", 0)
+            extra_headers["X-Voice-Remaining"] = str(max(0, MAX_PER_VISITOR - used))
+            extra_headers["X-Voice-Limit"] = str(MAX_PER_VISITOR)
+            extra_headers["Access-Control-Expose-Headers"] = "X-Voice-Remaining, X-Voice-Limit"
+
         key = _cache_key(voice_id, text)
         cached = await db.voice_cache.find_one({"key": key}, {"_id": 0})
         if cached and cached.get("storage_filename"):
@@ -169,7 +200,7 @@ def make_voice_router(db):
             local_path = os.path.join(upload_dir, cached["storage_filename"])
             if os.path.exists(local_path):
                 with open(local_path, "rb") as fh:
-                    return _audio_response(fh.read(), filename)
+                    return _audio_response(fh.read(), filename, extra_headers=extra_headers)
             fetched = _storage.get_object(cached["storage_filename"])
             if fetched is not None:
                 data, _ = fetched
@@ -179,7 +210,7 @@ def make_voice_router(db):
                         fh.write(data)
                 except Exception:  # noqa: BLE001
                     pass
-                return _audio_response(data, filename)
+                return _audio_response(data, filename, extra_headers=extra_headers)
 
         # Cache miss — synthesize
         try:
@@ -210,8 +241,6 @@ def make_voice_router(db):
             "storage_filename": storage_name,
             "created_at": datetime.now(timezone.utc).isoformat(),
         })
-        if record_quota and visitor:
-            await _record_use(db, visitor, len(text))
-        return _audio_response(audio, filename)
+        return _audio_response(audio, filename, extra_headers=extra_headers)
 
     return router
