@@ -704,3 +704,17 @@ async def _seed_readaloud_book(db) -> None:
         "updated_at": _now_iso(),
     }
     await db.read_aloud_book.update_one({"id": "main"}, {"$set": doc}, upsert=True)
+
+    # --- Bundled full-book MP3 (stitched 21 pages) — import once into storage ---
+    full_book_src = os.path.join(asset_dir, "myrtle-and-ray-full-book.mp3")
+    full_book_local = os.path.join(upload_dir, "myrtle-and-ray-full-book.mp3")
+    if os.path.exists(full_book_src) and not os.path.exists(full_book_local):
+        try:
+            with open(full_book_src, "rb") as fh:
+                data = fh.read()
+            with open(full_book_local, "wb") as fh:
+                fh.write(data)
+            if _storage.is_enabled():
+                _storage.put_object("myrtle-and-ray-full-book.mp3", data, "audio/mpeg")
+        except Exception:  # noqa: BLE001
+            pass

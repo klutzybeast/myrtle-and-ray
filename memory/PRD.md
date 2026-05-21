@@ -18,6 +18,22 @@ Casey, Dani, Sami, Izzy, Louie, Billy, Frankie.
 - Frontend: React 19 + React Router 7 + Tailwind + shadcn/ui + sonner.
 - Static uploads served at `/uploads` via FastAPI StaticFiles.
 
+## Production deploy rules (NON-NEGOTIABLE — owner directive)
+1. **Every data change MUST go through `/app/backend/seed.py`** so it ships
+   on deploy. No one-off `db.collection.update_one` scripts that only run
+   in preview. Production has its own MongoDB — preview-only mutations
+   are invisible to the live site.
+2. **Pre-generated assets** (audio MP3s, generated images) that would
+   otherwise cost paid API calls must be committed under
+   `/app/backend/seed_assets/<feature>/` and imported by the seed into
+   local uploads + persistent Object Storage on startup.
+3. **The seed must be idempotent** — running on every backend startup
+   should be a no-op when state is current, and backfill missing fields
+   on existing docs (e.g. add voice_id to characters that lack one).
+4. When a new piece of content is added in admin that the owner wants on
+   prod, ask once: *"do you also want this hard-coded into the seed so a
+   reseed/rebuild keeps it?"* and then bake it in.
+
 ## Core requirements (static)
 - Public site reads everything from DB so admin edits go live without code.
 - Sticky top header + sticky bottom action bar (Amazon + Shop CTAs).
