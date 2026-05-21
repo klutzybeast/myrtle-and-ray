@@ -1,0 +1,45 @@
+{
+  "summary": "Iteration 7 — Comprehensive backend + frontend verification of new Read-Aloud feature (20 pages, 5 speakers, ElevenLabs TTS) and regression on Square checkout + ElevenLabs character voices. 21/21 pytest cases passed. Frontend public /read-aloud and admin /admin/read-aloud both fully functional. All testids in place. Audio playback fires play event; PATCH fires on textarea blur.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "/admin/read-aloud speaker dropdown", "issues": ["React hydration warning: 'In HTML, <span> cannot be a child of <option>'. Likely a coloured-dot span inside <option> in AdminReadAloud.jsx. Harmless visually but causes a console warning; main agent should wrap with a plain text label or restructure dropdown."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_readaloud_and_regression.py",
+    "/app/test_reports/pytest/iter7_results.xml"
+  ],
+  "action_items": [
+    "(Optional) Regenerate audio for pages 19 & 20 — these tests intentionally invalidated their audio_url to verify cache invalidation. Use POST /api/admin/read-aloud/generate/19 and /generate/20, or run generate-all (it only regenerates missing pages).",
+    "(Optional minor) Fix the <span> inside <option> in /app/frontend/src/pages/admin/AdminReadAloud.jsx speaker dropdown to silence the hydration warning."
+  ],
+  "critical_code_review_comments": [
+    "GOOD — readaloud_router.py correctly strips voice_id and cache_key from the public /api/read-aloud/book payload (line 93-96). Confirmed via test_public_payload_strips_voice_id_and_cache_key.",
+    "GOOD — PATCH /admin/read-aloud/page/{n} invalidation logic (lines 222-246) correctly: clears audio_url on text change, clears audio_url + updates voice_id on character_slug change, preserves audio_url on image_url-only change. All three branches verified via dedicated tests.",
+    "GOOD — Cache hit path verified: second POST /admin/read-aloud/generate/1 returned the identical audio_url quickly (no re-synthesis).",
+    "GOOD — Auth boundary tight: 401 returned without Bearer token on GET /admin/read-aloud/book, PATCH /page/{n}, POST /generate/{n}, DELETE /book.",
+    "GOOD — Audio MP3 at /api/uploads/voice/<sha>.mp3 served successfully (HEAD returned 200/206 with Range support).",
+    "GOOD — Speaker assignments per spec verified for all 20 pages (Myrtle×7, Ray×5, Ms.Bluegill×6, Sally×1, Ollie×1).",
+    "GOOD — Admin payload includes characters list with voice_id; 13 voiced characters (>= 5 main speakers requirement met).",
+    "GOOD — Regression: /api/voice/quota returns used/limit/remaining; /api/voice/character/myrtle/greeting returns audio/mpeg; /api/voice/character/myrtle/say returns audio + X-Voice-Remaining header.",
+    "GOOD — Regression: /api/checkout/quote-cart accepts stuffies cart and returns subtotal/tax/shipping/total cents; /api/checkout/square endpoint reachable and validates payload (returns 404 for unknown slug as expected).",
+    "MINOR — ReadAloud.jsx data-testid prefix is 'read-aloud-*' (not 'ra-*' as the review_request suggested). Functionally fine; just updates the testid contract for future tests.",
+    "MINOR — Public /read-aloud progress bar element uses data-testid='read-aloud-progress' (a div, not role=progressbar). Width style reflects (idx+1)/total — verified visually."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_readaloud_and_regression.py (new — 21 tests)"
+  ],
+  "success_rate": {"backend": "100% (21/21)", "frontend": "100% (public reader + admin manager all checks passed)"},
+  "test_credentials": "Admin: community@rollingriver.com / Camp1993! (login form has no submit button[type=submit]; use locator.get_by_text('Sign In', exact=True).click(force=True)).",
+  "seed_data_creation": "Tests temporarily mutated pages 19, 20 (text + character_slug) and then restored the original values. Audio_url for those two pages was intentionally cleared as part of cache-invalidation test and was NOT regenerated (would have incurred extra ElevenLabs cost). The admin UI now shows '18/20 pages have audio' instead of 20/20. Main agent may regenerate via the /admin/read-aloud/generate-all endpoint if needed.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend testid file at /app/backend/tests/test_readaloud_and_regression.py is the canonical regression suite for Read-Aloud + Square + ElevenLabs. Run: pytest /app/backend/tests/test_readaloud_and_regression.py -v. Frontend testids follow 'read-aloud-*' (public reader) and 'readaloud-*' / 'admin-nav-read-aloud' (admin manager). Pages 19 and 20 audio_url will be empty until regenerated. Login: use page.get_by_text('Sign In', exact=True) — Sign In button isn't type=submit.",
+  "rca of the issue": "N/A — no bugs discovered. Feature implementation matches spec on all 21 backend assertions and all frontend interaction checks."
+}

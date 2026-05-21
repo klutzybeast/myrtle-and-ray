@@ -48,6 +48,7 @@ import AdminCampaigns from "@/pages/admin/AdminCampaigns";
 import AdminCampaignEditor from "@/pages/admin/AdminCampaignEditor";
 import AdminAnalytics from "@/pages/admin/AdminAnalytics";
 import AdminOrders from "@/pages/admin/AdminOrders";
+import AdminReadAloud from "@/pages/admin/AdminReadAloud";
 import CustomPage from "@/pages/CustomPage";
 import WaveBadges from "@/pages/WaveBadges";
 import MapPage from "@/pages/Map";
@@ -129,6 +130,7 @@ function App() {
                 <Route path="campaigns/:id" element={<AdminCampaignEditor />} />
                 <Route path="analytics" element={<AdminAnalytics />} />
                 <Route path="orders" element={<AdminOrders />} />
+                <Route path="read-aloud" element={<AdminReadAloud />} />
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
