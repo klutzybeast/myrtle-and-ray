@@ -4,24 +4,52 @@ import { toast } from "sonner";
 import { X } from "lucide-react";
 import { hasStoredVisitor, setStoredVisitor } from "../lib/visitor";
 
+const DISMISS_KEY = "mr_popup_dismissed_v1";
+const DISMISS_MAX_AGE_DAYS = 30; // re-ask after a month, not forever
+
+function isDismissed() {
+  try {
+    const raw = typeof window !== "undefined" ? window.localStorage.getItem(DISMISS_KEY) : null;
+    if (raw) {
+      const ts = parseInt(raw, 10);
+      if (!isNaN(ts) && Date.now() - ts < DISMISS_MAX_AGE_DAYS * 86400 * 1000) return true;
+    }
+    if (typeof document !== "undefined") {
+      const m = document.cookie.match(new RegExp("(?:^|; )" + DISMISS_KEY + "=1"));
+      if (m) return true;
+    }
+  } catch {}
+  return false;
+}
+
+function markDismissed() {
+  try {
+    if (typeof window !== "undefined") window.localStorage.setItem(DISMISS_KEY, String(Date.now()));
+    if (typeof document !== "undefined") {
+      const secure = window.location.protocol === "https:" ? "; secure" : "";
+      document.cookie = `${DISMISS_KEY}=1; max-age=${DISMISS_MAX_AGE_DAYS * 86400}; path=/; samesite=lax${secure}`;
+    }
+  } catch {}
+}
+
 export default function PopupSignup() {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (localStorage.getItem("mr_popup_dismissed")) return;
+    if (isDismissed()) return;
     // Skip entirely if we already know this visitor (they captured an email before).
     if (hasStoredVisitor()) return;
     // Don't pop while user is on /activities (a game modal is likely in flight)
     if (window.location.pathname.startsWith("/activities")) return;
-    const t = setTimeout(() => setOpen(true), 12000);
+    const t = setTimeout(() => setOpen(true), 8000);
     return () => clearTimeout(t);
   }, []);
 
   const dismiss = () => {
     setOpen(false);
-    localStorage.setItem("mr_popup_dismissed", "1");
+    markDismissed();
   };
 
   const submit = async (e) => {

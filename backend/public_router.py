@@ -291,7 +291,9 @@ def make_public_router(db):
 
     @router.get("/download-categories")
     async def list_download_categories():
-        return await db.download_categories.find({"visible": True}, {"_id": 0}).sort("order", 1).to_list(200)
+        # Forgiving filter: only hide categories explicitly marked visible:false.
+        # Legacy docs without the field will still appear.
+        return await db.download_categories.find({"visible": {"$ne": False}}, {"_id": 0}).sort("order", 1).to_list(200)
 
     @router.get("/downloads")
     async def list_downloads(
