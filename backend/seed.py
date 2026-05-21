@@ -1,5 +1,6 @@
 """Seed data for Myrtle and Ray site."""
 from __future__ import annotations
+import hashlib
 import os
 from datetime import datetime, timezone
 import bcrypt
@@ -455,3 +456,159 @@ async def seed_database(db) -> None:
             "data": a["data"],
             "updated_at": _now_iso(),
         })
+
+    # --- Read-Aloud book (21 pages) ---
+    await _seed_readaloud_book(db)
+
+
+READALOUD_PAGES = [
+    (1,  "myrtle",
+     "Myrtle and Ray and the First Day of Camp.\n"
+     "By Marissa Allaben and Alison Rothenberg."),
+    (2,  "ms-bluegill",
+     "The sun shone bright on a morning so new,\n"
+     "The river sparkled a shimmering blue.\n"
+     "The first day of camp waited in sight,\n"
+     "A place full of wonder, excitement, and light."),
+    (3,  "myrtle",
+     "Myrtle the Turtle felt shaky inside,\n"
+     "She peeked out from her shell, trying hard not to hide.\n"
+     "Her heart fluttered fast with worried fear,\n"
+     "\"What if it's hard making camp friends this year?\""),
+    (4,  "ray",
+     "Ray the Stingray glided close to the sand,\n"
+     "Nervous thoughts bubbling, he did not understand.\n"
+     "He hopped off the bus, it was now time to go,\n"
+     "He thought, \"I hope someone nice will come say hello.\""),
+    (5,  "ms-bluegill",
+     "The Director Miss Bluegill waved with a smile,\n"
+     "\"Sea Stars, come gather and stand single file!\"\n"
+     "\"New days feel big, but brave hearts too,\n"
+     "There's so much fun waiting at camp for you!\""),
+    (6,  "ms-bluegill",
+     "\"Today we Catch the W.A.V.E.,\" Miss Bluegill said,\n"
+     "As curious thoughts danced in each camper's head.\n"
+     "\"Excitement begins when you give it a try,\n"
+     "Even when feeling a little bit shy.\""),
+    (7,  "myrtle",
+     "Myrtle peeked out at the campers nearby,\n"
+     "Ray took a breath and looked at the sky.\n"
+     "New places felt strange, new faces too,\n"
+     "But courage can grow when you try something new."),
+    (8,  "ms-bluegill",
+     "\"It's time to be brave,\" said Miss Bluegill with care,\n"
+     "\"Our first camp activity is just over there.\"\n"
+     "\"Take my hand, let's give it a try,\n"
+     "New adventures are waiting for you nearby.\""),
+    (9,  "myrtle",
+     "Arts and Crafts came first, with colors so bold,\n"
+     "Markers and glitter made stories unfold.\n"
+     "Myrtle mixed paints, Ray cut with care,\n"
+     "Both wishing a friend would notice them there."),
+    (10, "sally",
+     "Sally the Seahorse struggled to draw,\n"
+     "Her picture kept slipping—oh no, what a flaw!\n"
+     "Myrtle smiled kindly and said with a wave,\n"
+     "\"Want to try together? We can both be brave.\""),
+    (11, "ollie",
+     "Ray grabbed a paintbrush when Ollie came near,\n"
+     "\"I'm new here,\" Ollie said, sounding unsure and unclear.\n"
+     "Ray nodded gently, \"I'm new here too,\n"
+     "Let's paint together—that's something we can do.\""),
+    (12, "ray",
+     "Next came Dance with the music turned loud,\n"
+     "The Sea Stars gathered in a wiggly crowd.\n"
+     "Myrtle froze still as the beat began,\n"
+     "Her flippers unsure of the moves they planned."),
+    (13, "ray",
+     "Ray tapped the rhythm and smiled her way,\n"
+     "\"We can move however feels okay.\"\n"
+     "Myrtle and Ray let their confidence show,\n"
+     "A friendship was growing as they learned to let go."),
+    (14, "myrtle",
+     "At Nature, they searched for shells on the ground,\n"
+     "Beautiful colors and shapes were found.\n"
+     "They worked as a team, side by side,\n"
+     "And felt their worries shrink with pride."),
+    (15, "ray",
+     "At lunch, Ray wondered just where to sit,\n"
+     "Myrtle felt the same—she worried a bit.\n"
+     "Ray took a breath and looked Myrtle's way,\n"
+     "\"Do you want to sit at my lunch table today?\""),
+    (16, "myrtle",
+     "They offered their stories, their jitters, their day,\n"
+     "And laughed as the nerves now slipped away.\n"
+     "They talked and listened sitting side by side,\n"
+     "And shared their interests, things they'd confide."),
+    (17, "ms-bluegill",
+     "\"It's now time for playground!\" Miss Bluegill cheered,\n"
+     "But Ray stared at the slide, it was bigger than he feared.\n"
+     "Myrtle said, \"We'll try, just one step at a time,\"\n"
+     "And suddenly bravery didn't feel like a climb."),
+    (18, "ray",
+     "At soccer, they passed and played as a team,\n"
+     "Encouraging each other, just like a dream.\n"
+     "They valued teamwork, helped the group play,\n"
+     "And high-fived each other along the way."),
+    (19, "myrtle",
+     "Music Time echoed with voices and sound,\n"
+     "The Sea Stars sang, happy notes all around.\n"
+     "Myrtle sang loud and Ray sang with delight,\n"
+     "Camp felt so magical, happy and bright."),
+    (20, "myrtle",
+     "As the camp day ended, the sun dipped low,\n"
+     "Myrtle and Ray felt excitement grow.\n"
+     "With new friends beside them, happy and true,\n"
+     "They just couldn't wait to come back for Day Two."),
+    (21, "ms-bluegill",
+     "So if you feel scared on your very first day,\n"
+     "Remember Myrtle and Ray and their brave way.\n"
+     "Catch the W.A.V.E. of excitement and dive right in—\n"
+     "That's just the way new friendships begin."),
+]
+
+
+def _readaloud_cache_key(model_id: str, voice_id: str, text: str) -> str:
+    # Mirror readaloud_router._cache_key so seeded pages share cache with admin regenerations.
+    raw = f"{model_id}|{voice_id}|{text.strip()}|0.5|0.85|0.3"
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+async def _seed_readaloud_book(db) -> None:
+    """Insert/refresh the 21-page Read-Aloud book content. Preserves any audio_url
+    and image_url already present for unchanged (voice + text) pages."""
+    model_id = os.environ.get("ELEVENLABS_MODEL_ID", "eleven_v3")
+    # Map slug -> voice_id from the seeded characters
+    voice_by_slug: dict = {}
+    async for ch in db.characters.find({}, {"_id": 0, "slug": 1, "voice_id": 1}):
+        if ch.get("voice_id"):
+            voice_by_slug[ch["slug"]] = ch["voice_id"]
+
+    existing = await db.read_aloud_book.find_one({"id": "main"}, {"_id": 0}) or {}
+    prev_pages = {p["page"]: p for p in existing.get("pages", [])}
+
+    pages_out = []
+    for num, slug, text in READALOUD_PAGES:
+        voice_id = voice_by_slug.get(slug, "")
+        cache_key = _readaloud_cache_key(model_id, voice_id, text) if voice_id else ""
+        prev = prev_pages.get(num) or {}
+        # Keep cached audio if voice + text are unchanged
+        keep_audio = prev.get("cache_key") == cache_key and prev.get("audio_url")
+        pages_out.append({
+            "page": num,
+            "character_slug": slug,
+            "text": text,
+            "image_url": prev.get("image_url", ""),
+            "voice_id": voice_id,
+            "audio_url": prev.get("audio_url", "") if keep_audio else "",
+            "cache_key": cache_key,
+        })
+
+    doc = {
+        "id": "main",
+        "title": "Myrtle and Ray and the First Day of Camp",
+        "narrator_voice_id": voice_by_slug.get("ms-bluegill", ""),
+        "pages": pages_out,
+        "updated_at": _now_iso(),
+    }
+    await db.read_aloud_book.update_one({"id": "main"}, {"$set": doc}, upsert=True)
