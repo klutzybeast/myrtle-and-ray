@@ -216,17 +216,40 @@ Casey, Dani, Sami, Izzy, Louie, Billy, Frankie.
 - Sitemap.xml, robots.txt, structured data (Product, CreativeWork).
 
 **P2**
-- Lightbox + pinch-zoom for sample-pages carousel.
-- "Hear my voice" audio per character.
+- Lightbox + pinch-zoom for sample-pages carousel. — DONE.
+- "Hear my voice" audio per character. — DONE (ElevenLabs v3, 13 voices).
 - Spot-the-Difference scene assets.
 - Cross-product cart / multi-Printify order helper.
 - Rich-text WYSIWYG (currently JSON for pages / plain textarea for products).
 - Auto-saving star toggle on products dashboard (P3 polish).
 - Campus-tour glow for earned badges on the Map (P3 polish).
 
+**P3 (delight)**
+- Wave Pal Pen Pals — kids type a letter, a character replies in their voice.
+- Daily Streak Tracker — unlock secret content after X consecutive visits.
+- Camp Counselor Leaderboard — private feed for camp directors.
+
 ## Next tasks
-1. Bulk PDF folder upload UI for printables.
-2. Variants editor UI in product editor.
-3. Sitemap.xml + robots.txt + structured data.
-4. Replace placeholder character portraits when user uploads real JPEGs.
-5. Plug in real `RESEND_API_KEY` and click Retry on any queued emails.
+1. User to upload page PNGs (in batches of 5) via Admin → Read-Aloud Book —
+   matching each page number. Audio will auto-rotate based on saved speaker.
+2. Optional polish: replace placeholder text view with PNGs once uploaded.
+3. Plug in real `RESEND_API_KEY` and click Retry on any queued emails.
+
+## Read-Aloud Book (2026-02-21 — NEW)
+- 20-page interactive storybook reader at `/read-aloud`.
+- Each page narrated by an assigned Sea Star (Myrtle, Ray, Ms Bluegill,
+  Sally, Ollie) via ElevenLabs `eleven_v3`. All 20 MP3s cached to Emergent
+  storage with content-hash keys; PATCH on text/speaker invalidates the
+  cached audio_url so a regenerate is forced.
+- Public payload strips `voice_id` and `cache_key` for safety.
+- Admin Manager at `/admin/read-aloud`:
+  - Per-row text editor (autosaves on blur), speaker dropdown (13 voices),
+    PNG upload (single or bulk-5-at-a-time with "Start at page N" picker),
+    individual or bulk audio generation.
+  - Shows "X/20 pages have audio" status header.
+- Reader UI: speaker badge, big play/pause, auto-turn-pages toggle, prev/
+  next + 20 page-dot jumps, keyboard nav (← → SPACE), progress bar.
+- Speaker distribution: Myrtle×7, Ray×5, Ms.Bluegill×6, Sally×1, Ollie×1.
+- Verified by 21/21 backend pytest cases + frontend e2e
+  (`/app/test_reports/iteration_7.json`,
+  `/app/backend/tests/test_readaloud_and_regression.py`).
