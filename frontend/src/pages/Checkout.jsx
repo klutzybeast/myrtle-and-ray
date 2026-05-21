@@ -68,10 +68,12 @@ export default function Checkout() {
 
   const handleToken = async (tokenResult, verifiedBuyer) => {
     if (tokenResult.status !== "OK") {
-      toast.error("Could not validate your card. Please check the details and try again.");
+      const errMsg = tokenResult.errors?.[0]?.message || "Could not validate your card. Please check the details and try again.";
+      toast.error(errMsg);
       setBusy(false);
       return;
     }
+    setBusy(true);
     try {
       const { data } = await api.post("/checkout/square", {
         items: items.map((i) => ({ product_slug: i.product_slug, variant_sku: i.variant_sku || "", quantity: i.quantity })),
@@ -140,24 +142,22 @@ export default function Checkout() {
                       intent: "CHARGE",
                     })}
                   >
-                    <div onClickCapture={() => setBusy(true)}>
-                      <CreditCard
-                        buttonProps={{
-                          isLoading: busy,
-                          css: {
-                            backgroundColor: "#7fcfc7",
-                            fontFamily: "Fraunces, serif",
-                            fontWeight: 700,
-                            fontSize: "1rem",
-                            borderRadius: "9999px",
-                            padding: "14px 24px",
-                            "&:hover": { backgroundColor: "#6abdb5" },
-                          },
-                        }}
-                      >
-                        {busy ? "Processing..." : `Pay ${money(quote.total_cents)}`}
-                      </CreditCard>
-                    </div>
+                    <CreditCard
+                      buttonProps={{
+                        isLoading: busy,
+                        css: {
+                          backgroundColor: "#7fcfc7",
+                          fontFamily: "Fraunces, serif",
+                          fontWeight: 700,
+                          fontSize: "1rem",
+                          borderRadius: "9999px",
+                          padding: "14px 24px",
+                          "&:hover": { backgroundColor: "#6abdb5" },
+                        },
+                      }}
+                    >
+                      {busy ? "Processing..." : `Pay ${money(quote.total_cents)}`}
+                    </CreditCard>
                   </PaymentForm>
                   <p className="text-xs text-[#6b7280] mt-3 text-center">Your card details never touch our servers. Tokenized by Square.</p>
                 </div>
