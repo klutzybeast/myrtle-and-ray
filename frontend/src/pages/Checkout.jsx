@@ -1,10 +1,10 @@
 import { useEffect, useState, useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { PaymentForm, CreditCard } from "react-square-web-payments-sdk";
 import { api } from "../lib/api";
 import { useCart } from "../lib/cart";
 import { getStoredVisitor, setStoredVisitor } from "../lib/visitor";
-import { Lock, Loader2, Truck, AlertCircle } from "lucide-react";
+import { Lock, Loader2, Truck, AlertCircle, Tag, Check, X as XIcon } from "lucide-react";
 import SEO from "../components/SEO";
 import AddressAutocomplete from "../components/AddressAutocomplete";
 import { toast } from "sonner";
@@ -32,6 +32,12 @@ export default function Checkout() {
   const [quote, setQuote] = useState(null);
   const [busy, setBusy] = useState(false);
   const [submittedOrder, setSubmittedOrder] = useState(null);
+  // Discount code state
+  const [searchParams] = useSearchParams();
+  const [codeInput, setCodeInput] = useState("");
+  const [appliedCode, setAppliedCode] = useState(""); // accepted code currently affecting quote
+  const [codeError, setCodeError] = useState("");
+  const [codeBusy, setCodeBusy] = useState(false);
   const nav = useNavigate();
 
   const addressReady = !!(line1 && city && state && postal && country);
@@ -77,7 +83,7 @@ export default function Checkout() {
   const selectedRate = rates.find((r) => r.rate_id === selectedRateId) || null;
   const selectedShippingCents = selectedRate ? selectedRate.shipping_cents : null;
 
-  // Recompute totals whenever cart OR selected shipping changes.
+  // Recompute totals whenever cart OR selected shipping OR applied code changes.
   // While no rate is selected yet, force shipping_cents=0 so the summary
   // doesn't flash the legacy $8 fallback during loading / address-error.
   useEffect(() => {
@@ -86,12 +92,68 @@ export default function Checkout() {
       items: items.map((i) => ({ product_slug: i.product_slug, variant_sku: i.variant_sku || "", quantity: i.quantity })),
       shipping_cents: selectedShippingCents !== null ? selectedShippingCents : 0,
     };
+    if (appliedCode) body.discount_code = appliedCode;
+    if (email) body.email = email;
     api.post("/checkout/quote-cart", body)
-      .then(({ data }) => setQuote(data))
+      .then(({ data }) => {
+        setQuote(data);
+        // If the server invalidated the code (expired since apply, etc.), drop it.
+        if (appliedCode && data?.discount?.error) {
+          setCodeError(data.discount.error);
+          setAppliedCode("");
+        }
+      })
       .catch(() => {});
-  }, [items, selectedShippingCents]);
+  }, [items, selectedShippingCents, appliedCode, email]);
+
+  // Auto-apply ?code=XYZ from URL (or sessionStorage if user arrived via /shop?code=…).
+  useEffect(() => {
+    if (appliedCode) return;
+    const fromUrl = (searchParams.get("code") || "").trim();
+    const fromSession = (typeof window !== "undefined" && sessionStorage.getItem("mr_discount_code")) || "";
+    const candidate = (fromUrl || fromSession || "").trim();
+    if (!candidate) return;
+    setCodeInput(candidate.toUpperCase());
+    // Defer to next tick so handler can use up-to-date state
+    setTimeout(() => applyCode(candidate), 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const shippingValid = fullName && email && line1 && city && state && postal && country && !!selectedRate;
+
+  const applyCode = async (raw) => {
+    const code = (raw || codeInput || "").trim().toUpperCase();
+    if (!code) return;
+    setCodeBusy(true); setCodeError("");
+    try {
+      const subtotalCents = items.reduce((s, i) => s + (i.unit_price_cents * i.quantity), 0);
+      const { data } = await api.post("/checkout/validate-discount", {
+        code,
+        items: items.map((i) => ({ product_slug: i.product_slug, variant_sku: i.variant_sku || "", quantity: i.quantity, unit_price_cents: i.unit_price_cents })),
+        subtotal_cents: subtotalCents,
+        shipping_cents: selectedShippingCents || 0,
+        email: email || undefined,
+      });
+      if (data?.ok) {
+        setAppliedCode(code);
+        setCodeInput(code);
+        try { sessionStorage.setItem("mr_discount_code", code); } catch {}
+        toast.success(`Code ${code} applied — ${data.notes}`);
+      }
+    } catch (err) {
+      setCodeError(err.response?.data?.detail || "Invalid code.");
+      setAppliedCode("");
+    } finally {
+      setCodeBusy(false);
+    }
+  };
+
+  const removeCode = () => {
+    setAppliedCode("");
+    setCodeInput("");
+    setCodeError("");
+    try { sessionStorage.removeItem("mr_discount_code"); } catch {}
+  };
 
   if (submittedOrder) {
     return (
@@ -146,9 +208,11 @@ export default function Checkout() {
         shipping_service: selectedRate.service_type,
         shipping_carrier: selectedRate.carrier_name,
         shipping_rate_id: selectedRate.rate_id,
+        discount_code: appliedCode || "",
       });
       setStoredVisitor({ name: fullName, email, audience: v.audience });
       setSubmittedOrder(data);
+      try { sessionStorage.removeItem("mr_discount_code"); } catch {}
       clearCart();
     } catch (err) {
       toast.error(err.response?.data?.detail || "Payment failed.");
@@ -248,6 +312,38 @@ export default function Checkout() {
               )}
             </section>
 
+            <section className="bg-white rounded-[28px] p-6" data-testid="checkout-discount">
+              <h2 className="font-accent text-2xl font-bold mb-4 flex items-center gap-2"><Tag className="w-5 h-5 text-[#5a8a6f]" /> Discount code</h2>
+              {appliedCode ? (
+                <div className="flex items-center justify-between bg-[#eaf7f5] border-2 border-[#7fcfc7] rounded-2xl p-3" data-testid="discount-applied">
+                  <div className="flex items-center gap-2">
+                    <Check className="w-5 h-5 text-[#5a8a6f]" />
+                    <div>
+                      <div className="font-mono font-bold text-[#3a4a55]">{appliedCode}</div>
+                      {quote?.discount?.notes && <div className="text-xs text-[#6b7280]">{quote.discount.notes}</div>}
+                    </div>
+                  </div>
+                  <button onClick={removeCode} className="p-2 rounded-full hover:bg-white" aria-label="Remove discount" data-testid="discount-remove"><XIcon className="w-4 h-4" /></button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={codeInput}
+                    onChange={(e) => { setCodeInput(e.target.value.toUpperCase().replace(/\s+/g, "")); setCodeError(""); }}
+                    onKeyDown={(e) => { if (e.key === "Enter") applyCode(); }}
+                    placeholder="Enter code"
+                    className="inp font-mono uppercase tracking-wider flex-1"
+                    data-testid="discount-input"
+                  />
+                  <button onClick={() => applyCode()} disabled={codeBusy || !codeInput.trim()} className="btn-secondary disabled:opacity-50" data-testid="discount-apply">
+                    {codeBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : "Apply"}
+                  </button>
+                </div>
+              )}
+              {codeError && <div className="text-sm text-red-700 mt-2 flex items-center gap-1" data-testid="discount-error"><AlertCircle className="w-4 h-4" />{codeError}</div>}
+            </section>
+
             <section className="bg-white rounded-[28px] p-6" data-testid="checkout-payment">
               <h2 className="font-accent text-2xl font-bold mb-4 flex items-center gap-2"><Lock className="w-5 h-5 text-[#5a8a6f]" /> Payment</h2>
               {!shippingValid && (
@@ -318,6 +414,12 @@ export default function Checkout() {
             {quote && (
               <dl className="text-sm space-y-1 border-t border-[#f4e4c6] pt-3">
                 <div className="flex justify-between"><dt>Subtotal</dt><dd>{money(quote.subtotal_cents)}</dd></div>
+                {quote.discount_cents > 0 && (
+                  <div className="flex justify-between text-[#5a8a6f]" data-testid="summary-discount-row">
+                    <dt>Discount {appliedCode ? `(${appliedCode})` : ""}</dt>
+                    <dd data-testid="summary-discount">−{money(quote.discount_cents)}</dd>
+                  </div>
+                )}
                 <div className="flex justify-between"><dt>NY Tax</dt><dd>{money(quote.tax_cents)}</dd></div>
                 <div className="flex justify-between">
                   <dt>

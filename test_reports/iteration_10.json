@@ -1,0 +1,62 @@
+{
+  "summary": "Iteration 10 — Full discount-code system tested. Backend: 33/33 new discount tests + 12/12 ShipStation regression tests pass. All 4 discount types, all rule combinations (expiry/inactive/min_subtotal/allowed_product/allowed_category/max_total_uses/max_per_customer), BOGO qty=1/2/4 logic, quote-cart discount.error surfacing, /checkout/square persistence of discount_code+discount_cents on order_doc, free_shipping zeroing shipping_cents on order, and idempotent record_redemption (via direct motor call) all verified. FRONTEND: ADMIN /admin/discounts page renders with all required data-testids (verified via grep + partial browser run). CRITICAL bug found on /checkout: any 422 from a /api/checkout/* endpoint crashes the whole page because the error handler sets state to err.response.data.detail without stringifying — Pydantic returns detail as an array of {type,loc,msg,input,url} objects which React then tries to render as a child → 'Objects are not valid as a React child' uncaught error. This blocks the entire checkout discount UI from being exercised end-to-end.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "Checkout.jsx (applyCode catch handler @ line 144)",
+        "issue": "setCodeError(err.response?.data?.detail || 'Invalid code.') — when backend returns 422, detail is an array of Pydantic error objects. React throws 'Objects are not valid as a React child (found object with keys {type, loc, msg, input, url})' and the entire /checkout page errors out (red overlay).",
+        "selector": "[data-testid=\"discount-error\"]",
+        "priority": "CRITICAL"
+      },
+      {
+        "component": "Checkout.jsx (rates fetch catch handler @ line 75)",
+        "issue": "Same pattern: setRatesError(err.response?.data?.detail || ...) — vulnerable to the same crash whenever ShipStation request returns 422 (e.g. malformed address payload).",
+        "selector": "[data-testid=\"rates-error\"]",
+        "priority": "HIGH"
+      }
+    ],
+    "integration_issues": [
+      {
+        "flow": "/shop?code=XYZ → /checkout auto-apply",
+        "issue": "sessionStorage stash works (PHASE1 PASS). But the cart-item shape mismatch (price_cents vs unit_price_cents) on auto-apply triggers a 422 from validate-discount, then the React crash hides the entire checkout UI. The auto-apply effect at Checkout.jsx:111 calls applyCode() at setTimeout(0) — at that moment items may still be unhydrated from localStorage. Manual test via fetch confirms /api/checkout/quote-cart with discount_code='SAVE20' returns 200 with full discount object (discount_cents=300, type=percent, notes='20% off') — backend is correct.",
+        "affected_selectors": ["[data-testid=\"checkout-discount\"]", "[data-testid=\"discount-applied\"]", "[data-testid=\"summary-discount-row\"]"]
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_discounts.py",
+    "/app/backend/tests/test_shipstation_checkout.py",
+    "/app/test_reports/pytest/discounts_results.xml"
+  ],
+  "action_items": [
+    "Fix Checkout.jsx error handlers (line 75 setRatesError and line 144 setCodeError): coerce detail to string before setState. Recommended helper: const msg = (d) => typeof d === 'string' ? d : Array.isArray(d) ? (d[0]?.msg || JSON.stringify(d)) : (d?.detail || d?.message || 'Something went wrong'); — apply to ALL three catch blocks (rates, applyCode, square checkout @ line 218).",
+    "Consider wrapping <Checkout/> in an <ErrorBoundary> so a render crash doesn't blank the page.",
+    "Investigate cart-item hydration timing: the auto-apply effect runs once on mount with [] deps; items may still be loading from localStorage. Either guard with `if (!items.length) return;` (so it re-runs once items populate) or move the auto-apply trigger into a second useEffect that depends on items.length>0."
+  ],
+  "critical_code_review_comments": [
+    "discount_router.py is clean — pure-function _evaluate_discount is excellent for testability, all 16 engine cases pass.",
+    "discount_router.py:339 record_redemption is correctly idempotent on (code, order_id). Verified via direct motor call — second invocation is a no-op.",
+    "discount_router.py:296 admin POST returns the dict including 'usage_count' and 'created_at' — good, no _id leak.",
+    "Checkout.jsx error handlers (multiple lines) use err.response.data.detail directly as renderable state. This is the recurring root cause whenever any /api endpoint returns Pydantic 422. Globally fix in api.js interceptor (recommended) or per-call.",
+    "Checkout.jsx auto-apply at line 117 uses setTimeout(applyCode, 0) before items are hydrated from localStorage — fragile, fires validate-discount with possibly-empty items[].",
+    "AdminDiscounts.jsx has comprehensive data-testid coverage (all rows, toggle, share, edit, delete, modal, all inputs). Good test surface."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_discounts.py (NEW — 33 tests covering admin CRUD, validate, BOGO, quote-cart, square persistence, redemption)"
+  ],
+  "success_rate": {
+    "backend": "100% (33/33 new + 12/12 regression = 45/45)",
+    "frontend": "ADMIN: structure verified (data-testids present, login redirect issue with playwright session prevented full flow); CHECKOUT: BLOCKED by critical 422-render crash"
+  },
+  "test_credentials": "Admin: community@rollingriver.com / Camp1993! — login API works (auth/login returns 200 + access_token).",
+  "seed_data_creation": "Created live discount codes via /api/admin/discounts: SAVE20 (percent 20%), FREESHIP (free_shipping — already existed). Test codes prefixed TEST*/V*/BG*/Q*/SQ*/MAX*/PERC*/RED* are auto-cleaned by session-scoped fixture in test_discounts.py. Test orders created in db.orders with TEST_disc_*/TEST_freeship_*@example.com markers (status=payment_failed after fake Square nonce rejection).",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend discount system is fully green — pytest /app/backend/tests/test_discounts.py runs in ~14s. After main agent fixes the 422-stringify bug in Checkout.jsx (and ideally adds an axios interceptor or a small `extractErrMsg(err)` helper), re-run Playwright for: (a) /shop?code=SAVE20 → seed cart → /checkout → fill address → wait for rates → select rate → expect discount-applied + summary-discount-row, (b) /checkout?code=FREESHIP direct → expect summary-shipping=$0.00, (c) invalid code → expect discount-error with the backend's user-friendly string (not a JSON blob), (d) admin /admin/discounts CRUD: ensure to navigate to /admin/discounts AFTER login without a hard goto re-mount (use the sidebar link) — playwright lost session on direct goto in this run. SAVE20 already exists in DB so list won't be empty.",
+  "rca of the issue": "FRONTEND CRASH ROOT CAUSE: Checkout.jsx three catch handlers do `setX(err.response?.data?.detail || fallback)`. FastAPI's default Pydantic 422 response is `{detail: [{type:'missing', loc:['body','field'], msg:'...', input:..., url:'...'}, ...]}`. detail is an Array<Object>, which React's reconciler rejects with 'Objects are not valid as a React child'. Fix is one-liner per handler: extract msg array→string (e.g. `Array.isArray(d) ? d.map(e=>e.msg).join(', ') : d`). The simulated reproduction during testing came from cart-item shape mismatch (price_cents vs unit_price_cents) in our seed → validate-discount returned 422 because subtotal_cents resolved to NaN→null. In production this crash could trigger any time a body field is malformed (e.g. partial address typing during the rates effect, or a stale cart shape from a prior deploy). It also masks the otherwise-working auto-apply flow."
+}

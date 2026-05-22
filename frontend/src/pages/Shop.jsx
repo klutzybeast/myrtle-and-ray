@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import { api } from "../lib/api";
 import ProductCard from "../components/ProductCard";
 import SEO from "../components/SEO";
@@ -17,6 +18,15 @@ export default function Shop() {
   const [sort, setSort] = useState("featured");
   const [characters, setCharacters] = useState([]);
   const [products, setProducts] = useState([]);
+  const [searchParams] = useSearchParams();
+
+  // Capture ?code=XYZ on /shop landing so it auto-applies at checkout.
+  useEffect(() => {
+    const code = (searchParams.get("code") || "").trim();
+    if (code) {
+      try { sessionStorage.setItem("mr_discount_code", code.toUpperCase()); } catch {}
+    }
+  }, [searchParams]);
 
   useEffect(() => { api.get("/characters").then(({ data }) => setCharacters(data)); }, []);
   useEffect(() => {

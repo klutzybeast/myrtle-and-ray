@@ -23,6 +23,8 @@ from fastapi import APIRouter, HTTPException, Request, Depends
 from pydantic import BaseModel, EmailStr, Field
 from square import Square
 
+from discount_router import find_active_discount, _validate_code_active, _evaluate_discount, record_redemption
+
 logger = logging.getLogger("square")
 
 SHIP_CENTS = int(os.environ.get("STUFFIES_SHIPPING_CENTS", "800") or 800)
@@ -69,6 +71,7 @@ class CheckoutRequest(BaseModel):
     shipping_service: Optional[str] = ""
     shipping_carrier: Optional[str] = ""
     shipping_rate_id: Optional[str] = ""
+    discount_code: Optional[str] = ""
 
 
 def _now() -> str:
@@ -112,14 +115,19 @@ async def _resolve_line_items(db, items: List[CartItem]):
     return lines, subtotal
 
 
-def _calc_totals(subtotal_cents: int, override_shipping_cents: Optional[int] = None):
+def _calc_totals(subtotal_cents: int, override_shipping_cents: Optional[int] = None,
+                 discount_cents: int = 0, discount_free_shipping: bool = False):
     tax_cents = int(round(subtotal_cents * TAX_RATE))
     if override_shipping_cents is not None and override_shipping_cents >= 0:
         shipping_cents = int(override_shipping_cents) if subtotal_cents > 0 else 0
     else:
         shipping_cents = SHIP_CENTS if subtotal_cents > 0 else 0
-    total_cents = subtotal_cents + tax_cents + shipping_cents
-    return tax_cents, shipping_cents, total_cents
+    if discount_free_shipping:
+        shipping_cents = 0
+    # Subtotal discount can't exceed subtotal
+    discount_cents = max(0, min(int(discount_cents or 0), subtotal_cents))
+    total_cents = max(0, subtotal_cents - discount_cents) + tax_cents + shipping_cents
+    return tax_cents, shipping_cents, total_cents, discount_cents
 
 
 def _safe_payment(payment: Any) -> dict:
@@ -151,7 +159,7 @@ def make_public_square_router(db, queue_email_fn):
             lines, subtotal = await _resolve_line_items(db, [CartItem(product_slug=slug, variant_sku=variant_sku, quantity=qty)])
         except HTTPException as exc:
             raise exc
-        tax_cents, shipping_cents, total_cents = _calc_totals(subtotal)
+        tax_cents, shipping_cents, total_cents, _ = _calc_totals(subtotal)
         return {
             "subtotal_cents": subtotal,
             "tax_cents": tax_cents,
@@ -167,14 +175,53 @@ def make_public_square_router(db, queue_email_fn):
         items = [CartItem(**i) for i in items_in]
         lines, subtotal = await _resolve_line_items(db, items)
         override_ship = payload.get("shipping_cents")
-        tax_cents, shipping_cents, total_cents = _calc_totals(subtotal, override_ship)
+
+        # Optional: revalidate a discount on each quote so the summary reflects it live.
+        discount_cents = 0
+        discount_free_ship = False
+        discount_info = None
+        code_raw = (payload.get("discount_code") or "").strip()
+        if code_raw and subtotal > 0:
+            try:
+                disc = await find_active_discount(db, code_raw)
+                await _validate_code_active(db, disc, payload.get("email"))
+                # Build cart for evaluator (include category for restriction rules)
+                cart_for_eval = []
+                for ln in lines:
+                    p = await db.products.find_one({"slug": ln["product_slug"]}, {"_id": 0, "category": 1})
+                    cart_for_eval.append({
+                        "product_slug": ln["product_slug"],
+                        "variant_sku": ln.get("variant_sku", ""),
+                        "quantity": ln["quantity"],
+                        "unit_price_cents": ln["unit_price_cents"],
+                        "category": (p or {}).get("category", ""),
+                    })
+                evald = _evaluate_discount(disc, cart_for_eval, subtotal, int(override_ship or 0))
+                discount_cents = int(evald["discount_cents"])
+                discount_free_ship = bool(evald["free_shipping"])
+                discount_info = {
+                    "code": disc.get("code"),
+                    "type": disc.get("type"),
+                    "discount_cents": discount_cents,
+                    "free_shipping": discount_free_ship,
+                    "notes": evald["notes"],
+                }
+            except HTTPException as exc:
+                # Surface error in payload but still return a valid quote (without the discount applied).
+                discount_info = {"error": exc.detail, "code": code_raw.upper()}
+
+        tax_cents, shipping_cents, total_cents, discount_applied = _calc_totals(
+            subtotal, override_ship, discount_cents, discount_free_ship
+        )
         return {
             "subtotal_cents": subtotal,
             "tax_cents": tax_cents,
             "shipping_cents": shipping_cents,
+            "discount_cents": discount_applied,
             "total_cents": total_cents,
             "tax_rate": TAX_RATE,
             "lines": lines,
+            "discount": discount_info,
         }
 
     @router.post("/checkout/square")
@@ -185,7 +232,36 @@ def make_public_square_router(db, queue_email_fn):
             raise HTTPException(status_code=503, detail="Square location not configured.")
 
         lines, subtotal = await _resolve_line_items(db, payload.items)
-        tax_cents, shipping_cents, total_cents = _calc_totals(subtotal, payload.shipping_cents)
+
+        # Server-side discount revalidation: client-supplied amount is never trusted.
+        discount_cents = 0
+        discount_free_ship = False
+        discount_doc = None
+        discount_code_up = (payload.discount_code or "").strip().upper()
+        if discount_code_up and subtotal > 0:
+            try:
+                discount_doc = await find_active_discount(db, discount_code_up)
+                await _validate_code_active(db, discount_doc, str(payload.email))
+                cart_for_eval = []
+                for ln in lines:
+                    p = await db.products.find_one({"slug": ln["product_slug"]}, {"_id": 0, "category": 1})
+                    cart_for_eval.append({
+                        "product_slug": ln["product_slug"],
+                        "variant_sku": ln.get("variant_sku", ""),
+                        "quantity": ln["quantity"],
+                        "unit_price_cents": ln["unit_price_cents"],
+                        "category": (p or {}).get("category", ""),
+                    })
+                evald = _evaluate_discount(discount_doc, cart_for_eval, subtotal, int(payload.shipping_cents or 0))
+                discount_cents = int(evald["discount_cents"])
+                discount_free_ship = bool(evald["free_shipping"])
+            except HTTPException as exc:
+                # Surface buyer-facing reason — caller can show inline error.
+                raise HTTPException(status_code=400, detail=f"Discount code: {exc.detail}") from exc
+
+        tax_cents, shipping_cents, total_cents, discount_applied = _calc_totals(
+            subtotal, payload.shipping_cents, discount_cents, discount_free_ship
+        )
 
         order_number = f"MR-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:4].upper()}"
         order_id = uuid.uuid4().hex
@@ -199,6 +275,9 @@ def make_public_square_router(db, queue_email_fn):
             "subtotal_cents": subtotal,
             "tax_cents": tax_cents,
             "shipping_cents": shipping_cents,
+            "discount_cents": discount_applied,
+            "discount_code": discount_doc.get("code") if discount_doc else "",
+            "discount_type": discount_doc.get("type") if discount_doc else "",
             "total_cents": total_cents,
             "currency": "USD",
             "email": str(payload.email),
@@ -259,6 +338,19 @@ def make_public_square_router(db, queue_email_fn):
 
         # Queue confirmation email
         if new_status == "paid":
+            # Record the redemption (idempotent — won't double-count on retry).
+            if discount_doc and discount_applied > 0:
+                try:
+                    await record_redemption(
+                        db,
+                        code=discount_doc.get("code", ""),
+                        email=str(payload.email),
+                        order_id=order_id,
+                        order_number=order_number,
+                        amount_cents=discount_applied,
+                    )
+                except Exception as exc:  # noqa: BLE001
+                    logger.warning("Discount redemption record failed: %s", exc)
             try:
                 items_html = "".join(
                     f"<li>{ln['quantity']} × {ln['product_name']}"
@@ -274,6 +366,7 @@ def make_public_square_router(db, queue_email_fn):
                   <ul>{items_html}</ul>
                   <p>
                     Subtotal: ${subtotal/100:.2f}<br/>
+                    {f'Discount ({discount_doc.get("code","")}): -${discount_applied/100:.2f}<br/>' if discount_applied > 0 else ''}
                     Tax: ${tax_cents/100:.2f}<br/>
                     Shipping: ${shipping_cents/100:.2f}<br/>
                     <b>Total: ${total_cents/100:.2f}</b>

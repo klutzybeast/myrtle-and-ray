@@ -50,6 +50,7 @@ import AdminCampaignEditor from "@/pages/admin/AdminCampaignEditor";
 import AdminAnalytics from "@/pages/admin/AdminAnalytics";
 import AdminOrders from "@/pages/admin/AdminOrders";
 import AdminReadAloud from "@/pages/admin/AdminReadAloud";
+import AdminDiscounts from "@/pages/admin/AdminDiscounts";
 import CustomPage from "@/pages/CustomPage";
 import WaveBadges from "@/pages/WaveBadges";
 import MapPage from "@/pages/Map";
