@@ -347,3 +347,40 @@ Casey, Dani, Sami, Izzy, Louie, Billy, Frankie.
 - Tested: 45/45 pytest passing (33 new discount tests + 12 ShipStation
   regression) + Playwright e2e for the full Checkout discount flow.
   Report: `/app/test_reports/iteration_11.json`.
+
+## What's been implemented (2026-02-22 — Wave Pal Pen Pals + Campaign×Discount integration)
+### Wave Pal Pen Pals (`/pen-pals`)
+- Kid-facing letter-writer with 13 character pickers, compose form, and
+  a "Sea Star Inbox" history.
+- Backend `/app/backend/penpals_router.py`:
+  - `POST /api/pen-pals/letter` — sanitizes PII (emails, phone numbers,
+    URLs → bracketed placeholders), blocks unkind words with a
+    kid-friendly error, enforces a 5/day/visitor rate limit, generates
+    a 4-couplet rhyming reply via Gemini Flash
+    (`gemini-3-flash-preview` via `emergentintegrations.LlmChat`),
+    optionally synthesizes the reply in the character's ElevenLabs
+    voice, and caches both text + audio by SHA-256 of
+    `(character_slug, sanitized_letter)` so repeat letters are free.
+  - `GET /api/pen-pals/settings` (public lean payload) and
+    `GET /api/pen-pals/history/{visitor_id}`.
+- Admin `/admin/pen-pals` (`AdminPenPals.jsx`): settings panel
+  (enable/disable, daily cap, max chars, audio on/off) + letter table
+  with character filter + search + soft-delete (kept in DB for safety
+  review).
+- LLM fallback: if `EMERGENT_LLM_KEY` is missing OR the call fails, the
+  router returns a canned safe rhyming reply so the UX never crashes.
+- Verified by 14/14 pytest in `/app/backend/tests/test_penpals.py` +
+  Playwright e2e.
+
+### Campaign × Discount integration
+- `/admin/campaigns/{id}` editor: new "Promo" section in the right
+  block-add panel lists every active discount code. Clicking one
+  appends a 4-block CTA group to the email — heading
+  ("20% off with code SAVE20"), promo paragraph, button
+  (`href = ${SITE_URL || origin}/shop?code=SAVE20`), spacer.
+  Auto-applies at checkout via the existing URL-stash sessionStorage
+  flow.
+
+### Other tweaks shipped this pass
+- `PopupSignup` also suppressed on `/pen-pals`.
+- Read-Aloud test expectations updated to the 21-page seed (was 20).

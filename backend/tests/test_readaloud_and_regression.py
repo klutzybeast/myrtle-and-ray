@@ -51,13 +51,13 @@ def admin_client(api_client, admin_token):
 
 # ---------- Read-Aloud: Public ----------
 class TestReadAloudPublic:
-    def test_public_get_book_returns_20_pages(self, api_client):
+    def test_public_get_book_returns_21_pages(self, api_client):
         r = api_client.get(f"{BASE_URL}/api/read-aloud/book")
         assert r.status_code == 200, r.text
         data = r.json()
         assert "pages" in data and "characters" in data
         pages = data["pages"]
-        assert len(pages) == 20, f"Expected 20 pages, got {len(pages)}"
+        assert len(pages) == 21, f"Expected 21 pages, got {len(pages)}"
 
     def test_public_payload_strips_voice_id_and_cache_key(self, api_client):
         r = api_client.get(f"{BASE_URL}/api/read-aloud/book")
@@ -70,11 +70,12 @@ class TestReadAloudPublic:
 
     def test_speaker_assignments_match_spec(self, api_client):
         expected = {
-            1: "ms-bluegill", 2: "myrtle", 3: "ray", 4: "ms-bluegill",
-            5: "ms-bluegill", 6: "myrtle", 7: "ms-bluegill", 8: "myrtle",
-            9: "sally", 10: "ollie", 11: "ray", 12: "ray",
-            13: "myrtle", 14: "ray", 15: "myrtle", 16: "ms-bluegill",
-            17: "ray", 18: "myrtle", 19: "myrtle", 20: "ms-bluegill",
+            1: "myrtle", 2: "ms-bluegill", 3: "myrtle", 4: "ray",
+            5: "ms-bluegill", 6: "ms-bluegill", 7: "myrtle", 8: "ms-bluegill",
+            9: "myrtle", 10: "sally", 11: "ollie", 12: "ray",
+            13: "ray", 14: "myrtle", 15: "ray", 16: "myrtle",
+            17: "ms-bluegill", 18: "ray", 19: "myrtle", 20: "myrtle",
+            21: "ms-bluegill",
         }
         r = api_client.get(f"{BASE_URL}/api/read-aloud/book")
         pages = {p["page"]: p["character_slug"] for p in r.json()["pages"]}
@@ -109,7 +110,7 @@ class TestReadAloudAdmin:
         r = admin_client.get(f"{BASE_URL}/api/admin/read-aloud/book")
         assert r.status_code == 200, r.text
         data = r.json()
-        assert len(data["pages"]) == 20
+        assert len(data["pages"]) == 21
         # voice_id must appear in admin payload
         for p in data["pages"]:
             assert "voice_id" in p
