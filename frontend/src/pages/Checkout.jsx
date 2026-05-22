@@ -38,6 +38,7 @@ export default function Checkout() {
   const totalQty = useMemo(() => items.reduce((s, i) => s + (i.quantity || 0), 0), [items]);
 
   // Fetch live ShipStation rates whenever the destination address is complete.
+  // Debounced by 400ms so we don't fire a ShipStation call on every keystroke.
   useEffect(() => {
     if (!items.length || !addressReady) {
       setRates([]); setSelectedRateId(""); setRatesError("");
@@ -45,30 +46,31 @@ export default function Checkout() {
     }
     let cancelled = false;
     setRatesLoading(true); setRatesError("");
-    api.post("/checkout/shipping-rates", {
-      items: items.map((i) => ({ quantity: i.quantity })),
-      full_name: fullName || "Buyer",
-      shipping_address: { line1, line2, city, state, postal_code: postal, country },
-    })
-      .then(({ data }) => {
-        if (cancelled) return;
-        const list = data?.rates || [];
-        setRates(list);
-        // Auto-select cheapest if nothing chosen yet, or re-validate selection.
-        if (list.length) {
-          const stillValid = list.find((r) => r.rate_id === selectedRateId);
-          setSelectedRateId(stillValid ? selectedRateId : list[0].rate_id);
-        } else {
-          setSelectedRateId("");
-        }
+    const t = setTimeout(() => {
+      api.post("/checkout/shipping-rates", {
+        items: items.map((i) => ({ quantity: i.quantity })),
+        full_name: fullName || "Buyer",
+        shipping_address: { line1, line2, city, state, postal_code: postal, country },
       })
-      .catch((err) => {
-        if (cancelled) return;
-        setRates([]); setSelectedRateId("");
-        setRatesError(err.response?.data?.detail || "Could not fetch shipping rates for this address.");
-      })
-      .finally(() => { if (!cancelled) setRatesLoading(false); });
-    return () => { cancelled = true; };
+        .then(({ data }) => {
+          if (cancelled) return;
+          const list = data?.rates || [];
+          setRates(list);
+          if (list.length) {
+            const stillValid = list.find((r) => r.rate_id === selectedRateId);
+            setSelectedRateId(stillValid ? selectedRateId : list[0].rate_id);
+          } else {
+            setSelectedRateId("");
+          }
+        })
+        .catch((err) => {
+          if (cancelled) return;
+          setRates([]); setSelectedRateId("");
+          setRatesError(err.response?.data?.detail || "Could not fetch shipping rates for this address.");
+        })
+        .finally(() => { if (!cancelled) setRatesLoading(false); });
+    }, 400);
+    return () => { cancelled = true; clearTimeout(t); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [line1, line2, city, state, postal, country, totalQty]);
 
@@ -76,12 +78,14 @@ export default function Checkout() {
   const selectedShippingCents = selectedRate ? selectedRate.shipping_cents : null;
 
   // Recompute totals whenever cart OR selected shipping changes.
+  // While no rate is selected yet, force shipping_cents=0 so the summary
+  // doesn't flash the legacy $8 fallback during loading / address-error.
   useEffect(() => {
     if (!items.length) return;
     const body = {
       items: items.map((i) => ({ product_slug: i.product_slug, variant_sku: i.variant_sku || "", quantity: i.quantity })),
+      shipping_cents: selectedShippingCents !== null ? selectedShippingCents : 0,
     };
-    if (selectedShippingCents !== null) body.shipping_cents = selectedShippingCents;
     api.post("/checkout/quote-cart", body)
       .then(({ data }) => setQuote(data))
       .catch(() => {});

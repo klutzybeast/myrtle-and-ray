@@ -43,6 +43,8 @@ export default function PopupSignup() {
     if (hasStoredVisitor()) return;
     // Don't pop while user is on /activities (a game modal is likely in flight)
     if (window.location.pathname.startsWith("/activities")) return;
+    // Don't pop on /checkout — interrupting a buying user costs sales
+    if (window.location.pathname.startsWith("/checkout")) return;
     const t = setTimeout(() => setOpen(true), 8000);
     return () => clearTimeout(t);
   }, []);

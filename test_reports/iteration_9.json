@@ -1,0 +1,35 @@
+{
+  "summary": "Iteration 9 RETEST of all four fixes from iteration 8. Backend critical fix verified end-to-end via DB inspection: POST /api/checkout/square with shipping_cents=661 + fake source returns 400 AND the persisted order doc has shipping_cents=661 (NOT 800) and total_cents=subtotal+tax+661. Legacy fallback (no shipping_cents in payload) still persists 800. Frontend: popup does NOT auto-open on /checkout (16s wait), rate-fetch effect is debounced to ~400ms (0 calls during rapid typing, exactly 1 call after idle), and summary-shipping correctly shows $0.00 (not the legacy $8.00) while no rate is selected and during the loading window. All 12 pytest tests pass.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_shipstation_checkout.py",
+    "/app/test_reports/pytest/shipstation_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "square_router.py:188 now correctly passes payload.shipping_cents into _calc_totals — verified by inspecting persisted order docs (shipping_cents=661 round-trips).",
+    "Checkout.jsx debounce wrapper (setTimeout 400ms with cleanup) is correctly placed inside the effect; rapid postal typing produces exactly 1 ShipStation call after idle.",
+    "Checkout.jsx quote-cart effect now passes shipping_cents:0 when selectedRate is null, so the summary never shows the legacy $8 fallback during loading/error.",
+    "PopupSignup.jsx correctly checks both /activities and /checkout pathnames before scheduling the 8s popup timer.",
+    "Iteration 8's note about ShipStation returning rates for ZIP 00000 still holds — that's actually a valid DC postal range, not an error case. Truly invalid ZIPs (e.g. all alpha) would trigger the error path; the component handles that path correctly (rates=[], selectedRate=null, summary=$0.00).",
+    "No CORS/auth regressions observed. Admin login (community@rollingriver.com) works and /admin/orders is correctly Bearer-token gated."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_shipstation_checkout.py (added TestShippingCentsPersistence with 2 new tests that verify shipping_cents=661 and legacy 800 fallback persist correctly in db.orders via /admin/orders)"
+  ],
+  "success_rate": {"backend": "100% (12/12 pytest)", "frontend": "100% (popup-skip + debounce + $0 summary all verified)"},
+  "test_credentials": "Admin: community@rollingriver.com / Camp1993! (used for /admin/orders inspection in persistence tests).",
+  "seed_data_creation": "Cart seeded via localStorage key mr_cart_v1 with myrtle-stuffie (qty 1) before navigating to /checkout. Test orders created in db.orders with TEST_persist_*@example.com and TEST_legacy_*@example.com markers (status=payment_failed after fake-source rejection).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All four fixes from iteration 8 are verified. Backend pytest suite at /app/backend/tests/test_shipstation_checkout.py now covers: shipping-rates health/live/error paths, quote-cart override, /checkout/square schema acceptance, AND end-to-end persistence verification (TestShippingCentsPersistence). The persistence test logs in as admin and reads back the order doc to confirm shipping_cents actually persisted with the override. Test orders accumulate in db.orders with TEST_ prefix markers — safe to ignore, all are status=payment_failed.",
+  "rca of the issue": "Original RCA from iter8 was a one-line bug at square_router.py:188 (missing override arg). Iter9 confirms the fix: line 188 now reads `tax_cents, shipping_cents, total_cents = _calc_totals(subtotal, payload.shipping_cents)`, and inspecting db.orders after a checkout POST with shipping_cents=661 shows the order persisted with shipping_cents=661 and total_cents=subtotal+tax+661. The three frontend polish items (popup-on-checkout, $8 fallback during error, no debounce) are also resolved as verified in the Playwright run."
+}

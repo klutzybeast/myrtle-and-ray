@@ -185,7 +185,7 @@ def make_public_square_router(db, queue_email_fn):
             raise HTTPException(status_code=503, detail="Square location not configured.")
 
         lines, subtotal = await _resolve_line_items(db, payload.items)
-        tax_cents, shipping_cents, total_cents = _calc_totals(subtotal)
+        tax_cents, shipping_cents, total_cents = _calc_totals(subtotal, payload.shipping_cents)
 
         order_number = f"MR-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:4].upper()}"
         order_id = uuid.uuid4().hex

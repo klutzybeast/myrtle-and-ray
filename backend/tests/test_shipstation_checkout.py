@@ -199,3 +199,100 @@ class TestSquareCheckoutSchema:
         r = requests.post(f"{API}/checkout/square", json=body, timeout=30)
         assert r.status_code in (400, 503), f"expected 400/503 got {r.status_code}: {r.text[:300]}"
         assert r.status_code != 422
+
+
+# --- Persistence: shipping_cents must hit the order doc ---
+ADMIN_EMAIL = "community@rollingriver.com"
+ADMIN_PASSWORD = "Camp1993!"
+
+
+@pytest.fixture(scope="session")
+def admin_token():
+    r = requests.post(
+        f"{API}/auth/login",
+        json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD},
+        timeout=15,
+    )
+    if r.status_code != 200:
+        pytest.skip(f"Admin login failed ({r.status_code}): {r.text[:200]}")
+    tok = r.json().get("access_token")
+    assert tok, "no access_token in login response"
+    return tok
+
+
+def _latest_order_by_marker(admin_token, marker_email):
+    r = requests.get(
+        f"{API}/admin/orders",
+        headers={"Authorization": f"Bearer {admin_token}"},
+        timeout=20,
+    )
+    assert r.status_code == 200, r.text
+    orders = r.json()
+    matches = [o for o in orders if o.get("email") == marker_email]
+    assert matches, f"no orders found for {marker_email}"
+    # orders sorted by created_at desc
+    return matches[0]
+
+
+class TestShippingCentsPersistence:
+    """Verifies the critical fix: payload.shipping_cents must persist into order_doc."""
+
+    def test_override_shipping_cents_661_persists_in_order(self, stuffie_slug, admin_token):
+        # Use a unique email so we can find this exact order
+        marker = f"TEST_persist_{os.urandom(4).hex()}@example.com"
+        body = {
+            "items": [{"product_slug": stuffie_slug, "quantity": 1}],
+            "email": marker,
+            "full_name": "TEST Persist Override",
+            "shipping_address": {
+                "line1": "1600 Pennsylvania Ave NW",
+                "city": "Washington", "state": "DC",
+                "postal_code": "20500", "country": "US",
+            },
+            "source_id": "cnon:card-nonce-fake",
+            "shipping_cents": 661,
+            "shipping_service": "UPS Ground Saver",
+            "shipping_carrier": "UPS",
+            "shipping_rate_id": "se-test-rate-id-661",
+        }
+        r = requests.post(f"{API}/checkout/square", json=body, timeout=30)
+        # Square will reject the fake nonce -> 400. order_doc was inserted before that.
+        assert r.status_code in (400, 503), r.text[:300]
+
+        order = _latest_order_by_marker(admin_token, marker)
+        assert order["shipping_cents"] == 661, (
+            f"Expected shipping_cents=661 persisted, got {order['shipping_cents']}. "
+            "Regression: square_router did not forward payload.shipping_cents to _calc_totals."
+        )
+        # total = subtotal + tax + shipping (not the legacy 800)
+        expected_total = order["subtotal_cents"] + order["tax_cents"] + 661
+        assert order["total_cents"] == expected_total, (
+            f"total_cents mismatch: {order['total_cents']} != {expected_total}"
+        )
+        # rate metadata also persisted
+        assert order["shipping_service"] == "UPS Ground Saver"
+        assert order["shipping_carrier"] == "UPS"
+        assert order["shipping_rate_id"] == "se-test-rate-id-661"
+
+    def test_no_override_uses_legacy_800_fallback(self, stuffie_slug, admin_token):
+        marker = f"TEST_legacy_{os.urandom(4).hex()}@example.com"
+        body = {
+            "items": [{"product_slug": stuffie_slug, "quantity": 1}],
+            "email": marker,
+            "full_name": "TEST Legacy Fallback",
+            "shipping_address": {
+                "line1": "1600 Pennsylvania Ave NW",
+                "city": "Washington", "state": "DC",
+                "postal_code": "20500", "country": "US",
+            },
+            "source_id": "cnon:card-nonce-fake",
+        }
+        r = requests.post(f"{API}/checkout/square", json=body, timeout=30)
+        assert r.status_code in (400, 503), r.text[:300]
+
+        order = _latest_order_by_marker(admin_token, marker)
+        assert order["shipping_cents"] == 800, (
+            f"Expected legacy 800 fallback, got {order['shipping_cents']}"
+        )
+        expected_total = order["subtotal_cents"] + order["tax_cents"] + 800
+        assert order["total_cents"] == expected_total
