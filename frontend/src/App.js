@@ -134,6 +134,7 @@ function App() {
                 <Route path="analytics" element={<AdminAnalytics />} />
                 <Route path="orders" element={<AdminOrders />} />
                 <Route path="read-aloud" element={<AdminReadAloud />} />
+                <Route path="discounts" element={<AdminDiscounts />} />
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

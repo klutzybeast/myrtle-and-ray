@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { PaymentForm, CreditCard } from "react-square-web-payments-sdk";
-import { api } from "../lib/api";
+import { api, extractErrMsg } from "../lib/api";
 import { useCart } from "../lib/cart";
 import { getStoredVisitor, setStoredVisitor } from "../lib/visitor";
 import { Lock, Loader2, Truck, AlertCircle, Tag, Check, X as XIcon } from "lucide-react";
@@ -72,7 +72,7 @@ export default function Checkout() {
         .catch((err) => {
           if (cancelled) return;
           setRates([]); setSelectedRateId("");
-          setRatesError(err.response?.data?.detail || "Could not fetch shipping rates for this address.");
+          setRatesError(extractErrMsg(err, "Could not fetch shipping rates for this address."));
         })
         .finally(() => { if (!cancelled) setRatesLoading(false); });
     }, 400);
@@ -107,17 +107,19 @@ export default function Checkout() {
   }, [items, selectedShippingCents, appliedCode, email]);
 
   // Auto-apply ?code=XYZ from URL (or sessionStorage if user arrived via /shop?code=…).
+  // Wait until cart items are hydrated from localStorage so validate-discount
+  // has a real cart to evaluate against.
   useEffect(() => {
     if (appliedCode) return;
+    if (!items.length) return;
     const fromUrl = (searchParams.get("code") || "").trim();
     const fromSession = (typeof window !== "undefined" && sessionStorage.getItem("mr_discount_code")) || "";
     const candidate = (fromUrl || fromSession || "").trim();
     if (!candidate) return;
     setCodeInput(candidate.toUpperCase());
-    // Defer to next tick so handler can use up-to-date state
-    setTimeout(() => applyCode(candidate), 0);
+    applyCode(candidate);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [items.length]);
 
   const shippingValid = fullName && email && line1 && city && state && postal && country && !!selectedRate;
 
@@ -141,7 +143,7 @@ export default function Checkout() {
         toast.success(`Code ${code} applied — ${data.notes}`);
       }
     } catch (err) {
-      setCodeError(err.response?.data?.detail || "Invalid code.");
+      setCodeError(extractErrMsg(err, "Invalid code."));
       setAppliedCode("");
     } finally {
       setCodeBusy(false);
@@ -215,7 +217,7 @@ export default function Checkout() {
       try { sessionStorage.removeItem("mr_discount_code"); } catch {}
       clearCart();
     } catch (err) {
-      toast.error(err.response?.data?.detail || "Payment failed.");
+      toast.error(extractErrMsg(err, "Payment failed."));
     } finally {
       setBusy(false);
     }

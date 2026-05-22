@@ -305,3 +305,45 @@ Casey, Dani, Sami, Izzy, Louie, Billy, Frankie.
 - Verified by 12/12 pytest + Playwright e2e
   (`/app/test_reports/iteration_9.json`,
   `/app/backend/tests/test_shipstation_checkout.py`).
+
+
+## What's been implemented (2026-02-22 — Discount Code System)
+- **Full discount engine** at `/app/backend/discount_router.py`:
+  - 4 types: `percent`, `fixed`, `free_shipping`, `bogo`
+  - Per-code rules: starts_at / expires_at / max_total_uses /
+    max_per_customer / min_subtotal_cents / allowed_product_slugs /
+    allowed_categories / bogo_product_slug / active toggle
+  - Endpoints:
+    - Public: `POST /api/checkout/validate-discount` with user-friendly
+      400 messages for every fail mode (invalid, expired, fully
+      redeemed, already used by this email, spend more, doesn't apply
+      to cart)
+    - Admin (require_admin): full CRUD at `/api/admin/discounts` +
+      `GET /api/admin/discounts/{id}/redemptions`
+  - Atomic idempotent redemption tracking via `discount_redemptions`
+    collection — only increments `usage_count` once per
+    `(code, order_id)`.
+- **Square checkout** (`square_router.py`): `CheckoutRequest` now accepts
+  `discount_code`. Server re-validates at charge time (never trusts
+  client amount), recalculates totals via `_calc_totals(subtotal,
+  override_shipping, discount_cents, free_shipping)`, persists
+  `discount_code / discount_type / discount_cents` on the order doc,
+  and records the redemption on successful payment. Confirmation email
+  shows the discount line.
+- **Admin UI** at `/admin/discounts` (`AdminDiscounts.jsx`): list view
+  + create/edit modal exposing every rule, copy-code, copy-share-link
+  (`/shop?code=XYZ`), per-row active toggle, delete.
+- **Checkout UI** (`Checkout.jsx`): "Discount code" section with input
+  + Apply / Remove; summary row "Discount (CODE) −$X.XX"; real-time
+  total recompute when a code is added/removed/invalidated.
+- **URL auto-apply**: `/shop?code=XYZ` stashes the code in
+  `sessionStorage.mr_discount_code`; `/checkout` reads it once cart
+  hydrates and auto-applies. `/checkout?code=XYZ` direct also works.
+- **New `extractErrMsg()` helper** in `lib/api.js` — safely coerces
+  Pydantic 422 array-shaped errors to readable strings, used in all
+  Checkout.jsx catch handlers. Fixes a previously-latent "Objects are
+  not valid as a React child" crash that could blank the page on any
+  422 response.
+- Tested: 45/45 pytest passing (33 new discount tests + 12 ShipStation
+  regression) + Playwright e2e for the full Checkout discount flow.
+  Report: `/app/test_reports/iteration_11.json`.
