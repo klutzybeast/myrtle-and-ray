@@ -1,0 +1,62 @@
+{
+  "summary": "Tested ShipStation V2 shipping-rates integration + new shipping_cents override across backend (10 pytest tests, all passed) and frontend Checkout.jsx (live DC-destination rates render with 23 options across USPS/UPS/FedEx, cheapest auto-selected, summary updates). Discovered ONE CRITICAL backend bug: /checkout/square ignores payload.shipping_cents when computing the actual Square charge — so customers will still be charged the legacy $8 flat-rate even though the frontend forwards the chosen ShipStation rate.",
+  "backend_issues": {
+    "critical": [
+      {
+        "endpoint": "POST /api/checkout/square",
+        "issue": "square_router.py line 188 calls _calc_totals(subtotal) WITHOUT passing payload.shipping_cents. Result: order document's shipping_cents/total_cents and the Square charge amount always use the hardcoded STUFFIES_SHIPPING_CENTS ($8.00) regardless of which ShipStation rate the buyer selected. shipping_service / shipping_carrier / shipping_rate_id ARE stored on the order, but the dollars charged are wrong. Confirmation email totals are also wrong. This defeats the entire ShipStation feature. Fix: change line 188 to `tax_cents, shipping_cents, total_cents = _calc_totals(subtotal, payload.shipping_cents)`.",
+        "priority": "CRITICAL"
+      }
+    ],
+    "minor": [
+      {
+        "endpoint": "POST /api/checkout/shipping-rates",
+        "issue": "Empty-string city/state/postal_code passes Pydantic str validation; current 400 check works but consider Field(min_length=1) on RateAddress fields for cleaner schema-level rejection (422)."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "Invalid-address fallback display",
+        "issue": "When rates-error appears (e.g. ZIP 00000), the order summary still shows '$8.00 Shipping' / Total inflated by $8 because selectedShippingCents becomes null and the quote-cart call falls back to the legacy $8 default. Payment is correctly gated (user can't submit), but the summary is misleading. Recommendation: when there is a rates-error or no selectedRate, either hide the Shipping row, show '—', or pass shipping_cents:0 in the quote-cart payload until a rate is chosen.",
+        "affected_selectors": ["[data-testid='summary-shipping']", "[data-testid='summary-total']", "[data-testid='rates-error']"]
+      }
+    ],
+    "design_issues": [
+      {
+        "screen": "Checkout /checkout",
+        "issues": [
+          "Signup-popup modal (Ride the wave with us) auto-opens on top of the checkout page after a few seconds and can intercept clicks on shipping-rate options. Consider suppressing the popup on /checkout (where the user has clear intent to convert)."
+        ]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_shipstation_checkout.py",
+    "/app/test_reports/pytest/shipstation_results.xml"
+  ],
+  "action_items": [
+    "FIX CRITICAL: square_router.py:188 — pass payload.shipping_cents into _calc_totals so the Square charge, order doc, and confirmation email use the actually-selected ShipStation rate.",
+    "Recompute totals only when a rate is actually selected so the summary doesn't show $8 fallback during a rates-error state.",
+    "Suppress the email-signup popup on the /checkout route to avoid blocking rate-radio clicks.",
+    "Optional: add min_length=1 constraints to RateAddress so missing city/postal yields a clean 422 from Pydantic instead of our manual 400."
+  ],
+  "critical_code_review_comments": [
+    "square_router._calc_totals override path is implemented but never wired into the actual checkout_square endpoint — only quote-cart uses it. This is the core bug.",
+    "shipstation_router correctly excludes usps_media_mail + international USPS for US shipments, de-dups by (carrier, service), sorts cheapest-first. Looks production-quality.",
+    "shipstation_router exposes raw upstream error_messages in 400 detail — good for UX (e.g. 'Invalid destination postal code').",
+    "Checkout.jsx debounces rate fetch on every address field keystroke. For users typing each character, this fires many ShipStation calls before they're done. Consider debouncing 400-600ms or only fetching once postal is 5 digits."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_shipstation_checkout.py (new)"
+  ],
+  "success_rate": {"backend": "100% (10/10 pytest)", "frontend": "85% — rendering & auto-select work; one summary-during-error display issue; programmatic rate-change in Playwright is a test-interaction quirk, not a UI bug"},
+  "test_credentials": "Admin: community@rollingriver.com / Camp1993! (not needed for these tests).",
+  "seed_data_creation": "Cart seeded via localStorage key mr_cart_v1 with myrtle-stuffie (qty 1). No DB writes.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend tests live in /app/backend/tests/test_shipstation_checkout.py. After main agent fixes square_router.py:188 to pass payload.shipping_cents into _calc_totals, add an assertion that verifies an order doc created with shipping_cents=661 actually persists shipping_cents=661 (currently can't end-to-end test without a real Square nonce, but you can mock client.payments.create or just inspect the order in db.orders after a fake-source 400). Frontend cart key is mr_cart_v1 (not mr_cart). CartProvider only reads localStorage on mount, so seed BEFORE the first page load.",
+  "rca of the issue": "The new shipping_cents override was correctly added to (1) the Pydantic CheckoutRequest model, (2) the order_doc persistence dict (shipping_service/carrier/rate_id), and (3) /checkout/quote-cart. However the actual /checkout/square endpoint's totals calculation at square_router.py:188 was not updated — it still calls _calc_totals(subtotal) with no second arg, so it always uses the SHIP_CENTS fallback. Reproduction: POST /api/checkout/square with shipping_cents=661 + a Stuffies item → resulting order doc / Square amount_money / email will show $8.00 shipping instead of $6.61. Mitigation: one-line fix — `tax_cents, shipping_cents, total_cents = _calc_totals(subtotal, payload.shipping_cents)`."
+}

@@ -65,6 +65,10 @@ class CheckoutRequest(BaseModel):
     source_id: str
     verification_token: Optional[str] = None
     idempotency_key: Optional[str] = None
+    shipping_cents: Optional[int] = None
+    shipping_service: Optional[str] = ""
+    shipping_carrier: Optional[str] = ""
+    shipping_rate_id: Optional[str] = ""
 
 
 def _now() -> str:
@@ -108,9 +112,12 @@ async def _resolve_line_items(db, items: List[CartItem]):
     return lines, subtotal
 
 
-def _calc_totals(subtotal_cents: int):
+def _calc_totals(subtotal_cents: int, override_shipping_cents: Optional[int] = None):
     tax_cents = int(round(subtotal_cents * TAX_RATE))
-    shipping_cents = SHIP_CENTS if subtotal_cents > 0 else 0
+    if override_shipping_cents is not None and override_shipping_cents >= 0:
+        shipping_cents = int(override_shipping_cents) if subtotal_cents > 0 else 0
+    else:
+        shipping_cents = SHIP_CENTS if subtotal_cents > 0 else 0
     total_cents = subtotal_cents + tax_cents + shipping_cents
     return tax_cents, shipping_cents, total_cents
 
@@ -159,7 +166,8 @@ def make_public_square_router(db, queue_email_fn):
         items_in = payload.get("items") or []
         items = [CartItem(**i) for i in items_in]
         lines, subtotal = await _resolve_line_items(db, items)
-        tax_cents, shipping_cents, total_cents = _calc_totals(subtotal)
+        override_ship = payload.get("shipping_cents")
+        tax_cents, shipping_cents, total_cents = _calc_totals(subtotal, override_ship)
         return {
             "subtotal_cents": subtotal,
             "tax_cents": tax_cents,
@@ -196,6 +204,9 @@ def make_public_square_router(db, queue_email_fn):
             "email": str(payload.email),
             "full_name": payload.full_name,
             "shipping_address": payload.shipping_address.model_dump(),
+            "shipping_service": payload.shipping_service or "",
+            "shipping_carrier": payload.shipping_carrier or "",
+            "shipping_rate_id": payload.shipping_rate_id or "",
             "square_location_id": LOCATION_ID,
         }
         await db.orders.insert_one(dict(order_doc))

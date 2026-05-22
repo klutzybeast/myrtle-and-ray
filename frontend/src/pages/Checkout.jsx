@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { PaymentForm, CreditCard } from "react-square-web-payments-sdk";
 import { api } from "../lib/api";
 import { useCart } from "../lib/cart";
 import { getStoredVisitor, setStoredVisitor } from "../lib/visitor";
-import { Lock, Loader2 } from "lucide-react";
+import { Lock, Loader2, Truck, AlertCircle } from "lucide-react";
 import SEO from "../components/SEO";
 import AddressAutocomplete from "../components/AddressAutocomplete";
 import { toast } from "sonner";
@@ -25,19 +25,69 @@ export default function Checkout() {
   const [state, setState] = useState("NY");
   const [postal, setPostal] = useState("");
   const [country, setCountry] = useState("US");
+  const [rates, setRates] = useState([]);
+  const [selectedRateId, setSelectedRateId] = useState("");
+  const [ratesLoading, setRatesLoading] = useState(false);
+  const [ratesError, setRatesError] = useState("");
   const [quote, setQuote] = useState(null);
   const [busy, setBusy] = useState(false);
   const [submittedOrder, setSubmittedOrder] = useState(null);
   const nav = useNavigate();
 
+  const addressReady = !!(line1 && city && state && postal && country);
+  const totalQty = useMemo(() => items.reduce((s, i) => s + (i.quantity || 0), 0), [items]);
+
+  // Fetch live ShipStation rates whenever the destination address is complete.
+  useEffect(() => {
+    if (!items.length || !addressReady) {
+      setRates([]); setSelectedRateId(""); setRatesError("");
+      return;
+    }
+    let cancelled = false;
+    setRatesLoading(true); setRatesError("");
+    api.post("/checkout/shipping-rates", {
+      items: items.map((i) => ({ quantity: i.quantity })),
+      full_name: fullName || "Buyer",
+      shipping_address: { line1, line2, city, state, postal_code: postal, country },
+    })
+      .then(({ data }) => {
+        if (cancelled) return;
+        const list = data?.rates || [];
+        setRates(list);
+        // Auto-select cheapest if nothing chosen yet, or re-validate selection.
+        if (list.length) {
+          const stillValid = list.find((r) => r.rate_id === selectedRateId);
+          setSelectedRateId(stillValid ? selectedRateId : list[0].rate_id);
+        } else {
+          setSelectedRateId("");
+        }
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setRates([]); setSelectedRateId("");
+        setRatesError(err.response?.data?.detail || "Could not fetch shipping rates for this address.");
+      })
+      .finally(() => { if (!cancelled) setRatesLoading(false); });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [line1, line2, city, state, postal, country, totalQty]);
+
+  const selectedRate = rates.find((r) => r.rate_id === selectedRateId) || null;
+  const selectedShippingCents = selectedRate ? selectedRate.shipping_cents : null;
+
+  // Recompute totals whenever cart OR selected shipping changes.
   useEffect(() => {
     if (!items.length) return;
-    api.post("/checkout/quote-cart", { items: items.map((i) => ({ product_slug: i.product_slug, variant_sku: i.variant_sku || "", quantity: i.quantity })) })
+    const body = {
+      items: items.map((i) => ({ product_slug: i.product_slug, variant_sku: i.variant_sku || "", quantity: i.quantity })),
+    };
+    if (selectedShippingCents !== null) body.shipping_cents = selectedShippingCents;
+    api.post("/checkout/quote-cart", body)
       .then(({ data }) => setQuote(data))
       .catch(() => {});
-  }, [items]);
+  }, [items, selectedShippingCents]);
 
-  const shippingValid = fullName && email && line1 && city && state && postal && country;
+  const shippingValid = fullName && email && line1 && city && state && postal && country && !!selectedRate;
 
   if (submittedOrder) {
     return (
@@ -74,6 +124,11 @@ export default function Checkout() {
       setBusy(false);
       return;
     }
+    if (!selectedRate) {
+      toast.error("Please select a shipping option.");
+      setBusy(false);
+      return;
+    }
     setBusy(true);
     try {
       const { data } = await api.post("/checkout/square", {
@@ -83,6 +138,10 @@ export default function Checkout() {
         shipping_address: { line1, line2, city, state, postal_code: postal, country },
         source_id: tokenResult.token,
         verification_token: verifiedBuyer?.token,
+        shipping_cents: selectedRate.shipping_cents,
+        shipping_service: selectedRate.service_type,
+        shipping_carrier: selectedRate.carrier_name,
+        shipping_rate_id: selectedRate.rate_id,
       });
       setStoredVisitor({ name: fullName, email, audience: v.audience });
       setSubmittedOrder(data);
@@ -131,10 +190,68 @@ export default function Checkout() {
               </div>
             </section>
 
+            <section className="bg-white rounded-[28px] p-6" data-testid="checkout-shipping-rates">
+              <h2 className="font-accent text-2xl font-bold mb-4 flex items-center gap-2"><Truck className="w-5 h-5 text-[#5a8a6f]" /> Shipping method</h2>
+              {!addressReady && (
+                <p className="text-sm text-[#6b7280]">Fill in your shipping address above to see live carrier rates.</p>
+              )}
+              {addressReady && ratesLoading && (
+                <div className="flex items-center gap-2 text-sm text-[#6b7280]" data-testid="rates-loading">
+                  <Loader2 className="w-4 h-4 animate-spin" /> Fetching live carrier rates...
+                </div>
+              )}
+              {addressReady && !ratesLoading && ratesError && (
+                <div className="flex items-start gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-2xl p-3" data-testid="rates-error">
+                  <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  <span>{ratesError}</span>
+                </div>
+              )}
+              {addressReady && !ratesLoading && !ratesError && rates.length > 0 && (
+                <ul className="space-y-2" data-testid="rates-list">
+                  {rates.map((r) => {
+                    const selected = r.rate_id === selectedRateId;
+                    return (
+                      <li key={r.rate_id}>
+                        <label
+                          className={`flex items-start gap-3 p-3 rounded-2xl border-2 cursor-pointer transition ${selected ? "border-[#7fcfc7] bg-[#eaf7f5]" : "border-[#f4e4c6] hover:border-[#cfe0d8]"}`}
+                          data-testid={`rate-option-${r.service_code || r.rate_id}`}
+                        >
+                          <input
+                            type="radio"
+                            name="shipping-rate"
+                            className="mt-1.5 accent-[#5a8a6f]"
+                            checked={selected}
+                            onChange={() => setSelectedRateId(r.rate_id)}
+                            data-testid={`rate-radio-${r.service_code || r.rate_id}`}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-3">
+                              <div className="font-semibold text-[#3a4a55] truncate">{r.service_type}</div>
+                              <div className="tabular-nums font-bold text-[#3a4a55]">{money(r.shipping_cents)}</div>
+                            </div>
+                            <div className="text-xs text-[#6b7280] mt-0.5">
+                              {r.carrier_name}
+                              {r.delivery_days ? ` · ~${r.delivery_days} business day${r.delivery_days === 1 ? "" : "s"}` : ""}
+                              {r.rate_attributes?.includes("cheapest") ? " · Cheapest" : ""}
+                              {r.rate_attributes?.includes("fastest") ? " · Fastest" : ""}
+                            </div>
+                          </div>
+                        </label>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </section>
+
             <section className="bg-white rounded-[28px] p-6" data-testid="checkout-payment">
               <h2 className="font-accent text-2xl font-bold mb-4 flex items-center gap-2"><Lock className="w-5 h-5 text-[#5a8a6f]" /> Payment</h2>
               {!shippingValid && (
-                <p className="text-sm text-[#6b7280] mb-3">Fill in your shipping address above to enter card details.</p>
+                <p className="text-sm text-[#6b7280] mb-3">
+                  {!addressReady ? "Fill in your shipping address above to enter card details." :
+                    !selectedRate ? "Select a shipping method above to enter card details." :
+                    "Fill in your full name and email above to enter card details."}
+                </p>
               )}
               {shippingValid && APP_ID && LOC_ID && quote && (
                 <div data-testid="square-card-form">
@@ -198,7 +315,13 @@ export default function Checkout() {
               <dl className="text-sm space-y-1 border-t border-[#f4e4c6] pt-3">
                 <div className="flex justify-between"><dt>Subtotal</dt><dd>{money(quote.subtotal_cents)}</dd></div>
                 <div className="flex justify-between"><dt>NY Tax</dt><dd>{money(quote.tax_cents)}</dd></div>
-                <div className="flex justify-between"><dt>Shipping</dt><dd>{money(quote.shipping_cents)}</dd></div>
+                <div className="flex justify-between">
+                  <dt>
+                    Shipping
+                    {selectedRate && <span className="block text-xs text-[#6b7280]">{selectedRate.service_type}</span>}
+                  </dt>
+                  <dd data-testid="summary-shipping">{money(quote.shipping_cents)}</dd>
+                </div>
                 <div className="flex justify-between font-bold text-base border-t border-[#f4e4c6] pt-2 mt-2"><dt>Total</dt><dd data-testid="summary-total">{money(quote.total_cents)}</dd></div>
               </dl>
             )}
