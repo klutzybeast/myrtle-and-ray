@@ -269,3 +269,39 @@ Casey, Dani, Sami, Izzy, Louie, Billy, Frankie.
 - Verified by 21/21 backend pytest cases + frontend e2e
   (`/app/test_reports/iteration_7.json`,
   `/app/backend/tests/test_readaloud_and_regression.py`).
+
+## What's been implemented (2026-02-22 — ShipStation V2 Live Rates)
+- **Replaced the hardcoded $8 USPS flat-rate** shipping at checkout with
+  live multi-carrier rates from ShipStation V2.
+- New backend router `/app/backend/shipstation_router.py`:
+  - `GET  /api/checkout/shipping-rates/health` — config + connected
+    carrier introspection (currently USPS, UPS, FedEx One Balance).
+  - `POST /api/checkout/shipping-rates` — given cart items + destination,
+    returns array of selectable rates (cheapest first, de-duped by
+    carrier/service, Media Mail + international USPS filtered out for
+    domestic shipments). Auto-scales package weight by item quantity
+    (default 12 oz / 9×6×3 in per stuffie).
+- `square_router.py`:
+  - `CheckoutRequest` now accepts `shipping_cents`, `shipping_service`,
+    `shipping_carrier`, `shipping_rate_id` (all optional, back-compat).
+  - `_calc_totals(subtotal, override_shipping_cents=None)` honors the
+    override on both `/checkout/quote-cart` and `/checkout/square` so
+    the **Square charge, persisted order doc, and confirmation email
+    all use the actually-selected ShipStation rate**.
+- `Checkout.jsx` (full rewrite):
+  - Fetches live rates on a 400 ms debounce once the destination
+    address is complete; cheapest auto-selected.
+  - Radio-list of rates with carrier, service, ETA, and price chips
+    ("Cheapest" / "Fastest" from ShipStation `rate_attributes`).
+  - Recomputes the order summary in real time when the user picks a
+    different rate; pays exactly the selected amount via Square.
+  - Forwards `shipping_cents`/`service`/`carrier`/`rate_id` to
+    `/checkout/square`.
+- `PopupSignup.jsx`: also suppressed on `/checkout` (was already
+  suppressed on `/activities`).
+- Env vars (all overridable, defaults baked for prod):
+  `SHIPSTATION_API_KEY`, `SHIP_FROM_NAME/PHONE/LINE1/LINE2/CITY/STATE/POSTAL/COUNTRY`,
+  `STUFFIES_PKG_WEIGHT_OZ/LEN_IN/WID_IN/HGT_IN`.
+- Verified by 12/12 pytest + Playwright e2e
+  (`/app/test_reports/iteration_9.json`,
+  `/app/backend/tests/test_shipstation_checkout.py`).
