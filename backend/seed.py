@@ -494,6 +494,9 @@ async def seed_database(db) -> None:
     # --- Read-Aloud book (21 pages) ---
     await _seed_readaloud_book(db)
 
+    # --- Stingray Cay map image (bundled asset → /api/uploads/map/...) ---
+    _seed_map_image()
+
 
 READALOUD_PAGES = [
     (1,  "myrtle",
@@ -718,3 +721,36 @@ async def _seed_readaloud_book(db) -> None:
                 _storage.put_object("myrtle-and-ray-full-book.mp3", data, "audio/mpeg")
         except Exception:  # noqa: BLE001
             pass
+
+
+def _seed_map_image() -> None:
+    """Bundle the Stingray Cay map JPEG with the deploy so /map never has to
+    rely on the preview-scoped customer-assets domain. Idempotent: copies the
+    bundled asset into /api/uploads/map/ on first boot and pushes it to
+    persistent Object Storage so it survives redeploys."""
+    try:
+        import storage as _storage  # local import — avoids circular deps in tests
+        asset_path = os.path.join(os.path.dirname(__file__), "seed_assets", "map", "stingray-cay.jpeg")
+        if not os.path.exists(asset_path):
+            return
+        upload_dir = os.environ.get("UPLOAD_DIR", "/app/backend/uploads")
+        target_dir = os.path.join(upload_dir, "map")
+        os.makedirs(target_dir, exist_ok=True)
+        target_path = os.path.join(target_dir, "stingray-cay.jpeg")
+        storage_name = "map/stingray-cay.jpeg"
+
+        with open(asset_path, "rb") as fh:
+            data = fh.read()
+
+        if not os.path.exists(target_path):
+            with open(target_path, "wb") as fh:
+                fh.write(data)
+
+        if _storage.is_enabled():
+            try:
+                if _storage.get_object(storage_name) is None:
+                    _storage.put_object(storage_name, data, "image/jpeg")
+            except Exception:  # noqa: BLE001
+                pass
+    except Exception:  # noqa: BLE001
+        pass

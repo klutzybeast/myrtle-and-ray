@@ -12,4 +12,8 @@ export const HOTSPOTS = [
   { id: "sand-castle",    title: "Sand Castle Beach",  x: 90, y: 60, char: "casey",       activity: "sticker_beach",   activity_label: "Sticker Beach",          desc: "Casey builds the tallest, sturdiest towers right here." },
 ];
 
-export const MAP_IMG = "https://customer-assets.emergentagent.com/job_wave-of-excitement/artifacts/np2lq4do_IMG_2972.jpeg";
+// Map image is bundled with the deploy under /app/backend/seed_assets/map/
+// and copied into /api/uploads/map/ on backend startup, so it ships to
+// production without depending on the preview-scoped customer-assets domain.
+const API_BASE = process.env.REACT_APP_BACKEND_URL || "";
+export const MAP_IMG = `${API_BASE}/api/uploads/map/stingray-cay.jpeg`;
