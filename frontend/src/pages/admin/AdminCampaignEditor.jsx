@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { api } from "../../lib/api";
 import { toast } from "sonner";
-import { Save, Send, Trash2, Plus, Heading1, Type, Image as ImageIcon, MousePointer, Quote, Code, Minus, Upload, Eye, ArrowLeft, GripVertical } from "lucide-react";
+import { Save, Send, Trash2, Plus, Heading1, Type, Image as ImageIcon, MousePointer, Quote, Code, Minus, Upload, Eye, ArrowLeft, GripVertical, Tag } from "lucide-react";
 
 let bid = 0;
 const nextId = () => `b_${Date.now()}_${bid++}`;
@@ -32,6 +32,8 @@ export default function AdminCampaignEditor() {
   const [overIdx, setOverIdx] = useState(null);
   const fileRef = useRef(null);
   const [uploadTarget, setUploadTarget] = useState(null);
+  const [discounts, setDiscounts] = useState([]);
+  const [showDiscountPicker, setShowDiscountPicker] = useState(false);
 
   const load = () => api.get(`/admin/campaigns/${id}`).then(({ data }) => {
     const blocks = (data.blocks || []).map((b) => ({ ...b, id: b.id || nextId() }));
@@ -41,6 +43,7 @@ export default function AdminCampaignEditor() {
   useEffect(() => {
     load();
     api.get("/admin/mailing-list").then(({ data }) => setSubscribers(data));
+    api.get("/admin/discounts").then(({ data }) => setDiscounts((data || []).filter((d) => d.active))).catch(() => {});
   }, [id]);
 
   const refreshPreview = async () => {
@@ -64,6 +67,29 @@ export default function AdminCampaignEditor() {
     const def = BLOCK_DEFS.find((b) => b.type === t);
     if (!def) return;
     setC({ ...c, blocks: [...c.blocks, def.blank()] });
+  };
+
+  const insertDiscountCta = (code) => {
+    if (!code) return;
+    const d = discounts.find((x) => x.code === code);
+    if (!d) return;
+    const siteUrl = (process.env.REACT_APP_SITE_URL || window.location.origin || "").replace(/\/$/, "");
+    const link = `${siteUrl}/shop?code=${encodeURIComponent(d.code)}`;
+    let headline = `Use code ${d.code}`;
+    if (d.type === "percent") headline = `${d.value}% off with code ${d.code}`;
+    else if (d.type === "fixed") headline = `$${Number(d.value).toFixed(2)} off with code ${d.code}`;
+    else if (d.type === "free_shipping") headline = `Free shipping with code ${d.code}`;
+    else if (d.type === "bogo") headline = `Buy one, get one — code ${d.code}`;
+    const expiry = d.expires_at ? ` Ends ${new Date(d.expires_at).toLocaleDateString()}.` : "";
+    const blocks = [
+      { id: nextId(), type: "heading", data: { text: headline, level: 2, align: "center" } },
+      { id: nextId(), type: "paragraph", data: { text: `Shop the Stuffies collection and the code applies at checkout automatically.${expiry}`, align: "center" } },
+      { id: nextId(), type: "button", data: { label: "Shop now →", href: link, align: "center" } },
+      { id: nextId(), type: "spacer", data: { height: 16 } },
+    ];
+    setC({ ...c, blocks: [...c.blocks, ...blocks] });
+    setShowDiscountPicker(false);
+    toast.success(`Inserted ${d.code} CTA — auto-applies at checkout via the share link.`);
   };
   const removeBlock = (i) => setC({ ...c, blocks: c.blocks.filter((_, x) => x !== i) });
   const onDragStart = (i) => setDragIdx(i);
@@ -240,6 +266,32 @@ export default function AdminCampaignEditor() {
               </button>
             ))}
           </div>
+
+          <div className="border-t border-[#f4e4c6] my-3" />
+          <h3 className="font-accent font-bold mb-2 text-sm uppercase tracking-wider text-[#5a6b76]"><Tag className="w-4 h-4 inline" />Promo</h3>
+          {discounts.length === 0 ? (
+            <p className="text-xs text-[#6b7280] px-1">Create an active code in <Link to="/admin/discounts" className="text-[#5a8a6f] underline">Discounts</Link> to insert it here.</p>
+          ) : !showDiscountPicker ? (
+            <button onClick={() => setShowDiscountPicker(true)} className="w-full p-2 rounded-xl bg-[#fff8ec] hover:bg-[#fef0d8] border border-[#f4d59c] text-xs font-bold flex items-center justify-center gap-1" data-testid="insert-discount-cta">
+              <Tag className="w-4 h-4 text-[#a36b29]" /> Insert discount CTA
+            </button>
+          ) : (
+            <div className="space-y-1" data-testid="discount-picker">
+              {discounts.map((d) => (
+                <button key={d.id} onClick={() => insertDiscountCta(d.code)} className="w-full text-left text-xs p-2 rounded-xl hover:bg-[#eef9fb] border border-[#f4e4c6]" data-testid={`pick-code-${d.code}`}>
+                  <div className="font-mono font-bold text-[#5a8a6f]">{d.code}</div>
+                  <div className="text-[#6b7280] truncate">
+                    {d.type === "percent" && `${d.value}% off`}
+                    {d.type === "fixed" && `$${Number(d.value).toFixed(2)} off`}
+                    {d.type === "free_shipping" && "Free shipping"}
+                    {d.type === "bogo" && `BOGO ${d.bogo_product_slug || ""}`}
+                    {d.max_total_uses ? ` · ${d.usage_count || 0}/${d.max_total_uses} used` : ""}
+                  </div>
+                </button>
+              ))}
+              <button onClick={() => setShowDiscountPicker(false)} className="text-xs text-[#6b7280] mt-1">Cancel</button>
+            </div>
+          )}
         </aside>
       </div>
 
