@@ -253,6 +253,18 @@ async def seed_database(db) -> None:
                 "content": p["content"],
                 "updated_at": _now_iso(),
             })
+        else:
+            # Defense against testing-agent leaks: if any seeded page contains
+            # a TEST_marker_* sentinel in its content (left over from older
+            # admin-page e2e tests that didn't clean up), restore the canonical
+            # content so the live site never shows test scaffolding.
+            existing = await db.pages.find_one({"key": p["key"]}, {"_id": 0, "content": 1})
+            content_str = str((existing or {}).get("content") or "")
+            if "TEST_marker_" in content_str:
+                await db.pages.update_one(
+                    {"key": p["key"]},
+                    {"$set": {"content": p["content"], "updated_at": _now_iso()}},
+                )
 
     # --- Download categories ---
     for cat in DOWNLOAD_CATEGORIES:

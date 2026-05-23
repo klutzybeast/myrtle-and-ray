@@ -52,7 +52,9 @@ import AdminOrders from "@/pages/admin/AdminOrders";
 import AdminReadAloud from "@/pages/admin/AdminReadAloud";
 import AdminDiscounts from "@/pages/admin/AdminDiscounts";
 import AdminPenPals from "@/pages/admin/AdminPenPals";
+import AdminColoring from "@/pages/admin/AdminColoring";
 import PenPals from "@/pages/PenPals";
+import Coloring from "@/pages/Coloring";
 import CustomPage from "@/pages/CustomPage";
 import WaveBadges from "@/pages/WaveBadges";
 import MapPage from "@/pages/Map";
@@ -105,6 +107,7 @@ function App() {
               <Route path="/wave-badges" element={<PublicShell><WaveBadges /></PublicShell>} />
               <Route path="/read-aloud" element={<PublicShell><ReadAloud /></PublicShell>} />
               <Route path="/pen-pals" element={<PublicShell><PenPals /></PublicShell>} />
+              <Route path="/coloring" element={<PublicShell><Coloring /></PublicShell>} />
               <Route path="/shop" element={<PublicShell><Shop /></PublicShell>} />
               <Route path="/shop/:slug" element={<PublicShell><ShopDetail /></PublicShell>} />
               <Route path="/cart" element={<PublicShell><Cart /></PublicShell>} />
@@ -139,6 +142,7 @@ function App() {
                 <Route path="read-aloud" element={<AdminReadAloud />} />
                 <Route path="discounts" element={<AdminDiscounts />} />
                 <Route path="pen-pals" element={<AdminPenPals />} />
+                <Route path="coloring" element={<AdminColoring />} />
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
