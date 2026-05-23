@@ -804,3 +804,48 @@ Casey, Dani, Sami, Izzy, Louie, Billy, Frankie.
 - Tested: 17/17 Story Quest pytest pass. Gallery + per-quest splash
   + sing-along play screenshots all confirm working end-to-end.
 
+
+## What's been implemented (2026-02-23 — Beach theme complete)
+### All 10 Story Quests ready + all 10 sing-alongs generated
+- **Wrote scenes for the 9 remaining quests** (8 scenes each — intro
+  + 6 W.A.V.E. choice scenes + finale) in
+  `seed.py::ADDITIONAL_STORY_QUESTS_SCENES`:
+  1. First Day of Camp · 12 scenes (was ready)
+  2. The Lost Sea Glass Treasure · 8 scenes (Ray + crew detective)
+  3. Storm at Stingray Cay · 8 scenes (Ms Bluegill weathers it)
+  4. The First Camp Talent Show · 8 scenes (Sally + Louie spotlight)
+  5. Mystery of the Tide Pool · 8 scenes (Casey's curiosity arc)
+  6. Race to the Lighthouse · 8 scenes (Ray reconsiders winning)
+  7. Captain for a Day · 8 scenes (you steer the cay)
+  8. Friendship Fix-It · 8 scenes (Frankie + Billy lunch fight)
+  9. Surprise Birthday at Camp · 8 scenes (secret party for Casey)
+  10. Beach Cleanup Heroes · 8 scenes (turtle-saving teamwork)
+- Each scene's W.A.V.E. tagging is balanced so every quest has at
+  least one choice per principle. Narrators rotate per scene to give
+  variety (see `QUEST_NARRATORS_BY_SLUG`). Quiet mode works
+  immediately on the new quests — narration audio can be baked
+  later with `python scripts/generate_story_quest_audio.py`.
+- All 10 quests flipped to `status: ready` by the seeder once their
+  scenes are persisted. Admin can still flip them back to
+  "coming-soon" without losing the scene data.
+- 84 total scenes seeded; total quest-card surface area now ~10x.
+
+### Sing-Along — all 10 songs generated via ElevenLabs Music
+- Ran `scripts/generate_sing_along_audio.py` end-to-end. **All 10
+  songs synthesized successfully**, baked to
+  `/app/backend/seed_assets/sing_along/<slug>.mp3` (6.9 MB total),
+  and each row in `sing_along_songs` patched with the public
+  `audio_url`.
+- Per-song durations: 60s anthem ("Catch the W.A.V.E.") + 45s for
+  most + 40s for cheer/welcome songs + 50s finale ("The W.A.V.E.
+  Promise"). Average ~700 KB each.
+- Gallery shows 10 playable cards with no Lock badges; clicking
+  Play → sticky "Now Playing" panel with scrolling lyrics + native
+  controls. 11 backend pytest still green.
+
+### Asset list (committed for production deploy)
+- `/app/backend/seed_assets/sing_along/*.mp3` (10 files, 6.9 MB)
+- Existing `seed_assets/story_quest/*.mp3` for narration of quest 1
+- Both seed paths import on backend startup; production is fully
+  self-contained — zero ElevenLabs cost going forward.
+

@@ -1100,6 +1100,316 @@ STORY_QUEST_SCENES = [
 ]
 
 
+# ============================================================
+# Additional Story Quests — 8 scenes each, narrators rotate
+# ============================================================
+# Each quest reuses the same intro/finale rhythm: scene 1 is the hook
+# (3 choices, all valid), scenes 2-7 are the W.A.V.E. choice points,
+# scene 8 is the finale reveal. Narrators are picked to match the
+# story beat. Audio is generated lazily by the existing scene-audio
+# script once admin flips status to ready (or via the runtime
+# voice_router cache on first play).
+
+_FINALE_CHOICE = [
+    {"id": "a", "text": "Reveal my Sea Star!", "wave_principle": "welcome_curiosity",
+     "character_reaction": "The cay falls silent — your reveal is next..."},
+]
+
+
+def _q_finale_scene(scene_number: int, title: str, narrative: str) -> dict:
+    return {
+        "scene_number": scene_number,
+        "title": title,
+        "narrative": narrative,
+        "is_finale": True,
+        "choices": list(_FINALE_CHOICE),
+    }
+
+
+# Narrator rotation per quest — one Sea Star whose voice fits the
+# beat anchors each scene. Falls back to ms-bluegill if the slot is
+# unset.
+QUEST_NARRATORS_BY_SLUG: dict = {
+    "lost-sea-glass-treasure":  {1: "ray", 2: "myrtle", 3: "casey", 4: "ms-bluegill", 5: "ray", 6: "louie", 7: "myrtle", 8: "ray"},
+    "storm-at-stingray-cay":    {1: "ms-bluegill", 2: "ray", 3: "myrtle", 4: "casey", 5: "ms-bluegill", 6: "sally", 7: "myrtle", 8: "ms-bluegill"},
+    "first-camp-talent-show":   {1: "louie", 2: "sally", 3: "ms-bluegill", 4: "louie", 5: "myrtle", 6: "ollie", 7: "sally", 8: "ms-bluegill"},
+    "tide-pool-mystery":        {1: "casey", 2: "myrtle", 3: "casey", 4: "ms-bluegill", 5: "casey", 6: "ray", 7: "sally", 8: "casey"},
+    "race-to-the-lighthouse":   {1: "ray", 2: "myrtle", 3: "ray", 4: "casey", 5: "ollie", 6: "myrtle", 7: "ray", 8: "ms-bluegill"},
+    "captain-for-a-day":        {1: "ms-bluegill", 2: "ray", 3: "ms-bluegill", 4: "myrtle", 5: "casey", 6: "louie", 7: "sally", 8: "ms-bluegill"},
+    "friendship-fix-it":        {1: "myrtle", 2: "frankie", 3: "billy", 4: "ms-bluegill", 5: "myrtle", 6: "ollie", 7: "myrtle", 8: "myrtle"},
+    "surprise-birthday-at-camp":{1: "ollie", 2: "myrtle", 3: "louie", 4: "casey", 5: "ms-bluegill", 6: "sally", 7: "ollie", 8: "ollie"},
+    "beach-cleanup-heroes":     {1: "ms-bluegill", 2: "casey", 3: "ray", 4: "myrtle", 5: "ollie", 6: "louie", 7: "sally", 8: "ms-bluegill"},
+}
+
+
+def _wave_choices(triplet):
+    """Shorthand to build the 3-choice WAVE block used in every middle scene."""
+    return [
+        {"id": "a", "text": triplet[0][0], "wave_principle": "welcome_curiosity",     "character_reaction": triplet[0][1]},
+        {"id": "b", "text": triplet[1][0], "wave_principle": "act_with_kindness",     "character_reaction": triplet[1][1]},
+        {"id": "c", "text": triplet[2][0], "wave_principle": triplet[2][2] if len(triplet[2]) > 2 else "value_teamwork", "character_reaction": triplet[2][1]},
+    ]
+
+
+# Each value is a list of 8 scenes (1=intro with 3 wave-tagged choices, 2-7=choice scenes, 8=finale).
+ADDITIONAL_STORY_QUESTS_SCENES: dict = {
+    # ----- 2) The Lost Sea Glass Treasure -----
+    "lost-sea-glass-treasure": [
+        {"scene_number": 1, "title": "Ray's Empty Pocket", "is_intro": True,
+         "narrative": "Ray patted his swim pocket and his face fell. \"My sea glass collection is gone!\" The pieces had stories — blue from the bay, green from the reef, frosted white from the lighthouse. The crew gathered close. Where do you start looking?",
+         "choices": [
+            {"id": "a", "text": "\"Tell us where each piece came from — maybe we can retrace.\"", "wave_principle": "welcome_curiosity",
+             "character_reaction": "Ray's eyes light up. \"You really want to hear all of it?\" That kind of asking is the kind that finds lost things."},
+            {"id": "b", "text": "Give Ray a quick hug first — he looks sad.", "wave_principle": "act_with_kindness",
+             "character_reaction": "Ray squeezes back. \"I needed that. Thanks.\""},
+            {"id": "c", "text": "Round up the crew so we search together.", "wave_principle": "value_teamwork",
+             "character_reaction": "The crew falls in line, ready to comb the sand."},
+        ]},
+        {"scene_number": 2, "title": "Footprints in the Sand",
+         "narrative": "Myrtle finds zigzag footprints leading toward the dunes. They could be Ray's. Or someone else's. The dunes are tall and the path is windy.",
+         "choices": _wave_choices([
+            ("\"Whose feet make zigzags? Let's investigate!\"", "Myrtle smiles. \"Curious is half the search.\"", "welcome_curiosity"),
+            ("Carry Ray's bucket so he doesn't have to.", "Ray exhales. \"You're a good friend.\"", "act_with_kindness"),
+            ("Spread out so we cover both sides of the dune.", "The crew pairs up like a real search team.", "value_teamwork"),
+        ])},
+        {"scene_number": 3, "title": "Casey's Tide Pool Clue",
+         "narrative": "Casey is on her belly by a tide pool. \"Look — a piece of blue sea glass right here, but it's chipped.\" It looks like Ray's, but only one of many.",
+         "choices": _wave_choices([
+            ("\"Why is it chipped? What happened to the rest?\"", "Casey grins. \"Curiosity for the win.\"", "welcome_curiosity"),
+            ("Help Casey hop out so we don't slip together.", "Casey beams. \"Steady hands — thanks.\"", "act_with_kindness"),
+            ("\"Casey, will you be our scout from up high?\"", "Casey climbs a rock. \"I see something orange to the east!\"", "value_teamwork"),
+        ])},
+        {"scene_number": 4, "title": "Ms Bluegill's Map",
+         "narrative": "Ms Bluegill unrolls a hand-drawn map of the cay. \"If you found a clue at the tide pool, the wind might have blown the rest toward the leeward side.\" Her finger traces a slow path.",
+         "choices": _wave_choices([
+            ("\"What's leeward mean? Can you teach us?\"", "Ms Bluegill chuckles. \"That's the question of a true sailor.\"", "welcome_curiosity"),
+            ("Thank Ms Bluegill before we run off.", "Ms Bluegill's smile gets a little brighter.", "act_with_kindness"),
+            ("Split the map into sections so everyone helps.", "\"Now that's a captain's plan!\" Ms Bluegill says.", "value_teamwork"),
+        ])},
+        {"scene_number": 5, "title": "Ray Wants to Give Up",
+         "narrative": "Ray plops down on a log. \"Maybe it's just gone. Maybe the sea took it back.\" Big tears, quiet voice.",
+         "choices": _wave_choices([
+            ("\"Want me to keep looking with you?\"", "Ray nods. \"Yeah — with you, I do.\"", "welcome_curiosity"),
+            ("Sit close. Don't say anything yet. Just be there.", "Ray leans his head on your shoulder. Sometimes that's the kindest thing.", "act_with_kindness"),
+            ("\"You started this collection with friends — let's finish it with friends.\"", "Ray stands up. \"You're right. Team Ray, let's go!\"", "encourage_others"),
+        ])},
+        {"scene_number": 6, "title": "Louie's Tracking Beat",
+         "narrative": "Louie taps a beat on a bucket. \"If we drum, we'll all stay in step — and we won't lose each other on the long path.\" It actually works.",
+         "choices": _wave_choices([
+            ("\"Show me how to drum like that!\"", "Louie hands you a stick. \"Curious drummers are the best drummers.\"", "welcome_curiosity"),
+            ("Carry the bucket so Louie's arms don't get tired.", "Louie grins. \"That's a kindness move.\"", "act_with_kindness"),
+            ("\"Everybody — keep our drummer in the middle!\"", "The crew curls protectively around Louie. That's a team.", "value_teamwork"),
+        ])},
+        {"scene_number": 7, "title": "The Last Pouch",
+         "narrative": "Beyond a sea-grape tree, a small pouch lies in the sand — Ray's missing pouch! But it's split open, and a few pieces have rolled into the surf line. The waves are coming in fast.",
+         "choices": _wave_choices([
+            ("Sprint and grab as many as I can!", "You scoop, scoop, scoop. Six pieces saved.", "act_with_kindness"),
+            ("Form a chain so we don't get pulled in.", "Hand to hand, the crew works like a tide-net.", "value_teamwork"),
+            ("\"Ray — pick last, you choose the rescue order!\"", "Ray's smile is shaky and proud. \"Thanks for letting me lead.\"", "encourage_others"),
+        ])},
+        _q_finale_scene(8, "Treasure Found",
+            "Ray spills the pouch onto the picnic table. Every piece is there — even the chipped blue one. He looks at you, surprised. \"You didn't just find my sea glass. You found why I keep it.\""),
+    ],
+    # ----- 3) Storm at Stingray Cay -----
+    "storm-at-stingray-cay": [
+        {"scene_number": 1, "title": "Clouds Rolling In", "is_intro": True,
+         "narrative": "Ms Bluegill pointed at the sky. \"That's a fast one — half an hour, maybe less.\" The wind picked up. Towels flapped. The crew turned to you.",
+         "choices": [
+            {"id": "a", "text": "\"What kind of storm is it? How do we know?\"", "wave_principle": "welcome_curiosity",
+             "character_reaction": "Ms Bluegill loves teaching. \"Pop quiz coming!\""},
+            {"id": "b", "text": "Help Sally — she looks scared.", "wave_principle": "act_with_kindness",
+             "character_reaction": "Sally squeezes your hand. \"You're brave.\""},
+            {"id": "c", "text": "\"Crew — let's pack up FAST and together!\"", "wave_principle": "value_teamwork",
+             "character_reaction": "Hands fly. Buckets close. The cay readies in record time."},
+        ]},
+        {"scene_number": 2, "title": "Ray's Surfboard", "narrative": "Ray's board is still tied to the lifeguard rail. The wind is pulling at the knot.",
+         "choices": _wave_choices([("\"Show me how you tied that knot, Ray!\"", "Ray demos a quick bowline. \"Learn-as-we-go!\"", "welcome_curiosity"), ("Hold the board steady while Ray unties.", "Ray flashes a thumbs up. \"Hero move.\"", "act_with_kindness"), ("Call two more friends to help carry it inside.", "Three of you carry it like a long surfy sleigh.", "value_teamwork")])},
+        {"scene_number": 3, "title": "Myrtle's Slow Pace", "narrative": "Myrtle moves at Myrtle speed. The storm doesn't care.",
+         "choices": _wave_choices([("\"Myrtle, what's your strategy when you can't go fast?\"", "Myrtle smiles. \"I walk steady. Steady wins, too.\"", "welcome_curiosity"), ("Walk beside her so she's not alone.", "Myrtle's eyes get warm. \"I love a walking buddy.\"", "act_with_kindness"), ("\"Crew — slow down so we arrive together!\"", "The whole crew syncs to Myrtle's pace. Nobody left behind.", "value_teamwork")])},
+        {"scene_number": 4, "title": "Casey Spots Something", "narrative": "Casey points at a small crab who's stuck in the path of a tumbling sand bucket.",
+         "choices": _wave_choices([("\"Hi crab — let's see what you're up to.\"", "Casey giggles. \"Crab interview!\"", "welcome_curiosity"), ("Carefully move the crab to a safer spot.", "The crab scuttles off. Casey claps once.", "act_with_kindness"), ("\"Two hands — one on the bucket, one near the crab.\"", "You and Casey work like one careful machine.", "value_teamwork")])},
+        {"scene_number": 5, "title": "Inside the Lodge", "narrative": "The first big raindrops hit the porch. Everyone is in except… is everyone in?",
+         "choices": _wave_choices([("\"Let's count heads — who's our caboose?\"", "Heads count out: 1, 2… 7. We need 8.", "welcome_curiosity"), ("Stand at the door and call names so no one feels lost.", "Voices answer back from the rain. Found!", "act_with_kindness"), ("Send a buddy pair to the path to find the missing one.", "Two friends head out together, holding hands.", "value_teamwork")])},
+        {"scene_number": 6, "title": "Sally Cries", "narrative": "Thunder cracks and Sally's shoulders shake.",
+         "choices": _wave_choices([("\"Sally, want to tell me your storm story?\"", "Sally tells a tiny brave one. The thunder gets quieter.", "welcome_curiosity"), ("Wrap Sally in a beach blanket and sit close.", "Sally's breath slows. \"Better.\"", "act_with_kindness"), ("\"Sally — you're SO brave being here right now!\"", "Sally smiles a watery smile. \"Really?\" \"Really.\"", "encourage_others")])},
+        {"scene_number": 7, "title": "The Rain Lets Up", "narrative": "Sun pokes through. Puddles everywhere. The crew sighs in relief.",
+         "choices": _wave_choices([("\"Look at the rainbow! How does that even WORK?!\"", "Myrtle says, \"Curiosity after a storm is the best kind.\"", "welcome_curiosity"), ("Hand Sally the first towel.", "Sally hugs it. \"You always think of me.\"", "act_with_kindness"), ("\"Group hug — we made it together!\"", "The crew piles in. Even Ms Bluegill joins.", "value_teamwork")])},
+        _q_finale_scene(8, "After the Storm",
+            "Ms Bluegill sets out hot cocoa. \"Storms test the cay, but you kept the crew calm.\" She winks. \"You'd make a fine captain.\""),
+    ],
+    # ----- 4) First Camp Talent Show -----
+    "first-camp-talent-show": [
+        {"scene_number": 1, "title": "The Stage is Set", "is_intro": True,
+         "narrative": "A tiny driftwood stage. Streamers. Twenty butterflies in twenty bellies. Louie was warming up his drumsticks. Sally was hiding behind the curtain. \"What kind of talent show should it be?\" Ms Bluegill asked.",
+         "choices": [
+            {"id": "a", "text": "\"Can we INVENT a brand-new act together?\"", "wave_principle": "welcome_curiosity", "character_reaction": "Louie's eyes light up. \"YES.\""},
+            {"id": "b", "text": "Sneak backstage and tell Sally she'll be great.", "wave_principle": "act_with_kindness", "character_reaction": "Sally peeks out. \"You think so?\""},
+            {"id": "c", "text": "\"Let's make a group number so nobody's alone up there.\"", "wave_principle": "value_teamwork", "character_reaction": "The crew huddles up. \"Now THAT'S a plan!\""},
+        ]},
+        {"scene_number": 2, "title": "Sally Wants to Hide", "narrative": "Sally is curled up small. \"I want to disappear.\"",
+         "choices": _wave_choices([("\"What's the part you're most scared of?\"", "Sally whispers, \"forgetting the words.\" \"Then I'll be your reminder.\"", "welcome_curiosity"), ("Hold Sally's hand. No words needed.", "Sally squeezes back twice. Friend code.", "act_with_kindness"), ("\"What if I'm right next to you the whole song?\"", "Sally exhales. \"You'd do that?\"", "encourage_others")])},
+        {"scene_number": 3, "title": "Louie's New Beat", "narrative": "Louie taught everyone a clap-stomp pattern. Some got it. Some flipped it backwards.",
+         "choices": _wave_choices([("\"Wait — what if we LIKE the backwards version?\"", "Louie grins. \"Backwards is forwards if everyone's smiling.\"", "welcome_curiosity"), ("Practice extra with whoever's struggling.", "Frankie picks it up. Hi-five.", "act_with_kindness"), ("\"Front row: clap. Back row: stomp. Together we make the beat.\"", "Louie nods. \"Now THAT'S an arrangement.\"", "value_teamwork")])},
+        {"scene_number": 4, "title": "Ms Bluegill's Surprise", "narrative": "Ms Bluegill held up a kazoo. \"I'd like to be in the act too — but only if everyone's okay with it.\"",
+         "choices": _wave_choices([("\"YES — what part can you take?\"", "Ms Bluegill kazoos a triumphant trill.", "welcome_curiosity"), ("Hand Ms Bluegill the front mic spot.", "Ms Bluegill bows. \"That kindness will go in my journal tonight.\"", "act_with_kindness"), ("\"Counselors AND campers — equal time!\"", "Ms Bluegill clinks her kazoo to your sand-pail drum.", "value_teamwork")])},
+        {"scene_number": 5, "title": "The First Mistake", "narrative": "Mid-rehearsal, Sally went the wrong way. The whole formation snarled.",
+         "choices": _wave_choices([("\"Wait — that looked kinda cool actually!\"", "Louie shouts, \"KEEP THE SNARL — it's our signature move!\"", "welcome_curiosity"), ("Touch Sally's arm. \"Easy fix.\" Smile.", "Sally's shoulders drop. \"Phew.\"", "act_with_kindness"), ("Restart from the top. Everyone laughing.", "The do-over is better. Mistakes can do that.", "value_teamwork")])},
+        {"scene_number": 6, "title": "Ollie's Big Cheer", "narrative": "Ollie burst into the rehearsal: \"Y'ALL ARE GONNA NAIL IT.\" Sally froze again.",
+         "choices": _wave_choices([("\"Ollie — quieter cheers near Sally?\"", "Ollie cups his hands. \"Like this?\" Whisper-cheer.", "welcome_curiosity"), ("Stand between Ollie and Sally. Body-shield of love.", "Sally peeks out from behind you. Smiles a little.", "act_with_kindness"), ("\"Ollie, you've got the loudest cheer at intermission — promise?\"", "Ollie pinky-promises. He'll hold it in until the right moment.", "encourage_others")])},
+        {"scene_number": 7, "title": "Showtime!", "narrative": "Lights. Audience. The opening note — a kazoo trill, exactly as planned. Then the clap-stomp.",
+         "choices": _wave_choices([("Lean into the FUN — try a tiny improv move!", "The crowd HOWLS. Louie wails on the drum.", "welcome_curiosity"), ("Pass the mic line by line — everyone shines.", "Each Sea Star gets their moment.", "act_with_kindness"), ("Whisper Sally's first lyric to her — just in case.", "Sally smiles, finds her voice, and sings the rest unaided.", "encourage_others")])},
+        _q_finale_scene(8, "Bow Together",
+            "The curtain falls. The cay claps. Ms Bluegill wipes a kazoo-tear. \"That was the warmest stage I've ever seen — because you held it up together.\""),
+    ],
+    # ----- 5) Mystery of the Tide Pool -----
+    "tide-pool-mystery": [
+        {"scene_number": 1, "title": "Something Blue", "is_intro": True,
+         "narrative": "Casey lay belly-flat at the edge of a tide pool. \"There's something blue under the kelp,\" she whispered. \"It moved.\" The crew tip-toed up.",
+         "choices": [
+            {"id": "a", "text": "\"Let's watch quietly for one minute — see what it does.\"", "wave_principle": "welcome_curiosity", "character_reaction": "Casey beams. \"Investigator brain — yes.\""},
+            {"id": "b", "text": "Make sure nobody splashes — gentle vibes only.", "wave_principle": "act_with_kindness", "character_reaction": "The pool stays still. Whatever it is, it can feel us being kind."},
+            {"id": "c", "text": "\"Casey — you lead. We'll be your back-up scientists.\"", "wave_principle": "value_teamwork", "character_reaction": "Casey blossoms. \"REALLY?\""},
+        ]},
+        {"scene_number": 2, "title": "It's a... Hat?", "narrative": "A little blue rim peeks above the kelp. It's a child-sized snorkel hat.",
+         "choices": _wave_choices([("\"How did a HAT get all the way in there?!\"", "Casey laughs. \"That's the right question.\"", "welcome_curiosity"), ("Reach in slowly so we don't scare the tide-pool creatures.", "A tiny hermit crab waves a claw at you.", "act_with_kindness"), ("Hand it to Casey first — her discovery.", "Casey's grin is the brightest in the cay.", "value_teamwork")])},
+        {"scene_number": 3, "title": "Who Lost the Hat?", "narrative": "Casey holds the hat up. \"This belongs to somebody. We should find them.\"",
+         "choices": _wave_choices([("\"Where do new campers go first? Let's start there.\"", "Casey nods. \"Detective brain UNLOCKED.\"", "welcome_curiosity"), ("Carry the hat carefully — water can ruin the fabric.", "Casey approves. \"You're already a steward.\"", "act_with_kindness"), ("\"Crew, fan out and ask three campers each.\"", "The crew scatters like a friendly search team.", "value_teamwork")])},
+        {"scene_number": 4, "title": "Ms Bluegill Has Records", "narrative": "Ms Bluegill flipped her camper journal. \"Three blue hats issued this week. Let me check who hasn't checked theirs in.\"",
+         "choices": _wave_choices([("\"What do you write in that journal?\"", "Ms Bluegill winks. \"Wonders like yours.\"", "welcome_curiosity"), ("Wait patiently while she checks. Hand her a pencil.", "Ms Bluegill smiles. \"You'd be a great librarian.\"", "act_with_kindness"), ("\"Crew, while we wait, we'll ask the lunch line!\"", "Off you go in pairs. Efficient.", "value_teamwork")])},
+        {"scene_number": 5, "title": "A Sad Camper", "narrative": "Behind the kayak shed, a small camper is crying. No hat.",
+         "choices": _wave_choices([("\"Hi! Casey found something blue. Could it be yours?\"", "Their eyes go huge. \"MY HAT!!\"", "welcome_curiosity"), ("Sit down next to them first. Talk after.", "Their shoulders soften. They wipe a tear.", "act_with_kindness"), ("\"Casey — come quick! She's the owner!\"", "Casey jogs up holding the hat like a crown.", "value_teamwork")])},
+        {"scene_number": 6, "title": "Ray Wants Credit", "narrative": "Ray pops over. \"I saw the hat first this morning, actually — kind of.\"",
+         "choices": _wave_choices([("\"Cool! What did it look like in the morning light?\"", "Ray softens — feels heard, not corrected.", "welcome_curiosity"), ("Tell Ray: \"There's enough hat-hero credit to share.\"", "Ray's chest puffs. \"Yeah… yeah!\"", "act_with_kindness"), ("\"Casey FOUND it — let her have the cheer.\"", "Ray turns and whoops the loudest for Casey.", "encourage_others")])},
+        {"scene_number": 7, "title": "Tide Pool Promise", "narrative": "Casey kneels at the tide pool again. \"I want to keep checking it every day. Want to be my partner?\"",
+         "choices": _wave_choices([("\"YES. Daily wonder check!\"", "Casey makes a tiny note in her sand-journal.", "welcome_curiosity"), ("Bring snacks. Wonder is hungry work.", "Casey laughs. \"You GET me.\"", "act_with_kindness"), ("\"Let's invite a different camper every day — share the wonder.\"", "Casey's eyes shine. \"That's how a cay gets curious together.\"", "encourage_others")])},
+        _q_finale_scene(8, "Curious Forever",
+            "The tide pool ripples. A small fish darts. Casey holds up her sand-journal: \"Hat: returned. Wonder: forever.\" You both nod."),
+    ],
+    # ----- 6) Race to the Lighthouse -----
+    "race-to-the-lighthouse": [
+        {"scene_number": 1, "title": "On Your Marks", "is_intro": True,
+         "narrative": "Ms Bluegill drew a line in the sand. \"To the lighthouse and back!\" Ray was bouncing. Sami was double-knotting his shoe. Sally hung back. The cay sun was warm.",
+         "choices": [
+            {"id": "a", "text": "\"What's the strategy for the path? Sand or stairs?\"", "wave_principle": "welcome_curiosity", "character_reaction": "Ray loves a tactics question. \"Stairs! Faster grip!\""},
+            {"id": "b", "text": "Tie Sally's other shoe — she missed one.", "wave_principle": "act_with_kindness", "character_reaction": "Sally smiles. \"You noticed.\""},
+            {"id": "c", "text": "\"Crew, let's finish together, not separate.\"", "wave_principle": "value_teamwork", "character_reaction": "Ms Bluegill nods. \"Now that's a race.\""},
+        ]},
+        {"scene_number": 2, "title": "Sami Slips", "narrative": "Halfway up the path, Sami slipped and skinned a knee. Ray is already at the top of the dune.",
+         "choices": _wave_choices([("\"Sami, where exactly does it hurt?\"", "Sami says, \"Just my pride. And a tiny bit my knee.\"", "welcome_curiosity"), ("Sit with Sami. Race can wait.", "Sami's eyes get watery. \"Thanks.\"", "act_with_kindness"), ("Call up to Ray: \"Come back — we've got an injury!\"", "Ray slides back down without hesitating.", "value_teamwork")])},
+        {"scene_number": 3, "title": "Ray's Choice", "narrative": "Ray skidded down to you both. \"I was about to WIN.\" His face was caught between glory and friend.",
+         "choices": _wave_choices([("\"Tell me your win-feeling — and then we'll decide together.\"", "Ray laughs. \"It feels like fireworks.\"", "welcome_curiosity"), ("Hand Ray a water bottle. \"Drink. Think.\"", "Ray sips. The hot rush of want cools a little.", "act_with_kindness"), ("\"What if we ALL get to the top, just slower?\"", "Ray nods slowly. \"That… is a different kind of fast.\"", "value_teamwork")])},
+        {"scene_number": 4, "title": "Casey's Crab Crossing", "narrative": "A line of tiny crabs marched across the path. Sami pointed: \"Don't step!\"",
+         "choices": _wave_choices([("\"How many do you think there are?\"", "Casey murmurs counts. Casey is in heaven.", "welcome_curiosity"), ("Step over them carefully — every kid.", "The crabs are unbothered. Score one for kindness.", "act_with_kindness"), ("\"Hold hands — line of legs that crabs can pass under.\"", "It's silly. It works. Crabs file through.", "value_teamwork")])},
+        {"scene_number": 5, "title": "Ollie's Cheer From Below", "narrative": "From the beach, Ollie's voice rang up: \"GO GO GO!\"",
+         "choices": _wave_choices([("\"OLLIE — sing it with our names!\"", "Ollie boomed each name like a parade announcer.", "welcome_curiosity"), ("Wave back so Ollie knows you heard.", "Ollie's whole body wiggles in answer.", "act_with_kindness"), ("\"Sami — that's YOUR name in the cheer!\"", "Sami stands a little taller and limps less.", "encourage_others")])},
+        {"scene_number": 6, "title": "Myrtle on the Stairs", "narrative": "Myrtle was on step one. Step two looked far away. \"You go ahead.\"",
+         "choices": _wave_choices([("\"What's the rhythm that works for you?\"", "Myrtle taught you a 1-2-rest count. Beautiful.", "welcome_curiosity"), ("Walk one step behind Myrtle so she's not alone.", "Myrtle hums. \"Best stair partner.\"", "act_with_kindness"), ("\"Crew — Myrtle pace, all of us!\"", "The whole line slows. Together-tempo unlocked.", "value_teamwork")])},
+        {"scene_number": 7, "title": "The Top", "narrative": "The lighthouse railing was warm under your hands. Sami got there. Sally got there. Myrtle got there. Ray held the door.",
+         "choices": _wave_choices([("\"Whoaaa — look at the cay from up here!\"", "The crew gasps together at the blue.", "welcome_curiosity"), ("Pass around water. Tired = thirsty.", "Hands reach. Smiles flicker.", "act_with_kindness"), ("\"FIRST PLACE GOES TO… EVERYONE.\"", "The cay below claps so loud you can hear it.", "encourage_others")])},
+        _q_finale_scene(8, "Race Won, Friends Kept",
+            "Ms Bluegill met you at the bottom with eight medals. \"You ran the kind of race I'll remember.\" Sami hugged you. Ray hugged Sami. The cay hummed."),
+    ],
+    # ----- 7) Captain for a Day -----
+    "captain-for-a-day": [
+        {"scene_number": 1, "title": "The Captain's Hat", "is_intro": True,
+         "narrative": "Ms Bluegill plopped a captain's hat on your head. \"Today, you steer.\" The whole crew waited. The hat felt enormous and also exactly right.",
+         "choices": [
+            {"id": "a", "text": "\"Ms Bluegill — what's the best thing about being captain?\"", "wave_principle": "welcome_curiosity", "character_reaction": "Ms Bluegill grins. \"Hearing your crew, captain.\""},
+            {"id": "b", "text": "Check in with each crew member before we set out.", "wave_principle": "act_with_kindness", "character_reaction": "Each one feels seen. That's a captain's first move."},
+            {"id": "c", "text": "\"Crew — what do YOU want to do today?\"", "wave_principle": "value_teamwork", "character_reaction": "Hands shoot up everywhere. So many ideas!"},
+        ]},
+        {"scene_number": 2, "title": "Plotting the Course", "narrative": "Ray suggested surfing. Casey wanted tide-pool research. Louie wanted a parade. Sally wanted a quiet picnic. They all looked at you.",
+         "choices": _wave_choices([("\"What if today has EVERY kind of thing — a little of each?\"", "Ms Bluegill mouths, \"Captain energy.\"", "welcome_curiosity"), ("Promise each one out loud: \"Your idea will happen today.\"", "Four small fist-pumps from four happy Sea Stars.", "act_with_kindness"), ("\"Crew, vote on the ORDER together.\"", "Hands and laughs. Order set: parade → tide → surf → picnic.", "value_teamwork")])},
+        {"scene_number": 3, "title": "Myrtle Pauses", "narrative": "Mid-parade, Myrtle stopped. \"I don't think I can keep up with this pace, Captain.\"",
+         "choices": _wave_choices([("\"What pace IS yours, Myrtle?\"", "Myrtle says \"steady.\" \"Then steady wins.\"", "welcome_curiosity"), ("Slow the whole parade down. \"New tempo, crew!\"", "Myrtle's eyes get warm. Captain magic.", "act_with_kindness"), ("\"Myrtle — you set the beat. We'll match.\"", "Myrtle taps a slow drum. The crew syncs.", "value_teamwork")])},
+        {"scene_number": 4, "title": "Casey's Tide Pool Plan", "narrative": "At the tide pool, Casey wanted to investigate alone. The crew was getting restless.",
+         "choices": _wave_choices([("\"Casey — invite us in on one cool thing.\"", "Casey teaches the whole crew about anemones. Best tide-pool moment ever.", "welcome_curiosity"), ("\"Crew — five-minute silent investigation, then we share.\"", "The cay goes still. Then explodes with sharing.", "act_with_kindness"), ("Pair up the loudest kid with Casey. Watch them quiet.", "Frankie hushes to a whisper. \"Whoa.\"", "value_teamwork")])},
+        {"scene_number": 5, "title": "Sally's Picnic", "narrative": "Sally laid out the blanket and froze. \"I made the menu. What if everyone hates it?\"",
+         "choices": _wave_choices([("\"Walk me through your menu — I'm curious.\"", "Sally describes each item with shy pride.", "welcome_curiosity"), ("Sit down first. Say loudly: \"This looks PERFECT.\"", "Sally's worried face softens into a smile.", "act_with_kindness"), ("\"Sally, you cooked — we serve. Tell us where to start.\"", "Sally hands you the platter like a director.", "encourage_others")])},
+        {"scene_number": 6, "title": "Ray's Big Surf", "narrative": "Ray bounded toward a big wave. \"CAPTAIN, can I show the crew my move?\"",
+         "choices": _wave_choices([("\"What's the move called?!\"", "Ray names it: \"The Sea Star Spin.\"", "welcome_curiosity"), ("Make sure Ms Bluegill is nearby first.", "Captain instinct. Ms Bluegill nods, \"Cleared.\"", "act_with_kindness"), ("\"Crew — let's cheer Ray from the shore!\"", "Ray nails the spin. The cay goes wild.", "encourage_others")])},
+        {"scene_number": 7, "title": "Returning the Hat", "narrative": "Sundown. Ms Bluegill held out her hand. \"How does it feel to give the hat back?\"",
+         "choices": _wave_choices([("\"Heavy. And awesome. How do you do it every day?\"", "Ms Bluegill laughs. \"Same as you did. Listening.\"", "welcome_curiosity"), ("Tell the crew thank you, by name.", "Eight names. Eight smiles. Captain's last act.", "act_with_kindness"), ("\"I want all of us to wear it for one minute each.\"", "The hat travels around the circle. Everyone's a captain.", "encourage_others")])},
+        _q_finale_scene(8, "First Mate Forever",
+            "Ms Bluegill tucked the hat back on its peg. \"You weren't captain because of the hat. You were captain because of how you led.\" She winked. \"First mate for life.\""),
+    ],
+    # ----- 8) Friendship Fix-It -----
+    "friendship-fix-it": [
+        {"scene_number": 1, "title": "Lunchtime Argument", "is_intro": True,
+         "narrative": "Frankie and Billy were on opposite sides of the table, arms crossed. Myrtle was already there, ready to help, but she looked over at you. \"You're better at this than you think.\"",
+         "choices": [
+            {"id": "a", "text": "\"Frankie, Billy — what happened? Tell me both sides.\"", "wave_principle": "welcome_curiosity", "character_reaction": "Both start talking at once. That's a start."},
+            {"id": "b", "text": "Sit down BETWEEN them. \"Both of you matter to me.\"", "wave_principle": "act_with_kindness", "character_reaction": "Frankie's arms loosen by an inch. Billy's by half.", },
+            {"id": "c", "text": "\"Myrtle, will you help us all listen?\"", "wave_principle": "value_teamwork", "character_reaction": "Myrtle smiles. \"That's leadership.\""},
+        ]},
+        {"scene_number": 2, "title": "Frankie's Story", "narrative": "Frankie's voice shook. \"Billy said my drawing was weird.\"",
+         "choices": _wave_choices([("\"Tell me about the drawing — I want to see it!\"", "Frankie's face lights up despite the tears.", "welcome_curiosity"), ("\"That hurt. I'm sorry it hurt.\"", "Frankie sniffles. \"Yeah. It really did.\"", "act_with_kindness"), ("\"Billy — Frankie's saying their feelings. Just listen first.\"", "Billy's mouth closes. He nods.", "value_teamwork")])},
+        {"scene_number": 3, "title": "Billy's Side", "narrative": "Billy stared at the table. \"I meant cool-weird. I always say weird when I mean cool. I don't know other words yet.\"",
+         "choices": _wave_choices([("\"What's another word you'd use? Let's brainstorm.\"", "Frankie laughs. \"Funky? Awesome? Wow?\" Billy lights up.", "welcome_curiosity"), ("\"Billy, that took courage to say.\"", "Billy looks up for the first time. \"Yeah?\"", "act_with_kindness"), ("\"Frankie — does that change how it landed?\"", "Frankie nods slowly. \"Mostly.\"", "encourage_others")])},
+        {"scene_number": 4, "title": "Ms Bluegill Passes By", "narrative": "Ms Bluegill paused, started to step in, then stopped. \"You've got this. Want me to stay or go?\"",
+         "choices": _wave_choices([("\"Stay — but be a wall, not a fixer.\"", "Ms Bluegill takes the wall position. Just present.", "welcome_curiosity"), ("\"We're okay. We'll find you if we get stuck.\"", "Ms Bluegill walks away smiling. \"Captain energy, kid.\"", "act_with_kindness"), ("\"Stay — we might need a witness.\"", "Ms Bluegill stays quietly. Witnesses matter.", "value_teamwork")])},
+        {"scene_number": 5, "title": "The Apology", "narrative": "Billy looked at Frankie. \"I'm sorry. I'll learn cool-words.\" Frankie wasn't quite ready.",
+         "choices": _wave_choices([("\"Frankie — what would help you feel better?\"", "Frankie thinks. \"Maybe… see his drawings too?\"", "welcome_curiosity"), ("Tell Billy: \"That was a good apology.\"", "Billy almost cries from relief.", "act_with_kindness"), ("\"What about a drawing-trade right now?\"", "Both pull out paper. Magic.", "value_teamwork")])},
+        {"scene_number": 6, "title": "Ollie Comes Cheering", "narrative": "Ollie skidded up. \"WHAT'S HAPPENING IS IT FIXED YET?!\"",
+         "choices": _wave_choices([("\"Ollie — quiet mode? They're almost there.\"", "Ollie clamps his hands over his mouth. Stays.", "welcome_curiosity"), ("\"Ollie, can you cheer when it's fully fixed, not yet?\"", "Ollie nods. \"On standby!\"", "act_with_kindness"), ("\"Ollie — your moment will be HUGE. Save it!\"", "Ollie quivers with held-back cheer.", "encourage_others")])},
+        {"scene_number": 7, "title": "Drawings Traded", "narrative": "Frankie's drawing and Billy's drawing sat side by side. Frankie smiled small. Billy smiled smaller. Both real.",
+         "choices": _wave_choices([("\"What if we make a CRAFT TABLE every lunch?\"", "Myrtle claps. \"Now that's a tradition!\"", "welcome_curiosity"), ("Hug both of them at once.", "Three-way squish. Tears mostly dried.", "act_with_kindness"), ("\"OLLIE — NOW.\"", "Ollie EXPLODES with cheer. The lunch tent shakes.", "encourage_others")])},
+        _q_finale_scene(8, "Mended",
+            "Myrtle squeezes your shoulder. \"You didn't fix THEM. You held the room so they could fix each other. That's the Sea Star way.\""),
+    ],
+    # ----- 9) Surprise Birthday at Camp -----
+    "surprise-birthday-at-camp": [
+        {"scene_number": 1, "title": "Top-Secret Mission", "is_intro": True,
+         "narrative": "Ollie pulled you behind the boathouse. \"It's Casey's birthday. She doesn't know we know. We have ONE HOUR.\" His grin was bigger than the moon.",
+         "choices": [
+            {"id": "a", "text": "\"Ollie — what does Casey LOVE love?\"", "wave_principle": "welcome_curiosity", "character_reaction": "Ollie lists: tide pools, blue, glitter, hush surprises. Notebooks fly open."},
+            {"id": "b", "text": "Keep Casey busy so she doesn't notice the prep.", "wave_principle": "act_with_kindness", "character_reaction": "You can already see Casey's face when she finds out.",},
+            {"id": "c", "text": "\"Crew — assign roles. Go!\"", "wave_principle": "value_teamwork", "character_reaction": "Ollie salutes. The Sea Star army mobilizes.",},
+        ]},
+        {"scene_number": 2, "title": "Myrtle's Cake Plan", "narrative": "Myrtle is mixing. \"Can you write the icing letters? My hands are slow today.\"",
+         "choices": _wave_choices([("\"What font do you think Casey will love?\"", "Myrtle laughs. \"Wavy.\" You make every letter a wave.", "welcome_curiosity"), ("\"I've got it — you rest.\"", "Myrtle pats your back. \"Best assistant.\"", "act_with_kindness"), ("Call two crew members to help mix.", "Three sets of hands. The bowl moves fast.", "value_teamwork")])},
+        {"scene_number": 3, "title": "Louie's Drum Reveal", "narrative": "Louie wants to do a drum roll for the moment. \"Do I drum quietly first or LOUD right away?\"",
+         "choices": _wave_choices([("\"Quiet — then BOOM. Build it.\"", "Louie practices. The build is goose-bumpy.", "welcome_curiosity"), ("\"Whichever feels best to YOU, Louie.\"", "Louie picks his own arc. Pride in his eyes.", "act_with_kindness"), ("\"Decide together — Sally, what do YOU think?\"", "Sally whispers her vote. Louie nods solemnly.", "value_teamwork")])},
+        {"scene_number": 4, "title": "Casey's Almost Caught", "narrative": "Casey is walking right toward the boathouse. ETA: 2 minutes.",
+         "choices": _wave_choices([("Block her path: \"CASEY! New tide pool to investigate — RIGHT NOW!\"", "Casey's eyes saucer. She abandons her current course.", "welcome_curiosity"), ("Walk with her in the opposite direction — gentle redirect.", "She doesn't suspect a thing.", "act_with_kindness"), ("Send a runner to the boathouse: \"3-2-1 — FINISH UP!\"", "The crew goes into overdrive.", "value_teamwork")])},
+        {"scene_number": 5, "title": "Ms Bluegill's Touch", "narrative": "Ms Bluegill arrives with a wrapped book. \"This was MY favorite when I was Casey's age.\"",
+         "choices": _wave_choices([("\"Tell us why YOU loved it!\"", "Ms Bluegill reads the first line. The crew's eyes shine.", "welcome_curiosity"), ("Add a handmade bookmark from the crew.", "Eight signatures. Ms Bluegill tears up.", "act_with_kindness"), ("\"Open it together as a crew when she reads it later!\"", "Ms Bluegill loves the idea. Plan locked.", "value_teamwork")])},
+        {"scene_number": 6, "title": "Sally's Worry", "narrative": "Sally tugs your sleeve. \"What if she doesn't like surprises?\"",
+         "choices": _wave_choices([("\"What's a quiet way to surprise her, just in case?\"", "Sally has a beautiful idea — soft music first.", "welcome_curiosity"), ("\"Sally, you stay right by her side — your job is calm.\"", "Sally's chest swells. \"I can do that.\"", "act_with_kindness"), ("\"Sally — you've got the SECRET WEAPON: the calm.\"", "Sally smiles small. \"Best gift role.\"", "encourage_others")])},
+        {"scene_number": 7, "title": "Surprise!", "narrative": "Casey turned the corner. Sally took her hand. Louie drummed quiet… louder… louder. Then — \"SURPRISE!\" Casey's mouth fell open.",
+         "choices": _wave_choices([("\"Casey — what's your wish?\"", "Casey closes her eyes. The cay holds its breath.", "welcome_curiosity"), ("Give Casey a moment before everyone descends.", "She breathes once. Then beams.", "act_with_kindness"), ("\"Cake-cutting team — Casey picks the order!\"", "Casey directs the room like a small wonderful queen.", "encourage_others")])},
+        _q_finale_scene(8, "Quietly Loud",
+            "Casey hugged the book. She hugged Sally. She hugged you. \"It was the kind of surprise that didn't scare me. That's the best kind.\""),
+    ],
+    # ----- 10) Beach Cleanup Heroes -----
+    "beach-cleanup-heroes": [
+        {"scene_number": 1, "title": "The Morning Mess", "is_intro": True,
+         "narrative": "The tide pulled out and the beach was… not the beach. Plastic. Tangles. A balloon string. Ms Bluegill held up a bag. \"Who's in?\"",
+         "choices": [
+            {"id": "a", "text": "\"Whoa — where does all this come from?\"", "wave_principle": "welcome_curiosity", "character_reaction": "Ms Bluegill smiles. \"Big questions before big work — yes.\""},
+            {"id": "b", "text": "Hand out bags to anyone without one.", "wave_principle": "act_with_kindness", "character_reaction": "Hands fill up. Smiles too."},
+            {"id": "c", "text": "\"Crew — divide the beach in sections!\"", "wave_principle": "value_teamwork", "character_reaction": "Eight tiny scientists with eight bags. Off you go."},
+        ]},
+        {"scene_number": 2, "title": "Casey's Find", "narrative": "Casey held up a six-pack ring. \"This catches turtles.\" Her face was serious.",
+         "choices": _wave_choices([("\"What else does it catch? How do we cut it safely?\"", "Casey teaches the cut-the-rings rule. Big moment.", "welcome_curiosity"), ("Help Casey cut every ring before bagging it.", "Snip snip. \"Safer ocean,\" Casey says.", "act_with_kindness"), ("\"Pass anything tricky to the cutting team.\"", "Three friends form a mini-station. Efficient.", "value_teamwork")])},
+        {"scene_number": 3, "title": "Ray's Speed", "narrative": "Ray was bagging twice as fast as anyone. \"I'm winning,\" he grinned.",
+         "choices": _wave_choices([("\"What's your trick? Teach us!\"", "Ray slows down to show the move. Now everyone's faster.", "welcome_curiosity"), ("\"Ray — bring some of your speed to Myrtle's section.\"", "Ray jogs over without complaint. Hero move.", "act_with_kindness"), ("\"This isn't a race today — but I love your energy.\"", "Ray pauses. \"Oh. Yeah. Sorry.\" He grins. Good correction.", "encourage_others")])},
+        {"scene_number": 4, "title": "Sally Stops", "narrative": "Sally found something heavy. A tangle of fishing line wrapped around a tiny bird. The bird was breathing.",
+         "choices": _wave_choices([("\"Ms Bluegill — what do we DO?\"", "Ms Bluegill kneels. \"Watch and learn — gently.\"", "welcome_curiosity"), ("Sally cradles the bird. Talk to it softly.", "The bird's eyes settle. Sally is its safe place.", "act_with_kindness"), ("\"Frankie — your steady hands. Help cut.\"", "Frankie steps up. Snip. Free.", "value_teamwork")])},
+        {"scene_number": 5, "title": "Ollie's Cheer", "narrative": "From a distance, Ollie boomed: \"YOU SAVED A BIRD?! HEROOOES!\"",
+         "choices": _wave_choices([("\"Ollie — come SEE the bird!\"", "Ollie tip-toes up, voice in whisper mode. He gets it.", "welcome_curiosity"), ("Sally needs quiet right now. Wave Ollie over slowly.", "Ollie reads the room. Body bouncing, mouth still.", "act_with_kindness"), ("\"Sally — Ollie's cheer is FOR YOU.\"", "Sally's tiny smile says she heard it.", "encourage_others")])},
+        {"scene_number": 6, "title": "Louie's Beat", "narrative": "Louie banged out a clean-up tempo on a tin can. Suddenly bag-tying was a dance.",
+         "choices": _wave_choices([("\"Make the chorus 'pick-it-up, pick-it-up!'\"", "The cay sings as it cleans. Louie's face is sunshine.", "welcome_curiosity"), ("Drum with him on a second can.", "Two-can rhythm. The beach is bopping.", "act_with_kindness"), ("\"Everyone — sing on the chorus, work on the verse!\"", "Sing-along clean-up. Brilliant.", "value_teamwork")])},
+        {"scene_number": 7, "title": "The Bag Count", "narrative": "Twenty bags. Twenty. The beach looked like a beach again. The crew was tired-happy.",
+         "choices": _wave_choices([("\"How LONG would this have taken alone?\"", "Ms Bluegill shrugs. \"Twenty days. Twenty alone equals twenty bags now.\"", "welcome_curiosity"), ("Make sure every kid drinks water before celebrating.", "Hands reach. Tired bodies sigh.", "act_with_kindness"), ("\"Group photo — show the empty beach behind us!\"", "Click. The smile in this photo will last a long time.", "encourage_others")])},
+        _q_finale_scene(8, "Heroes of the Cay",
+            "Ms Bluegill pinned a tiny shell badge on each of you. \"You didn't just clean the cay — you taught it how to be cleaned. That's a hero move.\""),
+    ],
+}
+
+
+
+
 async def _seed_story_quest(db) -> None:
     """Seed 12 Story Quest scenes with per-scene narrator voices.
 
@@ -1297,6 +1607,42 @@ async def _seed_story_quest(db) -> None:
             },
             "updated_at": _now_iso(),
         })
+
+    # 3) Seed scenes for the other 9 quests (each 8 scenes) and flip them to ready.
+    for quest_slug, scene_list in ADDITIONAL_STORY_QUESTS_SCENES.items():
+        qid = quest_id_by_slug.get(quest_slug)
+        if not qid:
+            continue
+        narrator_map = QUEST_NARRATORS_BY_SLUG.get(quest_slug, {})
+        for sc in scene_list:
+            scene_num = sc["scene_number"]
+            narrator_slug = narrator_map.get(scene_num, "ms-bluegill")
+            existing = await db.story_quest_scenes.find_one(
+                {"quest_id": qid, "scene_number": scene_num}, {"_id": 0, "id": 1}
+            )
+            if existing:
+                continue
+            await db.story_quest_scenes.insert_one({
+                "id": str(__import__("uuid").uuid4()),
+                "quest_id": qid,
+                "scene_number": scene_num,
+                "title": sc["title"],
+                "narrative": sc["narrative"],
+                "background_image_url": "",
+                "audio_narration_url": "",  # narration baked lazily — quiet-mode works fine until then
+                "narrator_slug": narrator_slug,
+                "choices": sc["choices"],
+                "is_intro": sc.get("is_intro", False),
+                "is_finale": sc.get("is_finale", False),
+                "active": True,
+                "created_at": _now_iso(),
+                "updated_at": _now_iso(),
+            })
+        # Flip status to ready once all 8 scenes are seeded.
+        await db.story_quests.update_one(
+            {"id": qid, "status": {"$ne": "ready"}},
+            {"$set": {"status": "ready", "updated_at": _now_iso()}},
+        )
 
 
 # ============================================================
