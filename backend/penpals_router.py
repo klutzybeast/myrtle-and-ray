@@ -179,6 +179,26 @@ def make_penpals_router(db, require_admin):
         if cached:
             reply_text = cached["reply_text"]
             audio_url = cached.get("audio_url", "")
+            # Self-heal stale audio (see studio router for the full rationale).
+            if (
+                body.want_audio
+                and settings["audio_enabled"]
+                and ch.get("voice_id")
+                and reply_text
+                and audio_url
+            ):
+                expected = _expected_audio_fragment(ch["voice_id"], reply_text)
+                if expected and expected not in audio_url:
+                    try:
+                        fresh = await _synthesize_audio(reply_text, ch.get("voice_id", ""), cache_key)
+                        if fresh:
+                            audio_url = fresh
+                            await db.pen_pal_cache.update_one(
+                                {"key": cache_key},
+                                {"$set": {"audio_url": fresh, "updated_at": _now_iso()}},
+                            )
+                    except Exception as exc:  # noqa: BLE001
+                        logger.warning("Pen-pal audio re-sync failed: %s", exc)
         else:
             # 5) Generate via LLM
             reply_text = await _generate_reply(
@@ -335,13 +355,22 @@ ELEVEN_MODEL = os.environ.get("ELEVENLABS_MODEL_ID", "eleven_v3")
 
 
 async def _synthesize_audio(text: str, voice_id: str, cache_key: str) -> str:
+    """Synthesize `text` in `voice_id` and return a stable URL.
+
+    Filename includes a hash of (voice_id, text) so the on-disk file is
+    UNIQUELY identified by its content. This prevents a 'stale audio'
+    class of bugs where two different rhymes share the same cache_key
+    (e.g. retry after a different LLM run produced different text) and
+    the second call returned the FIRST run's audio because a file with
+    that cache_key already existed.
+    """
     if not (ELEVEN_API_KEY and voice_id and text):
         return ""
-    # Try local cache first (idempotent across deploys via uploads/penpals/)
+    text_hash = hashlib.sha256(f"{voice_id}|{text}".encode("utf-8")).hexdigest()[:16]
     upload_dir = os.environ.get("UPLOAD_DIR", "/app/backend/uploads")
     target_dir = os.path.join(upload_dir, "penpals")
     os.makedirs(target_dir, exist_ok=True)
-    fname = f"{cache_key}.mp3"
+    fname = f"{cache_key}_{text_hash}.mp3"
     local_path = os.path.join(target_dir, fname)
     url_path = f"/api/uploads/penpals/{fname}"
 
@@ -370,3 +399,12 @@ async def _synthesize_audio(text: str, voice_id: str, cache_key: str) -> str:
     except Exception:  # noqa: BLE001
         pass
     return url_path
+
+
+def _expected_audio_fragment(voice_id: str, text: str) -> str:
+    """Returns the text-hash suffix the audio URL SHOULD contain for the
+    given (voice_id, text) pair. Used to detect stale legacy cache rows
+    that point at an MP3 generated for a different text."""
+    if not (voice_id and text):
+        return ""
+    return hashlib.sha256(f"{voice_id}|{text}".encode("utf-8")).hexdigest()[:16]

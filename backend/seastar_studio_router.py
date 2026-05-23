@@ -39,6 +39,7 @@ from penpals_router import (
     _now_iso,
     _synthesize_audio,
     _fallback_reply,
+    _expected_audio_fragment,
 )
 from coloring_router import COLORING_DIR, _system_prompt as coloring_system_prompt, _is_blocked
 
@@ -164,6 +165,33 @@ def make_seastar_studio_router(db, require_admin):
             scene_prompt = cached.get("scene_prompt", "")
             audio_url = cached.get("audio_url", "")
             image_url = cached.get("image_url", "")
+
+            # Self-heal legacy cache rows whose audio_url points at a stale
+            # MP3 (generated for a different reply_text under the old
+            # cache_key-only filename scheme). Detect via the text-hash
+            # fragment that should now appear in every audio URL.
+            if (
+                settings["audio_enabled"]
+                and ch.get("voice_id")
+                and reply_text
+                and audio_url
+            ):
+                expected_fragment = _expected_audio_fragment(ch["voice_id"], reply_text)
+                if expected_fragment and expected_fragment not in audio_url:
+                    logger.info(
+                        "Studio audio cache stale for key=%s — re-synthesizing",
+                        cache_key,
+                    )
+                    try:
+                        fresh = await _synthesize_audio(reply_text, ch["voice_id"], cache_key)
+                        if fresh:
+                            audio_url = fresh
+                            await db.studio_cache.update_one(
+                                {"key": cache_key},
+                                {"$set": {"audio_url": fresh, "updated_at": _now_iso()}},
+                            )
+                    except Exception as exc:  # noqa: BLE001
+                        logger.warning("Studio audio re-sync failed: %s", exc)
         else:
             # 1) ONE LLM call → rhyme + scene
             reply_text, scene_prompt = await _generate_rhyme_and_scene(
