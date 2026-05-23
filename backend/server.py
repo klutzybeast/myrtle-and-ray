@@ -27,6 +27,7 @@ from penpals_router import make_penpals_router
 from coloring_router import make_coloring_router
 from seastar_studio_router import make_seastar_studio_router
 from story_quest_router import make_story_quest_router
+from sing_along_router import make_sing_along_router
 from voice_router import make_voice_router
 from readaloud_router import make_readaloud_router
 import storage as _storage
@@ -55,6 +56,7 @@ api_router.include_router(make_penpals_router(db, require_admin))
 api_router.include_router(make_coloring_router(db, require_admin))
 api_router.include_router(make_seastar_studio_router(db, require_admin))
 api_router.include_router(make_story_quest_router(db, require_admin))
+api_router.include_router(make_sing_along_router(db, require_admin))
 api_router.include_router(make_voice_router(db))
 api_router.include_router(make_readaloud_router(db, require_admin))
 admin_router_obj = make_admin_router(db, require_admin)

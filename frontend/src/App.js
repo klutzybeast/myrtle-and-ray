@@ -59,6 +59,7 @@ import PenPals from "@/pages/PenPals";
 import Coloring from "@/pages/Coloring";
 import SeaStarStudio from "@/pages/SeaStarStudio";
 import StoryQuest from "@/pages/StoryQuest";
+import SingAlong from "@/pages/SingAlong";
 import CustomPage from "@/pages/CustomPage";
 import WaveBadges from "@/pages/WaveBadges";
 import MapPage from "@/pages/Map";
@@ -114,6 +115,8 @@ function App() {
               <Route path="/coloring" element={<PublicShell><Coloring /></PublicShell>} />
               <Route path="/sea-star-studio" element={<PublicShell><SeaStarStudio /></PublicShell>} />
               <Route path="/story-quest" element={<PublicShell><StoryQuest /></PublicShell>} />
+              <Route path="/story-quest/:slug" element={<PublicShell><StoryQuest /></PublicShell>} />
+              <Route path="/sing-along" element={<PublicShell><SingAlong /></PublicShell>} />
               <Route path="/shop" element={<PublicShell><Shop /></PublicShell>} />
               <Route path="/shop/:slug" element={<PublicShell><ShopDetail /></PublicShell>} />
               <Route path="/cart" element={<PublicShell><Cart /></PublicShell>} />

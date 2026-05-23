@@ -509,6 +509,9 @@ async def seed_database(db) -> None:
     # --- Story Quest scenes (12 scenes + W.A.V.E. → character mapping) ---
     await _seed_story_quest(db)
 
+    # --- Sing-Along songs (10 stubs; audio is added per song as MP3s are baked) ---
+    await _seed_sing_along(db)
+
     # --- Stingray Cay map image (bundled asset → /api/uploads/map/...) ---
     _seed_map_image()
 
@@ -793,6 +796,116 @@ STORY_QUEST_NARRATORS = {
     12: "ms-bluegill",  # Reveal finale — Ms Bluegill (framing narrator)
 }
 
+
+# Catalog of Story Quests. Each entry shows up in the public `/story-quest`
+# gallery. The "First Day of Camp" quest is fully scripted (12 scenes seeded
+# below). Other quests start as Coming Soon — their scenes are authored in the
+# admin. The blurbs deliberately tease the W.A.V.E. principle each adventure
+# spotlights, so kids can pick a quest that fits how they feel today.
+STORY_QUESTS_CATALOG = [
+    {
+        "slug": "first-day-of-camp",
+        "title": "First Day of Camp",
+        "blurb": "Brand-new camp, brand-new crew. Pick choices that show Welcome, Act, Value, and Encourage — and meet the Sea Star inside you.",
+        "hero_image_url": "/uploads/seed/map/stingray-cay.jpeg",
+        "theme_color": "#7fcfc7",
+        "character_focus": "all",
+        "position": 1,
+        "status": "ready",   # 'ready' shows the Start button; 'coming-soon' shows a teaser
+    },
+    {
+        "slug": "lost-sea-glass-treasure",
+        "title": "The Lost Sea Glass Treasure",
+        "blurb": "Ray's special sea glass collection has gone missing! Follow clues across the sand and lean on the crew to bring it home.",
+        "hero_image_url": "",
+        "theme_color": "#b8a3d9",
+        "character_focus": "ray",
+        "position": 2,
+        "status": "coming-soon",
+    },
+    {
+        "slug": "storm-at-stingray-cay",
+        "title": "Storm at Stingray Cay",
+        "blurb": "Clouds are rolling in fast. Help every camper find shelter and stay calm — teamwork keeps the cay safe.",
+        "hero_image_url": "",
+        "theme_color": "#3a4a55",
+        "character_focus": "ms-bluegill",
+        "position": 3,
+        "status": "coming-soon",
+    },
+    {
+        "slug": "first-camp-talent-show",
+        "title": "The First Camp Talent Show",
+        "blurb": "Sally has stage fright. Louie has a new beat. Will you cheer the shy ones and dance with the loud ones?",
+        "hero_image_url": "",
+        "theme_color": "#f0a988",
+        "character_focus": "sally",
+        "position": 4,
+        "status": "coming-soon",
+    },
+    {
+        "slug": "tide-pool-mystery",
+        "title": "Mystery of the Tide Pool",
+        "blurb": "Something blue is hiding under the rocks. Casey needs a curious helper to investigate without scaring anyone.",
+        "hero_image_url": "",
+        "theme_color": "#7fcfc7",
+        "character_focus": "casey",
+        "position": 5,
+        "status": "coming-soon",
+    },
+    {
+        "slug": "race-to-the-lighthouse",
+        "title": "Race to the Lighthouse",
+        "blurb": "Ray wants to win the race — but Sami slipped on the path. Do you keep going or turn around?",
+        "hero_image_url": "",
+        "theme_color": "#7cbf94",
+        "character_focus": "ray",
+        "position": 6,
+        "status": "coming-soon",
+    },
+    {
+        "slug": "captain-for-a-day",
+        "title": "Captain for a Day",
+        "blurb": "Ms Bluegill is letting you steer the boat! Every choice grows the W.A.V.E. badge for the whole crew.",
+        "hero_image_url": "",
+        "theme_color": "#5a8a6f",
+        "character_focus": "ms-bluegill",
+        "position": 7,
+        "status": "coming-soon",
+    },
+    {
+        "slug": "friendship-fix-it",
+        "title": "Friendship Fix-It",
+        "blurb": "Frankie and Billy had a fight at lunch. Myrtle thinks you can help mend things — kindness first.",
+        "hero_image_url": "",
+        "theme_color": "#a36b29",
+        "character_focus": "myrtle",
+        "position": 8,
+        "status": "coming-soon",
+    },
+    {
+        "slug": "surprise-birthday-at-camp",
+        "title": "Surprise Birthday at Camp",
+        "blurb": "It's a secret — only the crew knows! Decorate, hide, and cheer to throw the best Sea Star party ever.",
+        "hero_image_url": "",
+        "theme_color": "#f0a988",
+        "character_focus": "ollie",
+        "position": 9,
+        "status": "coming-soon",
+    },
+    {
+        "slug": "beach-cleanup-heroes",
+        "title": "Beach Cleanup Heroes",
+        "blurb": "The tide brought in lots of stuff that shouldn't be there. Lead the crew, cheer the slow ones, and protect Stingray Cay.",
+        "hero_image_url": "",
+        "theme_color": "#7cbf94",
+        "character_focus": "all",
+        "position": 10,
+        "status": "coming-soon",
+    },
+]
+
+
 STORY_QUEST_SCENES = [
     {
         "scene_number": 1,
@@ -998,6 +1111,7 @@ async def _seed_story_quest(db) -> None:
     to call ElevenLabs for the quest.
     """
     import storage as _storage  # local import — avoids circular deps in tests
+    from tts_pronunciation import phoneticize_for_tts
     model_id = os.environ.get("ELEVENLABS_MODEL_ID", "eleven_turbo_v2_5")
 
     voice_by_slug: dict = {}
@@ -1016,9 +1130,11 @@ async def _seed_story_quest(db) -> None:
         voice_id = voice_by_slug.get(narrator_slug, "")
         if not voice_id or not text:
             return ""
+        # Phoneticize so 'Cay' is read as 'Key' by ElevenLabs.
+        tts_text = phoneticize_for_tts(text)
         # Cache key mirrors voice_router._cache_key so the runtime endpoint
         # and the seed share a single cache entry.
-        raw = f"{model_id}|{voice_id}|{text.strip()}|0.45|0.85|0.35"
+        raw = f"{model_id}|{voice_id}|{tts_text.strip()}|0.45|0.85|0.35"
         cache_key = hashlib.sha256(raw.encode("utf-8")).hexdigest()
         storage_name = f"voice/{cache_key}.mp3"
         local_path = os.path.join(voice_dir, f"{cache_key}.mp3")
@@ -1058,7 +1174,8 @@ async def _seed_story_quest(db) -> None:
         voice_id = voice_by_slug.get(narrator_slug, "")
         if not voice_id or not text:
             return
-        raw = f"{model_id}|{voice_id}|{text.strip()}|0.45|0.85|0.35"
+        tts_text = phoneticize_for_tts(text)
+        raw = f"{model_id}|{voice_id}|{tts_text.strip()}|0.45|0.85|0.35"
         cache_key = hashlib.sha256(raw.encode("utf-8")).hexdigest()
         storage_name = f"voice/{cache_key}.mp3"
         local_path = os.path.join(voice_dir, f"{cache_key}.mp3")
@@ -1069,16 +1186,62 @@ async def _seed_story_quest(db) -> None:
             {"$setOnInsert": {
                 "key": cache_key,
                 "voice_id": voice_id,
-                "text": text.strip(),
+                "text": tts_text.strip(),
                 "model_id": model_id,
-                "chars": len(text.strip()),
+                "chars": len(tts_text.strip()),
                 "storage_filename": storage_name,
                 "created_at": _now_iso(),
             }},
             upsert=True,
         )
 
-    # 1) Scenes — insert any missing by scene_number; backfill narrator + audio on existing
+    # 0) Upsert the quest catalog (idempotent — preserves admin edits to status)
+    quest_id_by_slug: dict = {}
+    for q in STORY_QUESTS_CATALOG:
+        existing_q = await db.story_quests.find_one({"slug": q["slug"]}, {"_id": 0, "id": 1, "status": 1})
+        if existing_q:
+            quest_id_by_slug[q["slug"]] = existing_q["id"]
+            # Only patch metadata, never overwrite an admin-set status if it
+            # was promoted from 'coming-soon' to 'ready'.
+            patch = {
+                "title": q["title"],
+                "blurb": q["blurb"],
+                "hero_image_url": q.get("hero_image_url") or existing_q.get("hero_image_url", ""),
+                "theme_color": q.get("theme_color", "#7fcfc7"),
+                "character_focus": q.get("character_focus", "all"),
+                "position": q.get("position", 99),
+                "updated_at": _now_iso(),
+            }
+            if existing_q.get("status") not in ("ready", "coming-soon"):
+                patch["status"] = q.get("status", "coming-soon")
+            await db.story_quests.update_one({"slug": q["slug"]}, {"$set": patch})
+        else:
+            new_id = str(__import__("uuid").uuid4())
+            quest_id_by_slug[q["slug"]] = new_id
+            await db.story_quests.insert_one({
+                "id": new_id,
+                "slug": q["slug"],
+                "title": q["title"],
+                "blurb": q["blurb"],
+                "hero_image_url": q.get("hero_image_url", ""),
+                "theme_color": q.get("theme_color", "#7fcfc7"),
+                "character_focus": q.get("character_focus", "all"),
+                "position": q.get("position", 99),
+                "status": q.get("status", "coming-soon"),
+                "active": True,
+                "created_at": _now_iso(),
+                "updated_at": _now_iso(),
+            })
+    first_quest_id = quest_id_by_slug.get("first-day-of-camp")
+
+    # Backfill quest_id on any existing scenes that pre-date multi-quest support.
+    if first_quest_id:
+        await db.story_quest_scenes.update_many(
+            {"quest_id": {"$exists": False}},
+            {"$set": {"quest_id": first_quest_id, "updated_at": _now_iso()}},
+        )
+
+    # 1) Scenes — insert any missing by (quest_id, scene_number); backfill narrator + audio on existing
     for sc in STORY_QUEST_SCENES:
         scene_num = sc["scene_number"]
         narrator_slug = STORY_QUEST_NARRATORS.get(scene_num, "ms-bluegill")
@@ -1086,7 +1249,7 @@ async def _seed_story_quest(db) -> None:
         await _record_voice_cache(narrator_slug, sc["narrative"])
 
         existing = await db.story_quest_scenes.find_one(
-            {"scene_number": scene_num}, {"_id": 0}
+            {"scene_number": scene_num, "quest_id": first_quest_id}, {"_id": 0}
         )
         if existing:
             # Backfill narrator_slug and audio_narration_url if missing or out-of-date.
@@ -1107,6 +1270,7 @@ async def _seed_story_quest(db) -> None:
 
         await db.story_quest_scenes.insert_one({
             "id": str(__import__("uuid").uuid4()),
+            "quest_id": first_quest_id,
             "scene_number": scene_num,
             "title": sc["title"],
             "narrative": sc["narrative"],
@@ -1131,5 +1295,249 @@ async def _seed_story_quest(db) -> None:
                 "value_teamwork": "ray",
                 "encourage_others": "ollie",
             },
+            "updated_at": _now_iso(),
+        })
+
+
+# ============================================================
+# Sing-Along seed (10 short songs kids can sing along to)
+# ============================================================
+
+SING_ALONG_SONGS = [
+    {
+        "slug": "catch-the-wave",
+        "title": "Catch the W.A.V.E.",
+        "theme": "anthem",
+        "character_focus": "all",
+        "lyrics": (
+            "W is for Welcome, come over and play!\n"
+            "A is for Acting kind every day!\n"
+            "V is for Valuing all of our friends!\n"
+            "E is Encouraging right to the end!\n"
+            "\n"
+            "Catch the wave, catch the wave!\n"
+            "Catch the W-A-V-E!\n"
+            "Catch the wave, catch the wave!\n"
+            "That's how a Sea Star be!\n"
+        ),
+        "music_prompt": (
+            "Upbeat, joyful kids' anthem in C major, 110 BPM, with a "
+            "cheerful children's-choir lead, hand-claps on the off-beat, "
+            "warm acoustic guitar, ukulele strums, and a playful brass "
+            "stab on the chorus. Sunny Caribbean feel."
+        ),
+        "duration_seconds": 60,
+        "position": 1,
+    },
+    {
+        "slug": "stingray-key-camp-song",
+        "title": "Stingray Cay Camp Song",
+        "theme": "camp",
+        "character_focus": "ms-bluegill",
+        "lyrics": (
+            "Pack your towel and your sunshine smile,\n"
+            "We're heading down to the cay for a while!\n"
+            "Sandy toes and a salty breeze,\n"
+            "Stingray Cay, our home away!\n"
+        ),
+        "music_prompt": (
+            "Mid-tempo singalong with a friendly female lead vocalist, "
+            "ukulele, soft bongo drums, and a 'whoa-oh' choir on the "
+            "refrain. Warm, breezy, beach-day energy at 95 BPM."
+        ),
+        "duration_seconds": 45,
+        "position": 2,
+    },
+    {
+        "slug": "myrtles-kindness-song",
+        "title": "Myrtle's Kindness Song",
+        "theme": "character",
+        "character_focus": "myrtle",
+        "lyrics": (
+            "Slow and steady, kind and true,\n"
+            "Myrtle says I love you!\n"
+            "Pass it on, share the cheer,\n"
+            "Kindness travels far and near.\n"
+        ),
+        "music_prompt": (
+            "Gentle, swaying lullaby-pop at 80 BPM with a warm female "
+            "vocal, finger-picked nylon guitar, soft glockenspiel, and "
+            "subtle ocean waves. Tender, reassuring, bedtime energy."
+        ),
+        "duration_seconds": 45,
+        "position": 3,
+    },
+    {
+        "slug": "rays-big-wave",
+        "title": "Ray's Big Wave",
+        "theme": "character",
+        "character_focus": "ray",
+        "lyrics": (
+            "Ride that wave, hang ten in the sun,\n"
+            "Ray's the captain, here we come!\n"
+            "Splash and laugh and ride it back,\n"
+            "Best teammates on the surfing track!\n"
+        ),
+        "music_prompt": (
+            "Energetic surf-rock for kids at 130 BPM, twangy electric "
+            "guitar, kick-snare drums, hand-claps, group shouts of "
+            "'hey!' on the chorus. Bright, adventurous, ocean-spray feel."
+        ),
+        "duration_seconds": 45,
+        "position": 4,
+    },
+    {
+        "slug": "ms-bluegills-welcome",
+        "title": "Ms Bluegill's Welcome",
+        "theme": "character",
+        "character_focus": "ms-bluegill",
+        "lyrics": (
+            "Welcome welcome to the cay,\n"
+            "So glad you came to camp today!\n"
+            "There's a wave with your name on it,\n"
+            "Catch it and you'll never quit!\n"
+        ),
+        "music_prompt": (
+            "Warm, jazzy welcome song at 100 BPM with a friendly older "
+            "female lead, brushed snare, walking upright bass, and a "
+            "muted trumpet. Cozy bookend feel, like the start of a "
+            "great day."
+        ),
+        "duration_seconds": 40,
+        "position": 5,
+    },
+    {
+        "slug": "caseys-curiosity",
+        "title": "Casey's Curiosity",
+        "theme": "character",
+        "character_focus": "casey",
+        "lyrics": (
+            "What's that? Look there!\n"
+            "Curious eyes and a curious stare!\n"
+            "Tide pool treasures, sky and sea,\n"
+            "Wonder is the gift you give to me!\n"
+        ),
+        "music_prompt": (
+            "Bouncy, whimsical xylophone-led tune at 120 BPM with "
+            "playful child-voice lead, kazoo accents, finger snaps, and "
+            "a rising 'whoa!' on every chorus. Curious explorer energy."
+        ),
+        "duration_seconds": 40,
+        "position": 6,
+    },
+    {
+        "slug": "louies-lunchtime-jam",
+        "title": "Louie's Lunchtime Jam",
+        "theme": "character",
+        "character_focus": "louie",
+        "lyrics": (
+            "Drum drum drum on the lunchroom tray,\n"
+            "Louie's got a beat for the cay today!\n"
+            "Boom boom clap, give it your best,\n"
+            "Everybody join in, leave behind the rest!\n"
+        ),
+        "music_prompt": (
+            "Funky kid-hip-hop groove at 100 BPM with prominent "
+            "lunchroom-tray percussion, claps, a playful boy-voice rap, "
+            "and a deep bass line. Cafeteria celebration energy."
+        ),
+        "duration_seconds": 40,
+        "position": 7,
+    },
+    {
+        "slug": "sallys-quiet-song",
+        "title": "Sally's Quiet Song",
+        "theme": "character",
+        "character_focus": "sally",
+        "lyrics": (
+            "Soft soft whispers in my ear,\n"
+            "Sally says it's okay right here.\n"
+            "Take your time, you are enough,\n"
+            "Brave is gentle, brave is love.\n"
+        ),
+        "music_prompt": (
+            "Gentle acoustic ballad at 70 BPM with a soft, breathy "
+            "young female vocalist, warm piano, mellotron strings, and "
+            "subtle wind chimes. Hopeful, calming, almost a lullaby."
+        ),
+        "duration_seconds": 45,
+        "position": 8,
+    },
+    {
+        "slug": "ollies-cheer",
+        "title": "Ollie's Cheer",
+        "theme": "character",
+        "character_focus": "ollie",
+        "lyrics": (
+            "You can do it! Yes you can!\n"
+            "Ollie's got your biggest fan!\n"
+            "Up and at 'em, here we go,\n"
+            "Cheering you on, take a bow!\n"
+        ),
+        "music_prompt": (
+            "High-energy cheer-pop at 135 BPM with a big group chant, "
+            "marching-band snare, brass horns, and stadium-style "
+            "'hey-hey-hey!' shouts. Pure encouragement, megaphone vibe."
+        ),
+        "duration_seconds": 40,
+        "position": 9,
+    },
+    {
+        "slug": "the-wave-promise",
+        "title": "The W.A.V.E. Promise",
+        "theme": "anthem",
+        "character_focus": "all",
+        "lyrics": (
+            "I promise, I promise,\n"
+            "I'll catch the W-A-V-E!\n"
+            "Welcome, Act, Value, Encourage,\n"
+            "That's the Sea Star in me!\n"
+        ),
+        "music_prompt": (
+            "Inspirational singalong-finale at 90 BPM building from a "
+            "single child voice to a full kid choir over swelling "
+            "strings, piano, and gentle drums. Emotional graduation "
+            "feel, anthem closer."
+        ),
+        "duration_seconds": 50,
+        "position": 10,
+    },
+]
+
+
+async def _seed_sing_along(db) -> None:
+    """Insert any missing sing-along song stub. Audio is added by the
+    generator script (`scripts/generate_sing_along_audio.py`)."""
+    for s in SING_ALONG_SONGS:
+        existing = await db.sing_along_songs.find_one({"slug": s["slug"]}, {"_id": 0, "id": 1, "audio_url": 1})
+        if existing:
+            # Patch metadata but don't clobber a working audio URL once set.
+            patch = {
+                "title": s["title"],
+                "theme": s["theme"],
+                "character_focus": s.get("character_focus", ""),
+                "lyrics": s["lyrics"],
+                "music_prompt": s["music_prompt"],
+                "duration_seconds": s.get("duration_seconds", 0),
+                "position": s.get("position", 99),
+                "updated_at": _now_iso(),
+            }
+            await db.sing_along_songs.update_one({"slug": s["slug"]}, {"$set": patch})
+            continue
+        await db.sing_along_songs.insert_one({
+            "id": str(__import__("uuid").uuid4()),
+            "slug": s["slug"],
+            "title": s["title"],
+            "theme": s["theme"],
+            "cover_image_url": "",
+            "audio_url": "",
+            "lyrics": s["lyrics"],
+            "lyrics_lrc": "",
+            "duration_seconds": s.get("duration_seconds", 0),
+            "character_focus": s.get("character_focus", ""),
+            "music_prompt": s["music_prompt"],
+            "active": True,
+            "position": s.get("position", 99),
+            "created_at": _now_iso(),
             "updated_at": _now_iso(),
         })

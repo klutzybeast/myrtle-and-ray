@@ -210,13 +210,48 @@ def make_story_quest_router(db, require_admin):
 
     # ---------------- Public ----------------
 
+    @router.get("/story-quest/quests")
+    async def public_quests():
+        """Quest gallery — every active quest the kid can choose from."""
+        cur = db.story_quests.find({"active": True}, {"_id": 0}).sort([("position", 1), ("created_at", 1)])
+        quests = await cur.to_list(50)
+        # Annotate live scene counts
+        for q in quests:
+            q["scene_count"] = await db.story_quest_scenes.count_documents(
+                {"quest_id": q["id"], "active": True}
+            )
+        return quests
+
+    @router.get("/story-quest/quests/{slug}")
+    async def public_quest_by_slug(slug: str):
+        q = await db.story_quests.find_one({"slug": slug, "active": True}, {"_id": 0})
+        if not q:
+            raise HTTPException(status_code=404, detail="Quest not found.")
+        q["scene_count"] = await db.story_quest_scenes.count_documents(
+            {"quest_id": q["id"], "active": True}
+        )
+        return q
+
     @router.get("/story-quest/scenes")
-    async def public_scenes():
-        cur = db.story_quest_scenes.find({"active": True}, {"_id": 0}).sort("scene_number", 1)
-        return await cur.to_list(50)
+    async def public_scenes(quest_id: Optional[str] = None, quest_slug: Optional[str] = None):
+        # Resolve quest by slug if provided
+        if quest_slug and not quest_id:
+            q = await db.story_quests.find_one({"slug": quest_slug, "active": True}, {"_id": 0, "id": 1})
+            quest_id = q["id"] if q else None
+        if not quest_id:
+            # Backward compatibility: return the first active quest's scenes
+            first = await db.story_quests.find_one({"active": True}, {"_id": 0, "id": 1}, sort=[("position", 1)])
+            quest_id = first["id"] if first else None
+        match = {"active": True}
+        if quest_id:
+            match["quest_id"] = quest_id
+        cur = db.story_quest_scenes.find(match, {"_id": 0}).sort("scene_number", 1)
+        return await cur.to_list(200)
 
     @router.get("/story-quest/character-mappings")
     async def public_mappings():
+        # NB: For now we use a single global mapping across all quests; can
+        # be promoted to per-quest later by reading `story_quests.character_mappings`.
         doc = await db.story_quest_settings.find_one({"_id": "character_mappings"}, {"_id": 0}) or {}
         return doc.get("value") or DEFAULT_CHARACTER_MAPPINGS
 
@@ -239,6 +274,7 @@ def make_story_quest_router(db, require_admin):
         Reuses the existing /voice cache so repeat plays are free."""
         import voice_router as _vr
         import storage as _storage
+        from tts_pronunciation import phoneticize_for_tts
 
         slug = body.matched_slug.strip().lower()
         char = await db.characters.find_one({"slug": slug}, {"_id": 0})
@@ -248,8 +284,9 @@ def make_story_quest_router(db, require_admin):
 
         name = _sanitize_name(body.player_name or "")
         text = _finale_text_for(name)
+        tts_text = phoneticize_for_tts(text)
 
-        key = _vr._cache_key(voice_id, text)
+        key = _vr._cache_key(voice_id, tts_text)
         storage_name = f"voice/{key}.mp3"
         upload_dir = os.environ.get("UPLOAD_DIR", "/app/backend/uploads")
         local_path = os.path.join(upload_dir, storage_name)
@@ -273,7 +310,7 @@ def make_story_quest_router(db, require_admin):
 
         # 3) Synthesize via ElevenLabs
         try:
-            audio = _vr._synthesize(voice_id, text)
+            audio = _vr._synthesize(voice_id, tts_text)
         except HTTPException:
             raise
         except Exception as exc:  # noqa: BLE001
@@ -293,9 +330,9 @@ def make_story_quest_router(db, require_admin):
                 {"$setOnInsert": {
                     "key": key,
                     "voice_id": voice_id,
-                    "text": text,
+                    "text": tts_text,
                     "model_id": _vr.MODEL_ID,
-                    "chars": len(text),
+                    "chars": len(tts_text),
                     "storage_filename": storage_name,
                     "created_at": _now_iso(),
                 }},

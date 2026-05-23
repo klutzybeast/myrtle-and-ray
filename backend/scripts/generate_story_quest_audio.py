@@ -24,6 +24,7 @@ from dotenv import load_dotenv
 load_dotenv(ROOT / ".env")
 
 from seed import STORY_QUEST_SCENES, STORY_QUEST_NARRATORS  # noqa: E402
+from tts_pronunciation import phoneticize_for_tts  # noqa: E402
 
 API_KEY = (os.environ.get("ELEVENLABS_API_KEY") or "").strip()
 MODEL_ID = os.environ.get("ELEVENLABS_MODEL_ID", "eleven_turbo_v2_5")
@@ -71,7 +72,7 @@ def main() -> int:
         if not voice_id:
             print(f"  [skip] scene {n}: no voice_id for narrator '{narrator}'")
             continue
-        text = sc["narrative"]
+        text = phoneticize_for_tts(sc["narrative"])
         key = cache_key(voice_id, text)
         out = asset_dir / f"{key}.mp3"
         if out.exists() and out.stat().st_size > 1000:

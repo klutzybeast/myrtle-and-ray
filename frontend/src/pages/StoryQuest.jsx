@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { api } from "../lib/api";
-import { Waves, Sparkles, Volume2, VolumeX, ArrowRight, Trophy, Share2, RotateCcw, Download, Mail, X } from "lucide-react";
+import { Waves, Sparkles, Volume2, VolumeX, ArrowRight, Trophy, Share2, RotateCcw, Download, Mail, X, Lock, Compass } from "lucide-react";
 import SEO from "../components/SEO";
 import { toast } from "sonner";
 import { renderStoryQuestShareCard } from "../lib/storyQuestShareCard";
@@ -53,6 +53,97 @@ function emptyScores() {
 }
 
 export default function StoryQuest() {
+  const { slug } = useParams();
+  // Gallery mode when no slug — pick a quest
+  if (!slug) return <QuestGallery />;
+  return <QuestRunner slug={slug} />;
+}
+
+function QuestGallery() {
+  const [quests, setQuests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    api.get("/story-quest/quests")
+      .then(({ data }) => setQuests(data || []))
+      .catch(() => setQuests([]))
+      .finally(() => setLoading(false));
+  }, []);
+  return (
+    <main className="pt-24 pb-12 bg-foam-grad min-h-screen" data-testid="story-quest-gallery">
+      <SEO title="Story Quest" description="Pick an adventure through Stingray Cay and find your Sea Star." />
+      <div className="max-w-5xl mx-auto px-4">
+        <div className="text-center mb-8">
+          <Compass className="w-12 h-12 text-[#f0a988] mx-auto mb-2" />
+          <h1 className="font-accent text-5xl md:text-6xl font-bold">Pick your Story Quest</h1>
+          <p className="text-[#4a5568] mt-3 max-w-2xl mx-auto">
+            Each adventure lets you catch the W.A.V.E. and discover the Sea Star inside you.
+          </p>
+        </div>
+        {loading ? (
+          <p className="text-center text-[#6b7280]" data-testid="quest-gallery-loading">Loading quests…</p>
+        ) : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5" data-testid="quest-gallery-grid">
+            {quests.map((q) => {
+              const ready = q.status === "ready" && q.scene_count > 0;
+              return (
+                <article
+                  key={q.id}
+                  className={`relative bg-white rounded-[28px] p-5 border-2 transition shadow-sm ${ready ? "border-[#f4e4c6] hover:border-[#7fcfc7] hover:-translate-y-1" : "border-[#eee] opacity-80"}`}
+                  data-testid={`quest-card-${q.slug}`}
+                >
+                  {q.hero_image_url && (
+                    <div className="aspect-video rounded-2xl overflow-hidden mb-3 bg-[#fffbf3]">
+                      <img src={q.hero_image_url} alt={q.title} className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                  {!q.hero_image_url && (
+                    <div
+                      className="aspect-video rounded-2xl mb-3 grid place-items-center text-white font-accent text-2xl"
+                      style={{ background: `linear-gradient(135deg, ${q.theme_color || "#7fcfc7"}, #fef3e2)` }}
+                    >
+                      {q.title}
+                    </div>
+                  )}
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <h2 className="font-accent text-xl font-bold text-[#3a4a55]">{q.title}</h2>
+                    {!ready && (
+                      <span className="text-[10px] uppercase tracking-wider bg-[#fef3e2] text-[#a36b29] px-2 py-1 rounded-full font-semibold flex items-center gap-1">
+                        <Lock className="w-3 h-3" /> Coming soon
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-[#4a5568] mb-4 min-h-[3rem]">{q.blurb}</p>
+                  {ready ? (
+                    <Link
+                      to={`/story-quest/${q.slug}`}
+                      className="btn-primary justify-center w-full"
+                      data-testid={`quest-card-start-${q.slug}`}
+                    >
+                      <Sparkles className="w-4 h-4" /> Start the quest
+                      <span className="ml-1 text-[11px] opacity-80">· {q.scene_count} scenes</span>
+                    </Link>
+                  ) : (
+                    <button
+                      disabled
+                      className="btn-secondary justify-center w-full cursor-not-allowed opacity-70"
+                      data-testid={`quest-card-locked-${q.slug}`}
+                    >
+                      <Lock className="w-4 h-4" /> Coming soon
+                    </button>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </main>
+  );
+}
+
+function QuestRunner({ slug }) {
+  const [quest, setQuest] = useState(null);
+  const [questError, setQuestError] = useState("");
   const [scenes, setScenes] = useState([]);
   const [mappings, setMappings] = useState(null);
   const [characters, setCharacters] = useState([]);
@@ -70,13 +161,20 @@ export default function StoryQuest() {
 
   useEffect(() => {
     Promise.all([
-      api.get("/story-quest/scenes"),
+      api.get(`/story-quest/scenes?quest_slug=${encodeURIComponent(slug)}`),
       api.get("/story-quest/character-mappings"),
       api.get("/characters"),
-    ]).then(([s, m, c]) => {
+      api.get(`/story-quest/quests/${encodeURIComponent(slug)}`).catch(() => null),
+    ]).then(([s, m, c, q]) => {
       setScenes(s.data || []);
       setMappings(m.data || null);
       setCharacters(c.data || []);
+      if (!q || !q.data) {
+        setQuestError("This quest is not ready yet.");
+      } else {
+        setQuest(q.data);
+        if ((s.data || []).length === 0) setQuestError("This quest has no scenes yet — check back soon!");
+      }
       // Resume progress if any
       const prev = loadProgress();
       if (prev && prev.idx >= 0 && prev.scores) {
@@ -85,12 +183,12 @@ export default function StoryQuest() {
         if (Array.isArray(prev.picks)) setPicks(prev.picks);
         setStage(prev.stage || "scene");
       }
-    }).catch(() => {});
+    }).catch(() => { setQuestError("Could not load this quest."); });
     return () => {
       // Pause audio on unmount
       try { audioRef.current?.pause(); } catch {}
     };
-  }, []);
+  }, [slug]);
 
   useEffect(() => {
     try { localStorage.setItem(NAME_KEY, playerName || ""); } catch {}
@@ -206,6 +304,16 @@ export default function StoryQuest() {
   };
 
   // ---------- RENDER ----------
+  if (questError) {
+    return (
+      <main className="pt-24 pb-12 bg-foam-grad min-h-screen text-center" data-testid="story-quest-not-ready">
+        <p className="text-[#5a6b76] mb-3">{questError}</p>
+        <Link to="/story-quest" className="btn-primary">
+          <Compass className="w-4 h-4" /> Back to all quests
+        </Link>
+      </main>
+    );
+  }
   if (!scenes.length) {
     return (
       <main className="pt-24 pb-12 bg-foam-grad min-h-screen text-center" data-testid="story-quest-empty">
@@ -215,7 +323,7 @@ export default function StoryQuest() {
   }
 
   if (stage === "splash") {
-    return <Splash totalScenes={totalScenes} onStart={start} playerName={playerName} onNameChange={setPlayerName} />;
+    return <Splash quest={quest} totalScenes={totalScenes} onStart={start} playerName={playerName} onNameChange={setPlayerName} />;
   }
 
   if (stage === "finale") {
@@ -334,14 +442,21 @@ export default function StoryQuest() {
   );
 }
 
-function Splash({ totalScenes, onStart, playerName, onNameChange }) {
+function Splash({ quest, totalScenes, onStart, playerName, onNameChange }) {
+  const title = quest?.title || "Story Quest";
+  const blurb = quest?.blurb || "Adventure through Stingray Cay one scene at a time.";
   return (
     <main className="pt-24 pb-12 bg-foam-grad min-h-screen" data-testid="story-quest-splash">
-      <SEO title="Story Quest" description="An interactive adventure through Stingray Cay that reveals your Sea Star." />
+      <SEO title={title} description={blurb} />
       <div className="max-w-2xl mx-auto px-4 text-center">
+        <div className="mb-2">
+          <Link to="/story-quest" className="text-sm text-[#5a8a6f] font-semibold hover:underline" data-testid="quest-back-to-gallery">
+            ← All quests
+          </Link>
+        </div>
         <Sparkles className="w-12 h-12 text-[#f0a988] mx-auto mb-3" />
-        <h1 className="font-accent text-5xl md:text-6xl font-bold mb-3">Story Quest</h1>
-        <p className="text-lg text-[#4a5568] mb-2">Adventure through Stingray Cay one scene at a time.</p>
+        <h1 className="font-accent text-5xl md:text-6xl font-bold mb-3">{title}</h1>
+        <p className="text-lg text-[#4a5568] mb-2">{blurb}</p>
         <p className="text-sm text-[#6b7280] mb-6">Every choice celebrates a W.A.V.E. value — and at the end you'll discover your Sea Star.</p>
 
         <div className="bg-white rounded-[28px] p-6 mb-6 grid grid-cols-2 md:grid-cols-4 gap-3 text-left">

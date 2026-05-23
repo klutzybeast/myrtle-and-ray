@@ -15,6 +15,7 @@ const NAV = [
   { to: "/coloring", label: "Coloring" },
   { to: "/sea-star-studio", label: "Studio" },
   { to: "/story-quest", label: "Story Quest" },
+  { to: "/sing-along", label: "Sing-Along" },
   { to: "/shop", label: "Shop" },
   { to: "/downloads", label: "Downloads" },
   { to: "/for-camps", label: "For Camps" },

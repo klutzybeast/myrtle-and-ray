@@ -745,3 +745,62 @@ Casey, Dani, Sami, Izzy, Louie, Billy, Frankie.
   produced PDF confirmed all 6 required sections present without
   overlap.
 
+
+## What's been implemented (2026-02-23 — Pronunciation + Multi-Quest + Sing-Along)
+### "Cay" pronunciation fix (across all ElevenLabs paths)
+- Created `/app/backend/tts_pronunciation.py` with `phoneticize_for_tts()`.
+  "Cay" / "cay" / "Cays" → "Key" / "key" / "Keys" only in text sent to
+  ElevenLabs. On-screen and printed copy keeps the proper spelling.
+- Wired into 3 callers: `seed.py::_seed_story_quest` (scene narration),
+  `scripts/generate_story_quest_audio.py` (bake step), and
+  `story_quest_router.finale_voice` (personalized line).
+- Re-baked scenes 1 and 12 (the only narrations containing "Cay") —
+  just 268 chars synthesized, ~$0 incremental ElevenLabs cost.
+
+### Multi-Story-Quest (1 → 10 quests in a gallery)
+- New `story_quests` Mongo collection (`{id, slug, title, blurb,
+  hero_image_url, theme_color, character_focus, position, status,
+  active}`). Scenes get a `quest_id` FK; existing scenes auto-backfill
+  to `first-day-of-camp` on next seed.
+- Catalog seeded in `seed.py::STORY_QUESTS_CATALOG`:
+  1. First Day of Camp (READY — 12 scenes)
+  2. The Lost Sea Glass Treasure (coming soon)
+  3. Storm at Stingray Cay (coming soon)
+  4. The First Camp Talent Show (coming soon)
+  5. Mystery of the Tide Pool (coming soon)
+  6. Race to the Lighthouse (coming soon)
+  7. Captain for a Day (coming soon)
+  8. Friendship Fix-It (coming soon)
+  9. Surprise Birthday at Camp (coming soon)
+  10. Beach Cleanup Heroes (coming soon)
+  Status is preserved across redeploys so admins can flip to "ready"
+  once they author scenes via the existing AdminStoryQuest editor.
+- New public endpoints: `GET /story-quest/quests` (gallery),
+  `GET /story-quest/quests/{slug}` (single), and the existing
+  `GET /story-quest/scenes` now accepts `?quest_slug=` or `?quest_id=`.
+- Routes: `/story-quest` → `<QuestGallery />` (10-card grid with
+  "Coming soon" badges on the 9 unfinished ones).
+  `/story-quest/:slug` → `<QuestRunner slug={slug} />` (same flow as
+  before, but scoped). "← All quests" link in the splash header.
+- Header nav unchanged (still points to gallery).
+
+### Sing-Along (new feature) + 10 song catalog + 1 pilot generated
+- New `/app/backend/sing_along_router.py` with public list/detail +
+  admin CRUD/reorder.
+- New `sing_along_songs` collection with 10 seeded stubs (W.A.V.E.
+  anthems, Sea Star theme songs, camp song). Each row includes:
+  title, theme, character_focus, lyrics, music_prompt (the natural-
+  language prompt sent to ElevenLabs Music), duration_seconds, audio_url.
+- New `/app/backend/scripts/generate_sing_along_audio.py`: calls
+  `client.music.compose()` (verified working — generated
+  "Catch the W.A.V.E." pilot, 938 KB MP3, streams correctly via
+  `/api/uploads/sing_along/catch-the-wave.mp3`). Idempotent: re-runs
+  skip already-baked songs. Pass slugs as args to generate a subset.
+- New frontend page `/sing-along` (`SingAlong.jsx`): card grid +
+  sticky "Now Playing" panel with scrolling lyrics. "Play & sing"
+  → "Pause" toggle. Coming-soon songs show a Lock badge.
+- Header nav: new "Sing-Along" link added between Story Quest and
+  Shop.
+- Tested: 17/17 Story Quest pytest pass. Gallery + per-quest splash
+  + sing-along play screenshots all confirm working end-to-end.
+
