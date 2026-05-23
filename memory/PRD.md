@@ -612,3 +612,34 @@ Casey, Dani, Sami, Izzy, Louie, Billy, Frankie.
   Story Quest backend pytest still green.
 
 
+
+## What's been implemented (2026-02-23 — Personalized share card)
+### "Save share card" → real 1200×630 PNG ready for socials
+- New library `/app/frontend/src/lib/storyQuestShareCard.js` renders the
+  card entirely client-side on a `<canvas>` — no server round-trip,
+  zero API cost. Composition: ocean gradient background with wave +
+  sparkle accents · brand strip ("CATCH THE W.A.V.E. OF EXCITEMENT") ·
+  "My Story Quest result" headline · matched Sea Star avatar (cover-
+  fit) inside a 4-color gradient ring · "I'm a… <Name>" + role ·
+  "I really listened to <Narrator> · Nx match" callout (when ≥2
+  matches) · W.A.V.E. fingerprint bars with letter bullets and counts
+  · footer "Myrtle and Ray — Find your Sea Star at <host>/story-quest".
+- Character images load with `crossOrigin="anonymous"` and the renderer
+  fails gracefully (no avatar but everything else still draws) if CORS
+  blocks the image.
+- Finale Share/Download flow:
+  - `data-testid="quest-share"` — uses Web Share API. If the device
+    supports file-sharing (`navigator.canShare({files})`), shares text
+    + the PNG. Otherwise falls back to text-only share, then to a
+    desktop PNG download + clipboard copy.
+  - `data-testid="quest-download-card"` — explicit "Save share card"
+    button that always downloads the PNG so parents have the asset.
+- Buttons rearranged into a 4-up grid: Share my result · Save share
+  card · Play again · See my badges.
+- Verified via Playwright: full quest → finale → click "Save share
+  card" → real 718 KB PNG (valid header, 1200×630) downloaded.
+  Gemini visual analysis of the rendered card confirmed all sections
+  present, no overlapping text, avatar centered in gradient ring,
+  fingerprint bars correctly scaled to scores. 11/11 backend pytest
+  still green.
+

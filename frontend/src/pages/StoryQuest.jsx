@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
-import { Waves, Sparkles, Volume2, VolumeX, ArrowRight, Trophy, Share2, RotateCcw } from "lucide-react";
+import { Waves, Sparkles, Volume2, VolumeX, ArrowRight, Trophy, Share2, RotateCcw, Download } from "lucide-react";
 import SEO from "../components/SEO";
 import { toast } from "sonner";
+import { renderStoryQuestShareCard } from "../lib/storyQuestShareCard";
 
 const PROGRESS_KEY = "mr_quest_progress";
 const BADGES_KEY = "mr_badges";
@@ -426,10 +427,41 @@ function Finale({ scores, picks, mappings, characters, onReplay }) {
     };
   }, [matchedChars]);
 
+  const buildShareBlob = async () => {
+    try {
+      const primaryMatched = matchedChars[0] || null;
+      return await renderStoryQuestShareCard({
+        matchedChar: primaryMatched,
+        listenedChar: topListenedChar,
+        listenedCount: topListenedSlug ? (listenedTo[topListenedSlug] || 0) : 0,
+        scores,
+        siteName: "Myrtle and Ray",
+      });
+    } catch {
+      return null;
+    }
+  };
+
   const share = async () => {
     try {
+      const blob = await buildShareBlob();
+      const file = blob ? new File([blob], "my-sea-star.png", { type: "image/png" }) : null;
+      // Modern mobile: share text + image
+      if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ ...sharePayload, files: [file] });
+        return;
+      }
       if (navigator.share) {
         await navigator.share(sharePayload);
+        return;
+      }
+      // Desktop fallback: download the image AND copy the link
+      if (blob) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url; a.download = "my-sea-star.png"; a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        toast.success("Share card downloaded! Drop it into any social post.");
       } else {
         await navigator.clipboard.writeText(`${sharePayload.text} ${sharePayload.url}`);
         toast.success("Link copied!");
@@ -437,6 +469,16 @@ function Finale({ scores, picks, mappings, characters, onReplay }) {
     } catch {
       // user cancelled
     }
+  };
+
+  const downloadCard = async () => {
+    const blob = await buildShareBlob();
+    if (!blob) { toast.error("Could not build the share card."); return; }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "my-sea-star.png"; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    toast.success("Saved to your downloads!");
   };
 
   return (
@@ -543,9 +585,12 @@ function Finale({ scores, picks, mappings, characters, onReplay }) {
           </div>
         </section>
 
-        <div className="grid sm:grid-cols-3 gap-3 mb-5">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
           <button onClick={share} className="btn-primary justify-center" data-testid="quest-share">
             <Share2 className="w-4 h-4" /> Share my result
+          </button>
+          <button onClick={downloadCard} className="btn-secondary justify-center" data-testid="quest-download-card">
+            <Download className="w-4 h-4" /> Save share card
           </button>
           <button onClick={onReplay} className="btn-secondary justify-center" data-testid="quest-replay">
             <RotateCcw className="w-4 h-4" /> Play again
