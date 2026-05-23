@@ -421,3 +421,38 @@ Casey, Dani, Sami, Izzy, Louie, Billy, Frankie.
 ### Other tweaks
 - PopupSignup suppressed on `/coloring`.
 - Coloring nav link added in public header + admin sidebar.
+
+## What's been implemented (2026-02-22 — Sea Star Studio combo)
+### `/sea-star-studio` — one letter → rhyme + voice + coloring page
+- Kid picks a Sea Star, writes a short letter, hits "Make my keepsake".
+  ~40s later they get back a single panel containing:
+  - 4 rhyming couplets in the character's voice (text)
+  - The same reply as ElevenLabs audio (cached)
+  - A coloring-book PNG depicting the scene the rhyme talks about
+  - A **Print my keepsake** button that opens a letter-sized printable
+    HTML page combining the rhyme + the coloring image
+- Backend `/app/backend/seastar_studio_router.py`:
+  - ONE Gemini Flash call returns a structured `RHYME: ... SCENE: ...`
+    payload parsed into `(reply_text, scene_prompt)`. Falls back to a
+    safe canned rhyme + generic scene on LLM failure or misformat.
+  - Reuses safety helpers from `penpals_router` (`sanitize_letter`,
+    `contains_banned`, `_today_key`) AND `coloring_router`
+    (`_is_blocked`, coloring system prompt, `COLORING_DIR`).
+  - Reuses the pen-pals MP3 cache directory + coloring PNG cache
+    directory — keyed by SHA-256 of
+    `(character_slug, sanitized_letter)`, so cache hits cost $0 and
+    return in <3s across visitors.
+  - Rate limit: 3 keepsakes/day/visitor — separate from pen-pals and
+    coloring quotas so kids can use all three.
+- Admin `/admin/sea-star-studio`: list with letter + rhyme + scene
+  caption + coloring image; soft-delete; search + character filter;
+  settings (enabled, daily cap, audio toggle).
+- Public extras: 13-card character picker, name + letter form, full
+  keepsake view, write-another, localStorage history (max 20).
+- Verified: 17/17 pytest (cache-seeded — zero paid API calls in CI) +
+  full Playwright e2e for both public AND admin flows. 96/96
+  regression suite still passing.
+
+### Other tweaks
+- `PopupSignup` also suppressed on `/sea-star-studio`.
+- "Studio" link added to public header + admin sidebar.
