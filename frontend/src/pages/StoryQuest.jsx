@@ -274,7 +274,14 @@ function ProgressBar({ current, total, muted, onToggleMute, hasAudio }) {
   const pct = Math.round((current / total) * 100);
   return (
     <div className="flex items-center gap-3" data-testid="quest-progress">
-      <div className="flex-1 h-2 bg-white/70 rounded-full overflow-hidden">
+      <div
+        className="flex-1 h-2 bg-white/70 rounded-full overflow-hidden"
+        role="progressbar"
+        aria-valuenow={current}
+        aria-valuemin={1}
+        aria-valuemax={total}
+        aria-label={`Scene ${current} of ${total}`}
+      >
         <div className="h-full bg-[#7fcfc7] transition-all" style={{ width: `${pct}%` }} />
       </div>
       <span className="text-xs text-[#6b7280] tabular-nums">{current}/{total}</span>

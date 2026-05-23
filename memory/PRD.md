@@ -456,3 +456,47 @@ Casey, Dani, Sami, Izzy, Louie, Billy, Frankie.
 ### Other tweaks
 - `PopupSignup` also suppressed on `/sea-star-studio`.
 - "Studio" link added to public header + admin sidebar.
+
+## What's been implemented (2026-02-23 — Story Quest)
+### `/story-quest` — interactive replay teaching W.A.V.E.
+- 12 seeded scenes guide kids through Stingray Cay. Each scene presents
+  3 choices, each tagged with one W.A.V.E. principle (Welcome curiosity /
+  Act with kindness / Value teamwork / Encourage others). Choices show a
+  character reaction, then Continue. After all 12 scenes a Finale screen
+  reveals the kid's matched Sea Star based on highest-scoring principle,
+  awards the **Story Quest Champion** Wave Badge (badge #9 → unlocks
+  Captain of the Cay), shows the W.A.V.E. fingerprint, and offers
+  Share / Play again / See my badges.
+- Backend `/app/backend/story_quest_router.py`:
+  - Public: `GET /story-quest/scenes`, `GET /story-quest/character-mappings`,
+    `POST /story-quest/track-completion`.
+  - Admin: full CRUD on scenes + `POST /admin/story-quest/reorder` +
+    `GET/PUT /admin/story-quest/character-mappings` + `GET /admin/story-quest/analytics`
+    (totals, today, character distribution, W.A.V.E. averages, recent 10).
+  - Anonymous completion logging (IP hashed sha256[:16], no PII).
+- Seed `/app/backend/seed.py` (`_seed_story_quest`): inserts any missing
+  scene by `scene_number` and writes default W.A.V.E.→character map
+  (welcome_curiosity→ms-bluegill, act_with_kindness→myrtle,
+   value_teamwork→ray, encourage_others→ollie). Idempotent.
+- Admin `/admin/story-quest`: list with reorder arrows, edit modal
+  (title / narrative / bg image / audio / choices), W.A.V.E.→Sea Star
+  mapping selectors, analytics panel.
+- Public extras: progress bar with a11y `role='progressbar'`,
+  resume-where-you-left-off (localStorage `mr_quest_progress`),
+  optional ElevenLabs narration per scene.
+- Wired: `App.js` routes (`/story-quest` + admin), Header nav link,
+  AdminLayout sidebar entry, `/story` page CTA banner.
+- `PopupSignup` suppressed on `/story-quest` so kids aren't interrupted.
+- Verified: 10/10 pytest on /app/backend/tests/test_story_quest.py +
+  full Playwright walkthrough (splash → 12 scenes → finale → badge
+  unlocked → /wave-badges shows earned). Backend 100%, frontend 100%
+  after popup-suppression fix.
+
+### Backlog (P3)
+- Auto-saving star toggle on Admin Products + map glow for earned badges.
+- Daily Streak Tracker (visit N days → unlock secret content).
+- Camp Counselor Leaderboard (private feed for camps).
+- Hardening (from code review): clamp `wave_scores` per-key (0–12) in
+  `/track-completion`; convert reorder to a `bulk_write`; shared
+  constants module for `WAVE_KEYS`; lift `to_list(50)` cap on public
+  scenes once admins create &gt;50.
