@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState, useRef } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api } from "../lib/api";
-import { Waves, Sparkles, Volume2, VolumeX, ArrowRight, Trophy, Share2, RotateCcw, Download, Mail, X, Lock, Compass } from "lucide-react";
+import { Waves, Sparkles, Volume2, VolumeX, ArrowRight, Trophy, Share2, RotateCcw, Download, Mail, X, Lock, Compass, Music2 } from "lucide-react";
 import SEO from "../components/SEO";
 import { toast } from "sonner";
 import { renderStoryQuestShareCard } from "../lib/storyQuestShareCard";
+import SongPlayer from "../components/SongPlayer";
 
 const PROGRESS_KEY = "mr_quest_progress";
 const NAME_KEY = "mr_quest_name";
@@ -567,6 +568,8 @@ function Finale({ scores, picks, mappings, characters, playerName, onReplay }) {
   const [finaleVoice, setFinaleVoice] = useState(null); // { audio_url, text }
   const finaleAudioRef = useRef(null);
   const [postcardOpen, setPostcardOpen] = useState(false);
+  const [themeSong, setThemeSong] = useState(null);
+  const [themeOpen, setThemeOpen] = useState(false);
   const primaryMatchedSlug = matchedChars[0]?.slug;
   const primaryMatchedHasVoice = !!matchedChars[0]?.voice_id;
   useEffect(() => {
@@ -588,6 +591,23 @@ function Finale({ scores, picks, mappings, characters, playerName, onReplay }) {
       return () => clearTimeout(t);
     }
   }, [finaleVoice]);
+
+  // Look up the matched Sea Star's theme song (from /sing-along/songs).
+  // We pick the first ready song whose `character_focus` matches the slug.
+  useEffect(() => {
+    if (!primaryMatchedSlug) { setThemeSong(null); return; }
+    let alive = true;
+    api.get("/sing-along/songs")
+      .then(({ data }) => {
+        if (!alive) return;
+        const songs = (data || []).filter((s) => s.audio_url);
+        const hit = songs.find((s) => s.character_focus === primaryMatchedSlug)
+                 || songs.find((s) => s.character_focus === "all");
+        setThemeSong(hit || null);
+      })
+      .catch(() => setThemeSong(null));
+    return () => { alive = false; };
+  }, [primaryMatchedSlug]);
 
   const sharePayload = useMemo(() => {
     const names = matchedChars.map((c) => c.name).join(" & ") || "a Sea Star";
@@ -701,6 +721,17 @@ function Finale({ scores, picks, mappings, characters, playerName, onReplay }) {
               <p className="text-xs text-[#6b7280] italic mt-2">"{finaleVoice.text}"</p>
             </div>
           )}
+          {themeSong && (
+            <button
+              onClick={() => setThemeOpen(true)}
+              className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-full font-bold text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition"
+              style={{ background: "linear-gradient(135deg,#7fcfc7,#5a8a6f)" }}
+              data-testid="quest-theme-song-cta"
+            >
+              <Music2 className="w-4 h-4" />
+              Sing {matchedChars[0]?.name || "your Sea Star"}'s theme song
+            </button>
+          )}
         </div>
 
         {topMoments.length > 0 && (
@@ -792,6 +823,13 @@ function Finale({ scores, picks, mappings, characters, playerName, onReplay }) {
             See my badges
           </Link>
         </div>
+        {themeOpen && themeSong && (
+          <SongPlayer
+            song={themeSong}
+            onClose={() => setThemeOpen(false)}
+            subtitle={`${matchedChars[0]?.name || "Your Sea Star"}'s theme song`}
+          />
+        )}
         {postcardOpen && (
           <PostcardModal
             playerName={cleanName}

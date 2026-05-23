@@ -933,6 +933,30 @@ Casey, Dani, Sami, Izzy, Louie, Billy, Frankie.
 
 ### Cleanup
 - Test residue from reorder test corrupted `first-day-of-camp` scene
+
+## What's been implemented (2026-02-23 — Theme song on finale)
+### Matched Sea Star's theme song plays at quest finale
+- Extracted the karaoke player to a reusable component at
+  `/app/frontend/src/components/SongPlayer.jsx` (exports default
+  `SongPlayer` + named `parseLyricsToTimedLines`, `characterColor`).
+  Accepts an optional `subtitle` prop (rendered in the header band).
+- `SingAlong.jsx` refactored to consume the shared component (no
+  behavior change, ~150 fewer lines).
+- `StoryQuest.jsx` Finale now:
+  1. Fetches `/sing-along/songs` once the matched character resolves
+  2. Picks the song where `character_focus === primaryMatchedSlug`
+     (falls back to the "all" anthem if the character has no theme
+     song yet)
+  3. Renders **"🎵 Sing &lt;Name&gt;'s theme song"** CTA inside the
+     matched-character card (data-testid="quest-theme-song-cta"),
+     styled with a teal→green gradient to feel distinct from share/postcard
+  4. Click → opens the full karaoke player with the subtitle "&lt;Name&gt;'s
+     theme song" — same LRC-synced highlighting as `/sing-along`
+- Smoke verified: complete quest as Tessa → Ms Bluegill match → CTA
+  reads "Sing Ms Bluegill's theme song" → player opens with
+  "MS BLUEGILL'S THEME SONG" header, "Stingray, Stingray, Stingray
+  Cay!" lit up, audio at 0:01/0:39. 17/17 backend pytest passing.
+
   numbering (14 rows, duplicated 9/11/12). Wiped and re-seeded
   cleanly. 17/17 backend pytest passing again.
 
