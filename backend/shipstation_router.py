@@ -196,20 +196,45 @@ def make_shipstation_router():
         invalid = rate_resp.get("invalid_rates") or []
 
         cleaned = []
-        EXCLUDED_SERVICES = {
+        # Carrier/service allow-list — restrict to USPS (minus exclusions) +
+        # UPS Ground + UPS 2nd Day Air only. Easy to edit per business needs.
+        EXCLUDED_USPS_SERVICES = {
             "usps_media_mail",  # books/media only — not eligible for plush
             "usps_priority_mail_international",
             "usps_priority_mail_express_international",
             "usps_first_class_mail_international",
+        }
+        ALLOWED_UPS_SERVICES = {
+            "ups_ground",
+            "ups_2nd_day_air",
+            "ups_2nd_day_air_am",  # variant some accounts return
+        }
+        EXCLUDED_GLOBAL = {
             "globalpost_economy", "globalpost_priority", "gp_plus",
         }
+
+        def _service_allowed(carrier_code: str, service_code: str) -> bool:
+            c = (carrier_code or "").lower()
+            s = (service_code or "").lower()
+            if s in EXCLUDED_GLOBAL:
+                return False
+            if c == "usps":
+                # Allow all USPS for US domestic; exclude media + international.
+                if (addr.country or "US").upper() == "US" and s in EXCLUDED_USPS_SERVICES:
+                    return False
+                return True
+            if c == "ups":
+                return s in ALLOWED_UPS_SERVICES
+            # FedEx + every other carrier explicitly excluded.
+            return False
+
         for rt in raw_rates:
             amt = (rt.get("shipping_amount") or {}).get("amount")
             if amt is None:
                 continue
             svc = rt.get("service_code") or ""
-            # Skip ineligible / non-US services for domestic shipments.
-            if (addr.country or "US").upper() == "US" and svc in EXCLUDED_SERVICES:
+            carrier_code = rt.get("carrier_code") or ""
+            if not _service_allowed(carrier_code, svc):
                 continue
             cents = int(round(float(amt) * 100))
             cleaned.append({

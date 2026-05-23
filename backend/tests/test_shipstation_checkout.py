@@ -296,3 +296,46 @@ class TestShippingCentsPersistence:
         )
         expected_total = order["subtotal_cents"] + order["tax_cents"] + 800
         assert order["total_cents"] == expected_total
+
+
+
+class TestCarrierAllowList:
+    """Lock in the business rule that only USPS + UPS Ground + UPS 2nd Day Air
+    are exposed at checkout (no FedEx, no UPS Next Day, etc.)."""
+
+    def test_only_usps_and_allowed_ups_services(self):
+        r = requests.post(f"{API}/checkout/shipping-rates", json={
+            "items": [{"quantity": 1}],
+            "full_name": "Test Buyer",
+            "shipping_address": {
+                "line1": "1600 Pennsylvania Ave NW",
+                "city": "Washington",
+                "state": "DC",
+                "postal_code": "20500",
+                "country": "US",
+            },
+        }, timeout=30)
+        assert r.status_code == 200, r.text
+        rates = r.json().get("rates") or []
+        assert rates, "Expected at least one rate"
+        carriers = {(rt.get("carrier_code") or "").lower() for rt in rates}
+        # Only USPS and UPS allowed — no FedEx or other carriers
+        assert carriers.issubset({"usps", "ups"}), (
+            f"Unexpected carriers in rate list: {carriers - {'usps','ups'}}"
+        )
+        ups_services = {
+            (rt.get("service_code") or "").lower()
+            for rt in rates if (rt.get("carrier_code") or "").lower() == "ups"
+        }
+        allowed_ups = {"ups_ground", "ups_2nd_day_air", "ups_2nd_day_air_am"}
+        # Every UPS service returned must be in the allow list
+        assert ups_services.issubset(allowed_ups), (
+            f"Unexpected UPS service: {ups_services - allowed_ups}"
+        )
+        # And confirm explicit excluded services never leak through
+        forbidden_codes = {
+            "ups_next_day_air", "ups_next_day_air_saver", "ups_3_day_select",
+            "fedex_ground", "fedex_2day", "fedex_express_saver",
+        }
+        leaked = {(rt.get("service_code") or "").lower() for rt in rates} & forbidden_codes
+        assert not leaked, f"Forbidden service leaked through: {leaked}"
