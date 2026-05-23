@@ -447,6 +447,32 @@ function Finale({ scores, picks, mappings, characters, playerName, onReplay }) {
   const topListenedSlug = Object.entries(listenedTo).sort((a, b) => b[1] - a[1])[0]?.[0];
   const topListenedChar = topListenedSlug ? characters.find((c) => c.slug === topListenedSlug) : null;
 
+  // Personalized voice line from the matched Sea Star — synthesized (or cached)
+  // by the backend, played from the public /api/uploads cache.
+  const [finaleVoice, setFinaleVoice] = useState(null); // { audio_url, text }
+  const finaleAudioRef = useRef(null);
+  const primaryMatchedSlug = matchedChars[0]?.slug;
+  const primaryMatchedHasVoice = !!matchedChars[0]?.voice_id;
+  useEffect(() => {
+    if (!primaryMatchedSlug || !primaryMatchedHasVoice) return;
+    let alive = true;
+    api.post("/story-quest/finale-voice", {
+      matched_slug: primaryMatchedSlug,
+      player_name: cleanName,
+    }).then(({ data }) => {
+      if (alive) setFinaleVoice(data || null);
+    }).catch(() => {});
+    return () => { alive = false; };
+  }, [primaryMatchedSlug, primaryMatchedHasVoice, cleanName]);
+  useEffect(() => {
+    if (finaleVoice?.audio_url && finaleAudioRef.current) {
+      const t = setTimeout(() => {
+        finaleAudioRef.current?.play().catch(() => {/* kid taps play */});
+      }, 50);
+      return () => clearTimeout(t);
+    }
+  }, [finaleVoice]);
+
   const sharePayload = useMemo(() => {
     const names = matchedChars.map((c) => c.name).join(" & ") || "a Sea Star";
     const who = cleanName ? `${cleanName} is` : "I'm";
@@ -542,6 +568,23 @@ function Finale({ scores, picks, mappings, characters, playerName, onReplay }) {
               ? "You're tied between two Sea Stars — that's rare! Your W.A.V.E. fingerprint is uniquely you."
               : "Just like your Sea Star match, you make the cay shine in your own special way."}
           </p>
+          {finaleVoice?.audio_url && (
+            <div className="mt-4 pt-4 border-t border-[#f4e4c6]" data-testid="quest-finale-voice">
+              <div className="flex items-center gap-2 mb-2">
+                <Volume2 className="w-4 h-4 text-[#5a8a6f] shrink-0" />
+                <span className="text-xs font-semibold text-[#3a4a55] uppercase tracking-wider">
+                  Hear it from {matchedChars[0]?.name || "your Sea Star"}
+                </span>
+              </div>
+              <audio
+                ref={finaleAudioRef}
+                src={finaleVoice.audio_url.startsWith("http") ? finaleVoice.audio_url : `${process.env.REACT_APP_BACKEND_URL}${finaleVoice.audio_url}`}
+                controls
+                className="w-full"
+              />
+              <p className="text-xs text-[#6b7280] italic mt-2">"{finaleVoice.text}"</p>
+            </div>
+          )}
         </div>
 
         {topMoments.length > 0 && (

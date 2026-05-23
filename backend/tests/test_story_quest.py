@@ -121,6 +121,38 @@ class TestStoryQuestPublic:
         assert row["wave_scores"]["encourage_others"] == 4
         assert "ip_hash" in row
 
+    def test_finale_voice_with_name(self):
+        """Personalized voice line — first call synthesizes, second hits cache fast."""
+        r = requests.post(
+            f"{BASE_URL}/api/story-quest/finale-voice",
+            json={"matched_slug": "ms-bluegill", "player_name": "Tessa"},
+        )
+        assert r.status_code == 200, r.text
+        data = r.json()
+        assert data["audio_url"].startswith("/api/uploads/voice/")
+        assert "Tessa" in data["text"]
+        # Sanity-check the MP3 streams
+        head = requests.head(f"{BASE_URL}{data['audio_url']}", allow_redirects=True)
+        assert head.status_code == 200
+        assert head.headers.get("content-type", "").startswith("audio/")
+
+    def test_finale_voice_sanitizes_name(self):
+        """Garbage non-letter input → no name baked into the line."""
+        r = requests.post(
+            f"{BASE_URL}/api/story-quest/finale-voice",
+            json={"matched_slug": "ms-bluegill", "player_name": "!!!@@@###"},
+        )
+        assert r.status_code == 200, r.text
+        # No name → generic "Wow, what a quest!" line, not "Way to go, !!!"
+        assert "Way to go," not in r.json()["text"]
+
+    def test_finale_voice_unknown_character(self):
+        r = requests.post(
+            f"{BASE_URL}/api/story-quest/finale-voice",
+            json={"matched_slug": "not-a-real-slug", "player_name": "Bo"},
+        )
+        assert r.status_code == 404, r.text
+
 
 # ---------------- Admin ----------------
 

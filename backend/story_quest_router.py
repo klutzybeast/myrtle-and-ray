@@ -20,6 +20,8 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import os
+import re
 import uuid
 from datetime import datetime, timezone
 from typing import List, Optional
@@ -69,6 +71,20 @@ class CompletionBody(BaseModel):
     matched_characters: Optional[List[str]] = None  # for ties
 
 
+class FinaleVoiceBody(BaseModel):
+    matched_slug: str = Field(min_length=1, max_length=64)
+    player_name: Optional[str] = ""
+
+
+def _sanitize_name(raw: str) -> str:
+    """Keep letters/spaces/hyphens/apostrophes, max 24 chars. Empty if name is bad."""
+    if not raw:
+        return ""
+    cleaned = re.sub(r"[^A-Za-z\s\-']", "", raw).strip()
+    cleaned = re.sub(r"\s+", " ", cleaned)
+    return cleaned[:24]
+
+
 def make_story_quest_router(db, require_admin):
     router = APIRouter(tags=["story-quest"])
 
@@ -96,6 +112,87 @@ def make_story_quest_router(db, require_admin):
             "ip_hash": hashlib.sha256(ip.encode()).hexdigest()[:16],
         })
         return {"success": True}
+
+    @router.post("/story-quest/finale-voice")
+    async def finale_voice(body: FinaleVoiceBody):
+        """Personalized voice line from the matched Sea Star.
+        Reuses the existing /voice cache so repeat plays are free."""
+        import voice_router as _vr
+        import storage as _storage
+
+        slug = body.matched_slug.strip().lower()
+        char = await db.characters.find_one({"slug": slug}, {"_id": 0})
+        if not char or not char.get("voice_id"):
+            raise HTTPException(status_code=404, detail="No voice for this character.")
+        voice_id = char["voice_id"]
+
+        name = _sanitize_name(body.player_name or "")
+        if name:
+            text = (
+                f"Way to go, {name}! You really listened to my friends and to me today. "
+                f"You're a true Sea Star — and the cay shines a little brighter because of you."
+            )
+        else:
+            text = (
+                "Wow, what a quest! You really listened to my friends and to me today. "
+                "You're a true Sea Star — and the cay shines a little brighter because of you."
+            )
+
+        key = _vr._cache_key(voice_id, text)
+        storage_name = f"voice/{key}.mp3"
+        upload_dir = os.environ.get("UPLOAD_DIR", "/app/backend/uploads")
+        local_path = os.path.join(upload_dir, storage_name)
+
+        # 1) Local cache hit
+        if os.path.exists(local_path):
+            return {"audio_url": f"/api/uploads/{storage_name}", "text": text}
+
+        # 2) Persistent storage hit
+        if _storage.is_enabled():
+            fetched = _storage.get_object(storage_name)
+            if fetched is not None:
+                data, _ = fetched
+                try:
+                    os.makedirs(os.path.dirname(local_path), exist_ok=True)
+                    with open(local_path, "wb") as fh:
+                        fh.write(data)
+                except Exception:  # noqa: BLE001
+                    pass
+                return {"audio_url": f"/api/uploads/{storage_name}", "text": text}
+
+        # 3) Synthesize via ElevenLabs
+        try:
+            audio = _vr._synthesize(voice_id, text)
+        except HTTPException:
+            raise
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("Finale voice synth failed")
+            raise HTTPException(status_code=502, detail="Voice service is busy. Try again.") from exc
+        if not audio:
+            raise HTTPException(status_code=502, detail="Empty audio from voice service.")
+
+        try:
+            os.makedirs(os.path.dirname(local_path), exist_ok=True)
+            with open(local_path, "wb") as fh:
+                fh.write(audio)
+            if _storage.is_enabled():
+                _storage.put_object(storage_name, audio, "audio/mpeg")
+            await db.voice_cache.update_one(
+                {"key": key},
+                {"$setOnInsert": {
+                    "key": key,
+                    "voice_id": voice_id,
+                    "text": text,
+                    "model_id": _vr.MODEL_ID,
+                    "chars": len(text),
+                    "storage_filename": storage_name,
+                    "created_at": _now_iso(),
+                }},
+                upsert=True,
+            )
+        except Exception:  # noqa: BLE001
+            logger.exception("Failed to persist finale voice cache")
+        return {"audio_url": f"/api/uploads/{storage_name}", "text": text}
 
     # ---------------- Admin ----------------
     admin = APIRouter(prefix="/admin/story-quest", tags=["admin-story-quest"], dependencies=[Depends(require_admin)])

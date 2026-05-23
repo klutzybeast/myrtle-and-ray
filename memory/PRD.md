@@ -669,3 +669,34 @@ Casey, Dani, Sami, Izzy, Louie, Billy, Frankie.
   "Ms Bluegill" with avatar + callout + fingerprint + footer all
   intact. 11/11 backend pytest still green.
 
+
+## What's been implemented (2026-02-23 — Personalized voice line)
+### "Way to go, Tessa!" in the matched Sea Star's voice
+- New backend endpoint **`POST /api/story-quest/finale-voice`** in
+  `story_quest_router.py`:
+  - Body: `{ matched_slug, player_name }` (name optional)
+  - Sanitizer keeps only letters/spaces/hyphens/apostrophes, max 24
+    chars; non-letter garbage → no name baked into the line.
+  - Composes: *"Way to go, <Name>! You really listened to my friends
+    and to me today. You're a true Sea Star — and the cay shines a
+    little brighter because of you."* (no-name variant: "Wow, what
+    a quest! …").
+  - Reuses voice_router's `_cache_key` + `_synthesize` + `_storage`
+    helpers and the `voice_cache` mongo collection. **First call
+    synthesizes via ElevenLabs and persists local + Object Storage +
+    cache row; every subsequent call (same name + matched Sea Star)
+    is a ~125ms cache hit at $0**. Returns `{ audio_url, text }`.
+- Finale UI: as soon as the matched character resolves, POSTs the
+  request, displays a "**HEAR IT FROM <NAME>**" block inside the
+  matched-card with the audio element, transcript, and Volume2 icon.
+  Auto-plays on mount (the scene-continue click that landed the kid
+  on the finale counts as a user gesture, unblocking autoplay).
+- Tested:
+  - 3 new pytests: with-name, sanitize-garbage-name, unknown-slug ⇒
+    404. 14/14 backend pytest pass.
+  - Playwright E2E: completed quest as "Tessa" → finale rendered
+    `quest-finale-voice` testid, audio src = `/api/uploads/voice/...mp3`,
+    10.4s duration, transcript correctly says
+    *"Way to go, Tessa! You really listened to my friends and to me
+    today…"*. Wave badge toast still fires.
+
