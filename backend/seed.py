@@ -506,6 +506,9 @@ async def seed_database(db) -> None:
     # --- Read-Aloud book (21 pages) ---
     await _seed_readaloud_book(db)
 
+    # --- Story Quest scenes (12 scenes + W.A.V.E. → character mapping) ---
+    await _seed_story_quest(db)
+
     # --- Stingray Cay map image (bundled asset → /api/uploads/map/...) ---
     _seed_map_image()
 
@@ -766,3 +769,239 @@ def _seed_map_image() -> None:
                 pass
     except Exception:  # noqa: BLE001
         pass
+
+
+
+# ============================================================
+# Story Quest seed (12 scenes that teach W.A.V.E. through choices)
+# ============================================================
+
+STORY_QUEST_SCENES = [
+    {
+        "scene_number": 1,
+        "title": "Welcome to Stingray Cay",
+        "narrative": (
+            "It's your very first day at camp on Stingray Cay! The sun is shining, "
+            "the waves are sparkling, and Ms Bluegill is waving you over to start."
+        ),
+        "is_intro": True,
+        "choices": [
+            {"id": "a", "text": "Look around and notice everything new.", "wave_principle": "welcome_curiosity",
+             "character_reaction": "Ms Bluegill smiles — \"That's the spirit! Curiosity is your superpower today.\""},
+            {"id": "b", "text": "Smile at the camper next to you.", "wave_principle": "act_with_kindness",
+             "character_reaction": "Your new bunkmate smiles right back. The day is already brighter."},
+            {"id": "c", "text": "Cheer when Ms Bluegill says hello.", "wave_principle": "encourage_others",
+             "character_reaction": "The whole crew cheers with you. Energy flows through the cay!"},
+        ],
+    },
+    {
+        "scene_number": 2,
+        "title": "Meeting the Crew",
+        "narrative": (
+            "Ray glides up and introduces the Sea Stars. There are 13 of them and "
+            "they all have different talents. Some are loud, some are quiet."
+        ),
+        "choices": [
+            {"id": "a", "text": "Ask each Sea Star what they love most.", "wave_principle": "welcome_curiosity",
+             "character_reaction": "Ollie's eight arms wave with joy — he loves being asked!"},
+            {"id": "b", "text": "Say hi to the quietest Sea Star first.", "wave_principle": "act_with_kindness",
+             "character_reaction": "Sally the Seahorse blushes. \"You're the first to say hi to me.\""},
+            {"id": "c", "text": "Suggest the crew makes a team name together.", "wave_principle": "value_teamwork",
+             "character_reaction": "Ray fins the water. \"The Wave Riders! I love it!\""},
+        ],
+    },
+    {
+        "scene_number": 3,
+        "title": "At the Tide Pool",
+        "narrative": (
+            "Your crew arrives at the tide pool. Tiny crabs scuttle, and a curious "
+            "starfish waves a soft arm. Casey explains the rules: look, don't touch."
+        ),
+        "choices": [
+            {"id": "a", "text": "Lean in close to watch a hermit crab change shells.", "wave_principle": "welcome_curiosity",
+             "character_reaction": "Myrtle nods. \"That's how you learn the cay's secrets.\""},
+            {"id": "b", "text": "Help a friend who's afraid of the cold water.", "wave_principle": "act_with_kindness",
+             "character_reaction": "They squeeze your fin. \"Thanks for staying with me.\""},
+            {"id": "c", "text": "Tell Casey their tide-pool rules are amazing.", "wave_principle": "encourage_others",
+             "character_reaction": "Casey's claws snap proudly. \"Aw shucks — thank you!\""},
+        ],
+    },
+    {
+        "scene_number": 4,
+        "title": "Sami's Missing Snorkel",
+        "narrative": (
+            "Sami is ready to swim — but their snorkel mask has gone missing! "
+            "They look around the sand, suddenly very sad."
+        ),
+        "choices": [
+            {"id": "a", "text": "\"Don't worry Sami — you can use mine!\"", "wave_principle": "act_with_kindness",
+             "character_reaction": "Sami's eyes light up. \"You're the best, really.\""},
+            {"id": "b", "text": "\"Let's all look together — I bet we'll find it.\"", "wave_principle": "value_teamwork",
+             "character_reaction": "The whole crew fans out. Found it in two minutes!"},
+            {"id": "c", "text": "\"Hey Sami — you're awesome even without a mask.\"", "wave_principle": "encourage_others",
+             "character_reaction": "Sami grins through tears. \"You always know what to say.\""},
+        ],
+    },
+    {
+        "scene_number": 5,
+        "title": "Lunchtime",
+        "narrative": (
+            "Picnic tables under the striped tent. Louie is drumming. You spot "
+            "an empty spot next to a kid sitting all by themselves."
+        ),
+        "choices": [
+            {"id": "a", "text": "Ask them what their favorite sea creature is.", "wave_principle": "welcome_curiosity",
+             "character_reaction": "\"Octopuses! Did you know they have three hearts?\" Conversation: launched."},
+            {"id": "b", "text": "Sit down and share your snack with them.", "wave_principle": "act_with_kindness",
+             "character_reaction": "They smile and offer you half their sandwich."},
+            {"id": "c", "text": "Wave the whole crew over to your table.", "wave_principle": "value_teamwork",
+             "character_reaction": "Lunch turns into a sea-star sing-along with Louie on the drums."},
+        ],
+    },
+    {
+        "scene_number": 6,
+        "title": "The Big Wave",
+        "narrative": (
+            "Suddenly a bigger-than-expected wave rolls in! A few campers gasp. "
+            "Ray calls everyone toward shore. What do you do?"
+        ),
+        "choices": [
+            {"id": "a", "text": "Hold a younger camper's hand and walk in calmly.", "wave_principle": "act_with_kindness",
+             "character_reaction": "Their little fingers squeeze yours. \"You're so brave for me.\""},
+            {"id": "b", "text": "Count heads to make sure no one is left behind.", "wave_principle": "value_teamwork",
+             "character_reaction": "Ray winks. \"Real Sea Stars look out for the whole crew.\""},
+            {"id": "c", "text": "Shout \"We've got this!\" so everyone hears.", "wave_principle": "encourage_others",
+             "character_reaction": "Twelve voices shout it back. The wave doesn't feel so big now."},
+        ],
+    },
+    {
+        "scene_number": 7,
+        "title": "Lost on the Beach",
+        "narrative": (
+            "Casey the Crab has wandered off chasing a sand dollar. The crew is "
+            "worried. The beach is big and the dunes are tall."
+        ),
+        "choices": [
+            {"id": "a", "text": "Look for clues — claw tracks in the sand.", "wave_principle": "welcome_curiosity",
+             "character_reaction": "You spot a tiny trail leading toward the dunes!"},
+            {"id": "b", "text": "Split into pairs so no one searches alone.", "wave_principle": "value_teamwork",
+             "character_reaction": "Three pairs cover three sections of beach. Smart move."},
+            {"id": "c", "text": "Call out, \"Casey, you're not in trouble — we miss you!\"", "wave_principle": "encourage_others",
+             "character_reaction": "From behind a dune: \"I'm here! I just got distracted!\""},
+        ],
+    },
+    {
+        "scene_number": 8,
+        "title": "The Treasure Hunt",
+        "narrative": (
+            "Ms Bluegill announces a treasure hunt. Each team must find five "
+            "shells with letters on them that spell a word."
+        ),
+        "choices": [
+            {"id": "a", "text": "Ask the crew, \"What word do you think it spells?\"", "wave_principle": "welcome_curiosity",
+             "character_reaction": "Sami guesses \"WAVES\" — and they're right!"},
+            {"id": "b", "text": "Hand the prettiest shell to the youngest camper.", "wave_principle": "act_with_kindness",
+             "character_reaction": "Their face lights up like the sun on the water."},
+            {"id": "c", "text": "Divide the beach into zones so no one steps on toes.", "wave_principle": "value_teamwork",
+             "character_reaction": "Five shells in five minutes. Team Wave Riders FTW!"},
+        ],
+    },
+    {
+        "scene_number": 9,
+        "title": "Stories at Sunset",
+        "narrative": (
+            "The sun is setting. The Sea Stars gather around a driftwood circle. "
+            "Sally the Seahorse looks like she has a story but is too shy to share."
+        ),
+        "choices": [
+            {"id": "a", "text": "Sit next to Sally and say, \"I'd love to hear your story.\"", "wave_principle": "encourage_others",
+             "character_reaction": "Sally takes a deep breath — and starts to share."},
+            {"id": "b", "text": "Tell your own short story first to break the ice.", "wave_principle": "act_with_kindness",
+             "character_reaction": "Sally smiles. \"That gives me an idea for mine!\""},
+            {"id": "c", "text": "Ask Sally a curious question about her painting.", "wave_principle": "welcome_curiosity",
+             "character_reaction": "Sally lights up. \"You really want to know?\""},
+        ],
+    },
+    {
+        "scene_number": 10,
+        "title": "Saying Goodbye for the Day",
+        "narrative": (
+            "Camp is almost over. Ms Bluegill asks the crew to share one word "
+            "about how they feel right now."
+        ),
+        "choices": [
+            {"id": "a", "text": "Say \"curious\" — there's so much more to learn!", "wave_principle": "welcome_curiosity",
+             "character_reaction": "Ms Bluegill beams. \"Curiosity keeps the cay alive.\""},
+            {"id": "b", "text": "Say \"thankful\" — for new friends made today.", "wave_principle": "act_with_kindness",
+             "character_reaction": "Myrtle's eyes go shiny. \"Kindness is the best souvenir.\""},
+            {"id": "c", "text": "Say \"proud\" — of the whole crew for sticking together.", "wave_principle": "value_teamwork",
+             "character_reaction": "The crew fin-bumps in a giant circle. Goosebumps."},
+        ],
+    },
+    {
+        "scene_number": 11,
+        "title": "The W.A.V.E. Promise",
+        "narrative": (
+            "Tomorrow is a new day. Each Sea Star whispers a promise to the wind "
+            "about how they'll be when they return."
+        ),
+        "choices": [
+            {"id": "a", "text": "\"Tomorrow I'll ask the questions I'm too shy to ask today.\"", "wave_principle": "welcome_curiosity",
+             "character_reaction": "The wind carries your promise out across the bay."},
+            {"id": "b", "text": "\"Tomorrow I'll be the friend someone needs.\"", "wave_principle": "act_with_kindness",
+             "character_reaction": "Myrtle nods slowly. \"That's the promise that changes everything.\""},
+            {"id": "c", "text": "\"Tomorrow I'll cheer for someone before they cheer themselves.\"", "wave_principle": "encourage_others",
+             "character_reaction": "Ray glides past. \"That's how big waves start — one cheer at a time.\""},
+        ],
+    },
+    {
+        "scene_number": 12,
+        "title": "Your Sea Star Reveal",
+        "narrative": (
+            "The stars come out. Looking back on your day, you can see your own "
+            "W.A.V.E. pattern — the way YOU helped make Stingray Cay shine."
+        ),
+        "is_finale": True,
+        "choices": [
+            {"id": "a", "text": "Reveal my Sea Star!", "wave_principle": "welcome_curiosity",
+             "character_reaction": "The cay falls silent — your reveal is next..."},
+        ],
+    },
+]
+
+
+async def _seed_story_quest(db) -> None:
+    # 1) Scenes — insert any missing by scene_number
+    for sc in STORY_QUEST_SCENES:
+        existing = await db.story_quest_scenes.find_one(
+            {"scene_number": sc["scene_number"]}, {"_id": 0, "id": 1}
+        )
+        if existing:
+            continue
+        await db.story_quest_scenes.insert_one({
+            "id": str(__import__("uuid").uuid4()),
+            "scene_number": sc["scene_number"],
+            "title": sc["title"],
+            "narrative": sc["narrative"],
+            "background_image_url": sc.get("background_image_url", ""),
+            "audio_narration_url": sc.get("audio_narration_url", ""),
+            "choices": sc["choices"],
+            "is_intro": sc.get("is_intro", False),
+            "is_finale": sc.get("is_finale", False),
+            "active": True,
+            "created_at": _now_iso(),
+            "updated_at": _now_iso(),
+        })
+
+    # 2) W.A.V.E. → character mapping
+    if not await db.story_quest_settings.find_one({"_id": "character_mappings"}):
+        await db.story_quest_settings.insert_one({
+            "_id": "character_mappings",
+            "value": {
+                "welcome_curiosity": "ms-bluegill",
+                "act_with_kindness": "myrtle",
+                "value_teamwork": "ray",
+                "encourage_others": "ollie",
+            },
+            "updated_at": _now_iso(),
+        })

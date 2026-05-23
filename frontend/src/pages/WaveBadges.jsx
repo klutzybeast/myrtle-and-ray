@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Award, ArrowLeft, Puzzle, Search, Map as MapIcon, Star, Palette, Music, Sticker } from "lucide-react";
+import { Award, ArrowLeft, Puzzle, Search, Map as MapIcon, Star, Palette, Music, Sticker, Sparkles } from "lucide-react";
 import SEO from "../components/SEO";
 
 const BADGES = [
@@ -12,6 +12,7 @@ const BADGES = [
   { key: "rhyme_time", title: "Rhyme Rider", subtitle: "Finished a rhyme pack", icon: Music, color: "#8fbfe0" },
   { key: "maze", title: "Maze Maker", subtitle: "Reached the shell", icon: MapIcon, color: "#f4d28a" },
   { key: "sticker_beach", title: "Beach Builder", subtitle: "Decorated the beach", icon: Sticker, color: "#f0a988" },
+  { key: "story_quest", title: "Story Quest Champion", subtitle: "Completed the Story Quest", icon: Sparkles, color: "#5a8a6f" },
 ];
 
 function readBadges() { try { return JSON.parse(localStorage.getItem("mr_badges") || "[]"); } catch { return []; } }
@@ -30,13 +31,13 @@ export default function WaveBadges() {
 
   return (
     <main className="pt-24 pb-16 bg-foam-grad min-h-screen" data-testid="wave-badges-page">
-      <SEO title="My Wave Badges" description="Track your progress through the Stingray Cay activity games. Collect all 8 badges to become Captain of the Cay." />
+      <SEO title="My Wave Badges" description="Track your progress through the Stingray Cay activity games. Collect all 9 badges to become Captain of the Cay." />
       <div className="max-w-5xl mx-auto px-4 md:px-6">
         <Link to="/activities" className="inline-flex items-center gap-2 text-sm font-bold text-[#5a8a6f] hover:underline mb-3" data-testid="back-to-activities"><ArrowLeft className="w-4 h-4" />Back to Activities</Link>
         <header className="text-center mb-8">
           <Award className="w-10 h-10 text-[#f0a988] mx-auto mb-2" />
           <h1 className="font-accent text-5xl md:text-6xl font-bold">My Wave Badges</h1>
-          <p className="text-[#4a5568] mt-2 max-w-2xl mx-auto">Finish each game to collect all 8 badges. Catch them all to become <b>Captain of the Cay</b>.</p>
+          <p className="text-[#4a5568] mt-2 max-w-2xl mx-auto">Finish each game (and the Story Quest!) to collect all 9 badges. Catch them all to become <b>Captain of the Cay</b>.</p>
         </header>
 
         <section className="card-soft p-6 mb-8" data-testid="badge-progress">
@@ -50,7 +51,7 @@ export default function WaveBadges() {
           {captain && (
             <div className="mt-4 text-center bg-gradient-to-r from-[#a8e6e1] to-[#fcd5b4] rounded-2xl px-4 py-3" data-testid="captain-banner">
               <div className="font-accent text-2xl font-bold text-[#3a4a55]">👑 Captain of the Cay</div>
-              <p className="text-sm text-[#3a4a55]/80">All 8 badges collected. Catch the W.A.V.E.!</p>
+              <p className="text-sm text-[#3a4a55]/80">All 9 badges collected. Catch the W.A.V.E.!</p>
             </div>
           )}
         </section>

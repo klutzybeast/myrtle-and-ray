@@ -24,6 +24,7 @@ const BADGE_LABELS = {
   rhyme_time: "Rhyme Rider",
   maze: "Maze Maker",
   sticker_beach: "Beach Builder",
+  story_quest: "Story Quest Champion",
 };
 
 const TILES = [
@@ -163,8 +164,8 @@ export default function Activities() {
               {badges.map((b) => (
                 <span key={b} className="bg-white px-3 py-1 rounded-full text-sm font-bold border-2 border-[#f4e4c6]" data-testid={`badge-${b}`}>🌟 {BADGE_LABELS[b] || b.replace(/_/g, " ")}</span>
               ))}
-              {badges.length === TILES.length && (
-                <span className="bg-gradient-to-r from-[#a8e6e1] to-[#fcd5b4] px-3 py-1 rounded-full text-sm font-bold border-2 border-white">👑 All 8 — Captain of the Cay!</span>
+              {badges.length >= TILES.length + 1 && (
+                <span className="bg-gradient-to-r from-[#a8e6e1] to-[#fcd5b4] px-3 py-1 rounded-full text-sm font-bold border-2 border-white">👑 All 9 — Captain of the Cay!</span>
               )}
             </div>
           )}
