@@ -775,7 +775,7 @@ function Finale({ scores, picks, mappings, characters, playerName, onReplay }) {
           </div>
         </section>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
           <button onClick={share} className="btn-primary justify-center" data-testid="quest-share">
             <Share2 className="w-4 h-4" /> Share my result
           </button>
@@ -788,7 +788,7 @@ function Finale({ scores, picks, mappings, characters, playerName, onReplay }) {
           <button onClick={onReplay} className="btn-secondary justify-center" data-testid="quest-replay">
             <RotateCcw className="w-4 h-4" /> Play again
           </button>
-          <Link to="/wave-badges" className="btn-secondary justify-center text-center" data-testid="quest-see-badges">
+          <Link to="/wave-badges" className="btn-secondary justify-center text-center sm:col-span-2" data-testid="quest-see-badges">
             See my badges
           </Link>
         </div>

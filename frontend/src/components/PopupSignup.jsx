@@ -53,6 +53,8 @@ export default function PopupSignup() {
     if (window.location.pathname.startsWith("/sea-star-studio")) return;
     // Don't pop on /story-quest — kids are mid-adventure
     if (window.location.pathname.startsWith("/story-quest")) return;
+    // Don't pop on /sing-along — kids are reading lyrics
+    if (window.location.pathname.startsWith("/sing-along")) return;
     const t = setTimeout(() => setOpen(true), 8000);
     return () => clearTimeout(t);
   }, []);
