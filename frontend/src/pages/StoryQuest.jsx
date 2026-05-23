@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { renderStoryQuestShareCard } from "../lib/storyQuestShareCard";
 
 const PROGRESS_KEY = "mr_quest_progress";
+const NAME_KEY = "mr_quest_name";
 const BADGES_KEY = "mr_badges";
 const BADGE_LABEL = "Story Quest Champion";
 const BADGE_KEY = "story_quest";
@@ -62,6 +63,9 @@ export default function StoryQuest() {
   const [lastChoice, setLastChoice] = useState(null);
   const [muted, setMuted] = useState(true);
   const [narrationDone, setNarrationDone] = useState(false);
+  const [playerName, setPlayerName] = useState(() => {
+    try { return (localStorage.getItem(NAME_KEY) || "").slice(0, 24); } catch { return ""; }
+  });
   const audioRef = useRef(null);
 
   useEffect(() => {
@@ -87,6 +91,10 @@ export default function StoryQuest() {
       try { audioRef.current?.pause(); } catch {}
     };
   }, []);
+
+  useEffect(() => {
+    try { localStorage.setItem(NAME_KEY, playerName || ""); } catch {}
+  }, [playerName]);
 
   useEffect(() => {
     if (stage !== "splash") {
@@ -207,7 +215,7 @@ export default function StoryQuest() {
   }
 
   if (stage === "splash") {
-    return <Splash totalScenes={totalScenes} onStart={start} />;
+    return <Splash totalScenes={totalScenes} onStart={start} playerName={playerName} onNameChange={setPlayerName} />;
   }
 
   if (stage === "finale") {
@@ -217,6 +225,7 @@ export default function StoryQuest() {
         picks={picks}
         mappings={mappings}
         characters={characters}
+        playerName={playerName}
         onReplay={(withSound = false) => {
           reset();
           setStage("splash");
@@ -325,7 +334,7 @@ export default function StoryQuest() {
   );
 }
 
-function Splash({ totalScenes, onStart }) {
+function Splash({ totalScenes, onStart, playerName, onNameChange }) {
   return (
     <main className="pt-24 pb-12 bg-foam-grad min-h-screen" data-testid="story-quest-splash">
       <SEO title="Story Quest" description="An interactive adventure through Stingray Cay that reveals your Sea Star." />
@@ -345,6 +354,23 @@ function Splash({ totalScenes, onStart }) {
         </div>
 
         <p className="text-xs text-[#6b7280] mb-4">~{Math.max(10, Math.round(totalScenes * 1.1))} minutes · {totalScenes} scenes · earn the Story Quest Champion badge</p>
+
+        <div className="max-w-sm mx-auto mb-5 text-left">
+          <label htmlFor="quest-name" className="text-xs font-semibold text-[#3a4a55] uppercase tracking-wider mb-1 block">
+            What's your name? <span className="text-[#6b7280] normal-case font-normal">(optional)</span>
+          </label>
+          <input
+            id="quest-name"
+            type="text"
+            value={playerName}
+            onChange={(e) => onNameChange(e.target.value.slice(0, 24))}
+            placeholder="So we can say it back to you"
+            maxLength={24}
+            className="w-full px-4 py-3 rounded-full border-2 border-[#f4e4c6] bg-white focus:border-[#7fcfc7] focus:outline-none text-[#3a4a55] text-center"
+            data-testid="quest-name-input"
+            autoComplete="given-name"
+          />
+        </div>
 
         <p className="text-sm text-[#3a4a55] font-semibold mb-3">Every scene is narrated by a different Sea Star — pick how you want to play:</p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center items-stretch">
@@ -393,12 +419,15 @@ function ProgressBar({ current, total, muted, onToggleMute, hasAudio }) {
   );
 }
 
-function Finale({ scores, picks, mappings, characters, onReplay }) {
+function Finale({ scores, picks, mappings, characters, playerName, onReplay }) {
   const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
   const top = sorted[0]?.[1] ?? 0;
   const winners = sorted.filter(([_, v]) => v === top && v > 0).map(([k]) => k);
   const matchedSlugs = winners.map((w) => mappings?.[w]).filter(Boolean);
   const matchedChars = matchedSlugs.map((slug) => characters.find((c) => c.slug === slug)).filter(Boolean);
+  const cleanName = (playerName || "").trim().slice(0, 24);
+  const subject = cleanName || "You";
+  const verb = cleanName ? "is" : "'re";  // "Tessa is like…"  vs  "You're like…"
 
   const total = Object.values(scores).reduce((s, v) => s + v, 0) || 1;
   const fingerprint = Object.entries(WAVE_META).map(([k, meta]) => ({
@@ -420,12 +449,13 @@ function Finale({ scores, picks, mappings, characters, onReplay }) {
 
   const sharePayload = useMemo(() => {
     const names = matchedChars.map((c) => c.name).join(" & ") || "a Sea Star";
+    const who = cleanName ? `${cleanName} is` : "I'm";
     return {
       title: "My Story Quest result",
-      text: `I'm ${names} 🌟 on Myrtle and Ray's Story Quest! Take it yourself:`,
+      text: `${who} like ${names} 🌟 on Myrtle and Ray's Story Quest! Take it yourself:`,
       url: typeof window !== "undefined" ? `${window.location.origin}/story-quest` : "/story-quest",
     };
-  }, [matchedChars]);
+  }, [matchedChars, cleanName]);
 
   const buildShareBlob = async () => {
     try {
@@ -435,6 +465,7 @@ function Finale({ scores, picks, mappings, characters, onReplay }) {
         listenedChar: topListenedChar,
         listenedCount: topListenedSlug ? (listenedTo[topListenedSlug] || 0) : 0,
         scores,
+        playerName: cleanName,
         siteName: "Myrtle and Ray",
       });
     } catch {
@@ -488,8 +519,8 @@ function Finale({ scores, picks, mappings, characters, onReplay }) {
         <div className="text-center mb-6">
           <Trophy className="w-12 h-12 text-[#f0a988] mx-auto mb-2" />
           <div className="text-sm uppercase tracking-wider text-[#a36b29] font-semibold">You completed the quest!</div>
-          <h1 className="font-accent text-4xl md:text-5xl font-bold mt-1">
-            You're {matchedChars.length === 1 ? "" : "both "}
+          <h1 className="font-accent text-4xl md:text-5xl font-bold mt-1" data-testid="quest-finale-headline">
+            {subject}{verb === "is" ? " is " : verb + " "}like{" "}
             <span className="text-[#5a8a6f]">{matchedChars.map((c) => c.name).join(" & ") || "a true Sea Star"}</span>!
           </h1>
         </div>

@@ -643,3 +643,29 @@ Casey, Dani, Sami, Izzy, Louie, Billy, Frankie.
   fingerprint bars correctly scaled to scores. 11/11 backend pytest
   still green.
 
+
+## What's been implemented (2026-02-23 — Personal name)
+### "Tessa is like Ms Bluegill" — name capture + phrasing
+- Splash now has a "What's your name? (optional)" pill input above the
+  Start CTAs (`data-testid="quest-name-input"`, max 24 chars). The name
+  is persisted to `localStorage[NAME_KEY]` so a return visit pre-fills
+  it. Leaving it blank is fine — copy gracefully falls back to "You're"
+  / "I'm".
+- Finale headline now reads **"Tessa is like Ms Bluegill!"** (or
+  "You're like Ms Bluegill!" if no name). `data-testid="quest-finale-headline"`
+  added for testability.
+- Share text payload updated to **"Tessa is like Ms Bluegill 🌟 on
+  Myrtle and Ray's Story Quest!"** (no-name version: "I'm like Ms
+  Bluegill ...").
+- Share card PNG: right-column header is now **"Tessa is like…"**
+  above the big character name (no-name version: "I'm like…").
+  Renderer accepts a new `playerName` prop and trims/limits it.
+- Phrasing intentionally avoids "is a Ms Bluegill" (which sounds like
+  a category) — Sea Stars are unique characters, so "like" is the
+  natural comparison.
+- Verified: Playwright walked through quest as "Tessa" → finale
+  headline = "Tessa is like Ms Bluegill!"; downloaded share card PNG
+  confirmed by Gemini visual analysis to show "Tessa is like…" above
+  "Ms Bluegill" with avatar + callout + fingerprint + footer all
+  intact. 11/11 backend pytest still green.
+

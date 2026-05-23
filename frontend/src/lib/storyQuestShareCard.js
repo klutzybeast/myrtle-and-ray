@@ -69,6 +69,7 @@ export async function renderStoryQuestShareCard({
   listenedChar = null,
   listenedCount = 0,
   scores = {},
+  playerName = "",
   siteName = "Myrtle & Ray",
   siteUrl = typeof window !== "undefined" ? window.location.origin : "",
 }) {
@@ -137,13 +138,14 @@ export async function renderStoryQuestShareCard({
 
   // Right column text
   const rightX = 420;
+  const cleanName = (playerName || "").trim().slice(0, 24);
   ctx.fillStyle = "#6b7280";
   ctx.font = '500 22px "Inter", "Helvetica Neue", sans-serif';
-  ctx.fillText("I'm a…", rightX, 200);
+  ctx.fillText(cleanName ? `${cleanName} is like…` : "I'm like…", rightX, 200);
 
   ctx.fillStyle = "#5a8a6f";
   ctx.font = 'bold 64px "Inter", "Helvetica Neue", sans-serif';
-  const name = matchedChar?.name || "Sea Star";
+  const name = matchedChar?.name || "a Sea Star";
   ctx.fillText(name, rightX, 232);
 
   if (matchedChar?.role) {
