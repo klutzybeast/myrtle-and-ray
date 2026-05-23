@@ -17,6 +17,13 @@ const WAVE_META = {
   encourage_others:  { letter: "E", color: "#7cbf94", label: "Encourage Others" },
 };
 
+const WAVE_LETTER_TO_PRINCIPLE = {
+  W: "welcome_curiosity",
+  A: "act_with_kindness",
+  V: "value_teamwork",
+  E: "encourage_others",
+};
+
 function loadProgress() {
   try { return JSON.parse(localStorage.getItem(PROGRESS_KEY) || "null"); } catch { return null; }
 }
@@ -52,6 +59,7 @@ export default function StoryQuest() {
   const [scores, setScores] = useState(emptyScores);
   const [lastChoice, setLastChoice] = useState(null);
   const [muted, setMuted] = useState(true);
+  const [narrationDone, setNarrationDone] = useState(false);
   const audioRef = useRef(null);
 
   useEffect(() => {
@@ -87,11 +95,20 @@ export default function StoryQuest() {
   const narrator = current?.narrator_slug
     ? characters.find((c) => c.slug === current.narrator_slug)
     : null;
+  // The W.A.V.E. principle suggested by the narrator's own value — used to
+  // gently pulse the matching choice once narration ends.
+  const narratorPrinciple = narrator?.wave_value
+    ? WAVE_LETTER_TO_PRINCIPLE[narrator.wave_value]
+    : null;
+  // Choices "open up" once narration finishes. If the kid is in quiet mode or
+  // the scene has no audio, choices are open immediately.
+  const choicesOpen = narrationDone || muted || !current?.audio_narration_url;
 
   // Stop audio whenever the scene changes, then auto-play the new
   // narration if the user enabled sound. The user's "Start with
   // narration" click is the gesture that unlocks autoplay.
   useEffect(() => {
+    setNarrationDone(false);
     const el = audioRef.current;
     if (!el) return;
     try { el.pause(); el.currentTime = 0; } catch {}
@@ -222,6 +239,7 @@ export default function StoryQuest() {
               src={current.audio_narration_url.startsWith("http") ? current.audio_narration_url : `${process.env.REACT_APP_BACKEND_URL}${current.audio_narration_url}`}
               autoPlay
               controls
+              onEnded={() => setNarrationDone(true)}
               className="w-full mb-4"
               data-testid={`scene-audio-${current.scene_number}`}
             />
@@ -230,15 +248,22 @@ export default function StoryQuest() {
           <p className="text-lg text-[#3a4a55] leading-relaxed mb-6 whitespace-pre-line" data-testid="scene-narrative">{current?.narrative}</p>
 
           {stage === "scene" && current?.choices?.length > 0 && (
-            <div className="space-y-3" data-testid="scene-choices">
+            <div
+              key={`choices-${current.id}-${choicesOpen ? "open" : "wait"}`}
+              className={`space-y-3 transition-opacity duration-500 ${choicesOpen ? "opacity-100 animate-choices-rise" : "opacity-40"}`}
+              data-testid="scene-choices"
+              data-state={choicesOpen ? "open" : "waiting"}
+            >
               {current.choices.map((c) => {
                 const meta = WAVE_META[c.wave_principle];
+                const isNarratorPick = choicesOpen && narratorPrinciple && c.wave_principle === narratorPrinciple;
                 return (
                   <button
                     key={c.id}
                     onClick={() => choose(c)}
-                    className="w-full text-left p-4 rounded-2xl border-2 border-[#f4e4c6] bg-[#fffbf3] hover:border-[#7fcfc7] hover:bg-[#eaf7f5] hover:-translate-y-0.5 transition"
+                    className={`w-full text-left p-4 rounded-2xl border-2 bg-[#fffbf3] hover:border-[#7fcfc7] hover:bg-[#eaf7f5] hover:-translate-y-0.5 transition ${isNarratorPick ? "border-[#7fcfc7] animate-wave-nudge" : "border-[#f4e4c6]"}`}
                     data-testid={`scene-choice-${c.id}`}
+                    data-narrator-pick={isNarratorPick ? "true" : "false"}
                   >
                     <div className="flex items-start gap-3">
                       <span
@@ -253,6 +278,11 @@ export default function StoryQuest() {
                   </button>
                 );
               })}
+              {!choicesOpen && (
+                <p className="text-center text-xs text-[#6b7280] italic pt-1" data-testid="choices-waiting-hint">
+                  Listening to {narrator?.name || "the narrator"}… your choices will glow when it's your turn.
+                </p>
+              )}
             </div>
           )}
 

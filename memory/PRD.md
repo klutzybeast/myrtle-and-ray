@@ -555,3 +555,32 @@ Casey, Dani, Sami, Izzy, Louie, Billy, Frankie.
 
   all 12 MP3s stream `audio/mpeg`). All passing.
 
+## What's been implemented (2026-02-23 — Wave Nudge)
+### Narration finishes → the matching choice glows
+- New behavior teaches the W.A.V.E. framework without telling the kid
+  which button to press:
+  1. While the narrator is speaking, the 3 choice buttons are dimmed
+     to 40% opacity and a small italic line shows
+     "Listening to <Narrator>… your choices will glow when it's your turn."
+  2. The `<audio onEnded>` event sets `narrationDone=true`, which
+     fades the choices up to full opacity (`animate-choices-rise`).
+  3. The choice whose `wave_principle` matches the narrator's
+     `wave_value` (e.g. Ms Bluegill = W → Welcome Curiosity) gets a
+     subtle teal `wave-nudge` pulse ring (every 2.4s, `box-shadow`
+     halo + 2px lift) — a soft nudge, not a command. Quiet mode and
+     scenes without audio mark choices "open" immediately so the
+     glow is always available.
+- Implementation: 2 new keyframes (`wave-nudge`, `choices-rise`) in
+  `index.css`. `StoryQuest.jsx` tracks `narrationDone` state, resets
+  it on scene change, derives `choicesOpen` from
+  `(narrationDone || muted || !audio_url)`, computes
+  `narratorPrinciple` from the narrator character's W/A/V/E letter,
+  and applies the pulse class only to that choice.
+- Each button now exposes `data-narrator-pick="true|false"` for
+  testing & analytics.
+- Verified via Playwright: Quiet mode → choices open + W choice
+  pulses; Narration mode → choices dim + hint shown; firing the
+  audio `ended` event flips choices to open + W choice glows. 11/11
+  Story Quest backend pytest still green.
+
+
