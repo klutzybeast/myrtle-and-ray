@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
-import { Waves, Sparkles, Volume2, VolumeX, ArrowRight, Trophy, Share2, RotateCcw, Download } from "lucide-react";
+import { Waves, Sparkles, Volume2, VolumeX, ArrowRight, Trophy, Share2, RotateCcw, Download, Mail, X } from "lucide-react";
 import SEO from "../components/SEO";
 import { toast } from "sonner";
 import { renderStoryQuestShareCard } from "../lib/storyQuestShareCard";
@@ -451,6 +451,7 @@ function Finale({ scores, picks, mappings, characters, playerName, onReplay }) {
   // by the backend, played from the public /api/uploads cache.
   const [finaleVoice, setFinaleVoice] = useState(null); // { audio_url, text }
   const finaleAudioRef = useRef(null);
+  const [postcardOpen, setPostcardOpen] = useState(false);
   const primaryMatchedSlug = matchedChars[0]?.slug;
   const primaryMatchedHasVoice = !!matchedChars[0]?.voice_id;
   useEffect(() => {
@@ -659,9 +660,12 @@ function Finale({ scores, picks, mappings, characters, playerName, onReplay }) {
           </div>
         </section>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-5">
           <button onClick={share} className="btn-primary justify-center" data-testid="quest-share">
             <Share2 className="w-4 h-4" /> Share my result
+          </button>
+          <button onClick={() => setPostcardOpen(true)} className="btn-primary justify-center" data-testid="quest-postcard-open" style={{ background: "linear-gradient(135deg,#f0a988,#a36b29)" }}>
+            <Mail className="w-4 h-4" /> Email a postcard
           </button>
           <button onClick={downloadCard} className="btn-secondary justify-center" data-testid="quest-download-card">
             <Download className="w-4 h-4" /> Save share card
@@ -673,11 +677,134 @@ function Finale({ scores, picks, mappings, characters, playerName, onReplay }) {
             See my badges
           </Link>
         </div>
+        {postcardOpen && (
+          <PostcardModal
+            playerName={cleanName}
+            matchedChar={matchedChars[0]}
+            buildShareBlob={buildShareBlob}
+            onClose={() => setPostcardOpen(false)}
+          />
+        )}
 
         <p className="text-center text-xs text-[#6b7280]">
           🌟 You earned the <b>Story Quest Champion</b> Wave Badge. <Link to="/activities" className="underline">Earn more badges →</Link>
         </p>
       </div>
     </main>
+  );
+}
+
+
+function PostcardModal({ playerName, matchedChar, buildShareBlob, onClose }) {
+  const [email, setEmail] = useState("");
+  const [join, setJoin] = useState(true);
+  const [sending, setSending] = useState(false);
+  const charName = matchedChar?.name || "your Sea Star";
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!email.trim() || sending) return;
+    setSending(true);
+    try {
+      const blob = await buildShareBlob();
+      if (!blob) { toast.error("Could not build the postcard image."); setSending(false); return; }
+      const b64 = await new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onloadend = () => resolve(r.result);
+        r.onerror = reject;
+        r.readAsDataURL(blob);
+      });
+      const { data } = await api.post("/story-quest/postcard", {
+        email: email.trim(),
+        matched_slug: matchedChar?.slug,
+        player_name: playerName || "",
+        share_card_png_base64: b64,
+        join_newsletter: join,
+      });
+      if (data?.success) {
+        toast.success(
+          data.status === "sent"
+            ? `Postcard from ${charName} is on its way to ${email}!`
+            : "Postcard queued — it'll arrive in a moment."
+        );
+        onClose();
+      } else {
+        toast.error("Could not send the postcard. Please try again.");
+      }
+    } catch (err) {
+      const msg = err?.response?.data?.detail || "Could not send the postcard.";
+      toast.error(msg);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 grid place-items-center bg-black/40 backdrop-blur-sm p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="postcard-title"
+      onClick={onClose}
+      data-testid="postcard-modal"
+    >
+      <form
+        onSubmit={submit}
+        onClick={(e) => e.stopPropagation()}
+        className="bg-[#fffbf3] rounded-[28px] p-6 w-full max-w-md shadow-2xl border-2 border-[#f4e4c6] relative"
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="absolute top-3 right-3 w-9 h-9 grid place-items-center rounded-full hover:bg-[#f4e4c6] text-[#6b7280]"
+          data-testid="postcard-modal-close"
+        >
+          <X className="w-4 h-4" />
+        </button>
+        <Mail className="w-10 h-10 text-[#f0a988] mb-2" />
+        <h2 id="postcard-title" className="font-accent text-2xl font-bold mb-1">
+          Email {playerName ? `${playerName}'s` : "your"} postcard
+        </h2>
+        <p className="text-sm text-[#4a5568] mb-4">
+          We'll send a printable PDF postcard signed by <b>{charName}</b>, ready for the fridge.
+        </p>
+        <label className="block text-xs font-semibold text-[#3a4a55] uppercase tracking-wider mb-1" htmlFor="postcard-email">
+          Parent's email
+        </label>
+        <input
+          id="postcard-email"
+          type="email"
+          required
+          autoFocus
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="grownup@example.com"
+          className="w-full px-4 py-3 rounded-full border-2 border-[#f4e4c6] bg-white focus:border-[#7fcfc7] focus:outline-none text-[#3a4a55] mb-3"
+          data-testid="postcard-email-input"
+        />
+        <label className="flex items-start gap-2 text-sm text-[#4a5568] mb-5 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={join}
+            onChange={(e) => setJoin(e.target.checked)}
+            className="mt-1 accent-[#7fcfc7]"
+            data-testid="postcard-newsletter-checkbox"
+          />
+          <span>Send me the occasional Sea Star newsletter — new stories, free coloring pages, and camp ideas. Unsubscribe any time.</span>
+        </label>
+        <button
+          type="submit"
+          disabled={sending || !email.trim()}
+          className="btn-primary w-full justify-center disabled:opacity-60"
+          data-testid="postcard-send-btn"
+        >
+          <Mail className="w-4 h-4" /> {sending ? "Sending…" : "Send the postcard"}
+        </button>
+        <p className="text-[11px] text-[#6b7280] mt-3 text-center">
+          One email, no spam — we only use this address to deliver the postcard{join ? " and the newsletter you opted into" : ""}.
+        </p>
+      </form>
+    </div>
   );
 }

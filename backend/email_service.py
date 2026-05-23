@@ -20,8 +20,13 @@ async def queue_email(
     purpose: str = "",
     from_email: Optional[str] = None,
     reply_to: Optional[str] = None,
+    attachments: Optional[list] = None,
 ) -> dict:
-    """Queue an email. If RESEND_API_KEY is set, attempt to send immediately."""
+    """Queue an email. If RESEND_API_KEY is set, attempt to send immediately.
+
+    `attachments` is a list of dicts shaped like
+    `{filename, content_base64, content_type}` (mirroring Resend's API).
+    """
     settings_doc = await db.settings.find_one({"_id": "settings"}, {"_id": 0}) or {}
     from_addr = from_email or settings_doc.get("outgoing_from_email") or os.environ.get("RESEND_FROM_EMAIL", "hello@myrtleandray.com")
     reply_addr = reply_to or settings_doc.get("mailing_list_reply_to") or os.environ.get("RESEND_REPLY_TO", "community@rollingriver.com")
@@ -39,6 +44,7 @@ async def queue_email(
         "error": "",
         "created_at": _now(),
         "sent_at": "",
+        "attachment_names": [a.get("filename") for a in (attachments or []) if a.get("filename")],
     }
 
     api_key = os.environ.get("RESEND_API_KEY", "").strip()
@@ -53,6 +59,15 @@ async def queue_email(
                 "html": doc["html"],
                 "reply_to": reply_addr,
             }
+            if attachments:
+                params["attachments"] = [
+                    {
+                        "filename": a["filename"],
+                        "content": a["content_base64"],
+                    }
+                    for a in attachments
+                    if a.get("filename") and a.get("content_base64")
+                ]
             resp = resend.Emails.send(params)
             doc["status"] = "sent"
             doc["sent_at"] = _now()

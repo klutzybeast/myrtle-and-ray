@@ -153,6 +153,79 @@ class TestStoryQuestPublic:
         )
         assert r.status_code == 404, r.text
 
+    def test_postcard_happy_path(self, mongo_db):
+        """End-to-end postcard send: PDF builds, mailing list upsert,
+        audit row written. We don't assert email actually transits Resend
+        (depends on env), but `success: True` should be returned."""
+        from PIL import Image
+        from io import BytesIO
+        import base64
+
+        im = Image.new("RGB", (1200, 630), (238, 249, 251))
+        buf = BytesIO(); im.save(buf, "PNG")
+        b64 = base64.b64encode(buf.getvalue()).decode()
+        test_email = f"sq_test_{uuid.uuid4().hex[:8]}@example.com"
+        r = requests.post(
+            f"{BASE_URL}/api/story-quest/postcard",
+            json={
+                "email": test_email,
+                "matched_slug": "ms-bluegill",
+                "player_name": "Tessa",
+                "share_card_png_base64": f"data:image/png;base64,{b64}",
+                "join_newsletter": True,
+            },
+            timeout=30,
+        )
+        assert r.status_code == 200, r.text
+        data = r.json()
+        assert data["success"] is True
+        assert data["subscribed"] is True
+        # Mailing list upsert created the row
+        ml = mongo_db.mailing_list.find_one({"email": test_email}, {"_id": 0})
+        assert ml is not None
+        assert ml["source"] == "story_quest_postcard"
+        # Audit + outbox rows
+        audit = mongo_db.story_quest_postcards.find_one({"email": test_email}, {"_id": 0})
+        assert audit is not None and audit["joined_newsletter"] is True
+        outbox = mongo_db.email_outbox.find_one({"to": test_email}, {"_id": 0}, sort=[("created_at", -1)])
+        assert outbox is not None
+        assert outbox["purpose"] == "story_quest_postcard"
+        assert outbox.get("attachment_names") and outbox["attachment_names"][0].endswith(".pdf")
+
+    def test_postcard_rejects_bad_email(self):
+        from PIL import Image
+        from io import BytesIO
+        import base64
+        im = Image.new("RGB", (1200, 630), (255, 255, 255))
+        buf = BytesIO(); im.save(buf, "PNG")
+        b64 = base64.b64encode(buf.getvalue()).decode()
+        r = requests.post(
+            f"{BASE_URL}/api/story-quest/postcard",
+            json={
+                "email": "not-an-email",
+                "matched_slug": "ms-bluegill",
+                "share_card_png_base64": f"data:image/png;base64,{b64}",
+            },
+        )
+        assert r.status_code == 400, r.text
+
+    def test_postcard_rejects_unknown_character(self):
+        from PIL import Image
+        from io import BytesIO
+        import base64
+        im = Image.new("RGB", (1200, 630), (255, 255, 255))
+        buf = BytesIO(); im.save(buf, "PNG")
+        b64 = base64.b64encode(buf.getvalue()).decode()
+        r = requests.post(
+            f"{BASE_URL}/api/story-quest/postcard",
+            json={
+                "email": "ok@example.com",
+                "matched_slug": "no-such-slug",
+                "share_card_png_base64": f"data:image/png;base64,{b64}",
+            },
+        )
+        assert r.status_code == 404, r.text
+
 
 # ---------------- Admin ----------------
 

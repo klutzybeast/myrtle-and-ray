@@ -76,6 +76,14 @@ class FinaleVoiceBody(BaseModel):
     player_name: Optional[str] = ""
 
 
+class PostcardBody(BaseModel):
+    email: str = Field(min_length=3, max_length=200)
+    matched_slug: str = Field(min_length=1, max_length=64)
+    player_name: Optional[str] = ""
+    share_card_png_base64: str = Field(min_length=200)  # data:image/png;base64,...
+    join_newsletter: Optional[bool] = False
+
+
 def _sanitize_name(raw: str) -> str:
     """Keep letters/spaces/hyphens/apostrophes, max 24 chars. Empty if name is bad."""
     if not raw:
@@ -83,6 +91,118 @@ def _sanitize_name(raw: str) -> str:
     cleaned = re.sub(r"[^A-Za-z\s\-']", "", raw).strip()
     cleaned = re.sub(r"\s+", " ", cleaned)
     return cleaned[:24]
+
+
+_EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
+def _build_postcard_pdf(*, share_card_png: bytes, child_name: str, character_name: str, finale_text: str) -> bytes:
+    """Render a one-page letter-sized PDF postcard:
+       - branded header strip
+       - share-card PNG (full width)
+       - finale voice transcript in a script-like style
+       - 'Love, <Character>' signature
+    """
+    from io import BytesIO
+    from reportlab.lib.pagesizes import LETTER
+    from reportlab.lib.units import inch
+    from reportlab.pdfgen import canvas as pdf_canvas
+    from reportlab.lib.utils import ImageReader
+
+    buf = BytesIO()
+    page_w, page_h = LETTER
+    c = pdf_canvas.Canvas(buf, pagesize=LETTER)
+
+    margin = 0.6 * inch
+
+    # Header band
+    c.setFillColorRGB(238/255, 249/255, 251/255)
+    c.rect(0, page_h - 0.55 * inch, page_w, 0.55 * inch, fill=1, stroke=0)
+    c.setFillColorRGB(0.353, 0.541, 0.435)  # #5a8a6f
+    c.setFont("Helvetica-Bold", 11)
+    c.drawString(margin, page_h - 0.35 * inch, "CATCH THE")
+    c.setFillColorRGB(0.227, 0.290, 0.333)  # #3a4a55
+    c.setFont("Helvetica-Bold", 13)
+    c.drawString(margin + 70, page_h - 0.35 * inch, "W.A.V.E.")
+    c.setFillColorRGB(0.639, 0.420, 0.161)  # #a36b29
+    c.setFont("Helvetica-Bold", 11)
+    c.drawString(margin + 130, page_h - 0.35 * inch, "OF EXCITEMENT")
+    c.setFillColorRGB(0.42, 0.45, 0.48)
+    c.setFont("Helvetica", 9)
+    c.drawRightString(page_w - margin, page_h - 0.35 * inch, "A postcard from Stingray Cay")
+
+    # Share card image (1200×630 aspect) — fit to width
+    try:
+        img = ImageReader(BytesIO(share_card_png))
+        target_w = page_w - 2 * margin
+        target_h = target_w * (630 / 1200)
+        y_top = page_h - 0.85 * inch - target_h
+        c.drawImage(img, margin, y_top, width=target_w, height=target_h, mask="auto")
+    except Exception:  # noqa: BLE001
+        y_top = page_h - 0.85 * inch
+        c.setFillColorRGB(0.42, 0.45, 0.48)
+        c.setFont("Helvetica-Oblique", 11)
+        c.drawString(margin, y_top, "(share card preview unavailable)")
+        y_top -= 0.3 * inch
+
+    # Greeting
+    greeting_y = y_top - 0.45 * inch
+    c.setFillColorRGB(0.227, 0.290, 0.333)
+    c.setFont("Helvetica-Bold", 18)
+    greeting = f"Dear {child_name}," if child_name else "Dear Sea Star,"
+    c.drawString(margin, greeting_y, greeting)
+
+    # Body — wrap text manually at ~76 chars
+    body_lines = _wrap_text(finale_text, 76)
+    body_y = greeting_y - 0.35 * inch
+    c.setFont("Helvetica", 13)
+    c.setFillColorRGB(0.290, 0.333, 0.376)
+    for line in body_lines:
+        c.drawString(margin, body_y, line)
+        body_y -= 0.26 * inch
+
+    # Signature
+    sig_y = body_y - 0.5 * inch
+    c.setFont("Helvetica-Oblique", 14)
+    c.setFillColorRGB(0.353, 0.541, 0.435)
+    c.drawString(margin, sig_y, "Love,")
+    c.setFont("Helvetica-Bold", 20)
+    c.drawString(margin, sig_y - 0.35 * inch, character_name)
+
+    # Footer
+    c.setFillColorRGB(0.42, 0.45, 0.48)
+    c.setFont("Helvetica", 9)
+    c.drawCentredString(page_w / 2, 0.45 * inch, "Print me out and pin me on the fridge! · Find your own Sea Star at myrtleandray.com/story-quest")
+
+    c.showPage()
+    c.save()
+    return buf.getvalue()
+
+
+def _finale_text_for(name: str) -> str:
+    if name:
+        return (
+            f"Way to go, {name}! You really listened to my friends and to me today. "
+            f"You're a true Sea Star — and the cay shines a little brighter because of you."
+        )
+    return (
+        "Wow, what a quest! You really listened to my friends and to me today. "
+        "You're a true Sea Star — and the cay shines a little brighter because of you."
+    )
+
+
+def _wrap_text(text: str, max_chars: int) -> list:
+    out, current = [], ""
+    for word in (text or "").split():
+        candidate = (current + " " + word).strip()
+        if len(candidate) > max_chars and current:
+            out.append(current)
+            current = word
+        else:
+            current = candidate
+    if current:
+        out.append(current)
+    return out
 
 
 def make_story_quest_router(db, require_admin):
@@ -127,16 +247,7 @@ def make_story_quest_router(db, require_admin):
         voice_id = char["voice_id"]
 
         name = _sanitize_name(body.player_name or "")
-        if name:
-            text = (
-                f"Way to go, {name}! You really listened to my friends and to me today. "
-                f"You're a true Sea Star — and the cay shines a little brighter because of you."
-            )
-        else:
-            text = (
-                "Wow, what a quest! You really listened to my friends and to me today. "
-                "You're a true Sea Star — and the cay shines a little brighter because of you."
-            )
+        text = _finale_text_for(name)
 
         key = _vr._cache_key(voice_id, text)
         storage_name = f"voice/{key}.mp3"
@@ -193,6 +304,134 @@ def make_story_quest_router(db, require_admin):
         except Exception:  # noqa: BLE001
             logger.exception("Failed to persist finale voice cache")
         return {"audio_url": f"/api/uploads/{storage_name}", "text": text}
+
+    @router.post("/story-quest/postcard")
+    async def email_postcard(body: PostcardBody, request: Request):
+        """Email the matched Sea Star's postcard (PDF) to a parent.
+        Optionally subscribes them to the mailing list."""
+        import base64
+        from email_service import queue_email
+
+        email = (body.email or "").strip().lower()
+        if not _EMAIL_RE.match(email):
+            raise HTTPException(status_code=400, detail="Please enter a valid email address.")
+
+        slug = body.matched_slug.strip().lower()
+        char = await db.characters.find_one({"slug": slug}, {"_id": 0})
+        if not char:
+            raise HTTPException(status_code=404, detail="Matched character not found.")
+        character_name = char.get("name") or "Your Sea Star"
+
+        name = _sanitize_name(body.player_name or "")
+        finale_text = _finale_text_for(name)
+
+        # Decode the share-card PNG that the kid generated client-side.
+        png_data_url = body.share_card_png_base64 or ""
+        png_bytes = b""
+        try:
+            if "," in png_data_url:
+                _, b64 = png_data_url.split(",", 1)
+            else:
+                b64 = png_data_url
+            png_bytes = base64.b64decode(b64, validate=False)
+        except Exception:  # noqa: BLE001
+            png_bytes = b""
+        if len(png_bytes) < 1000:
+            raise HTTPException(status_code=400, detail="Share card image was empty or malformed.")
+
+        # Build the printable PDF
+        try:
+            pdf_bytes = _build_postcard_pdf(
+                share_card_png=png_bytes,
+                child_name=name,
+                character_name=character_name,
+                finale_text=finale_text,
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("Postcard PDF build failed")
+            raise HTTPException(status_code=500, detail="Could not build the postcard.") from exc
+
+        # Optional newsletter subscribe
+        if body.join_newsletter:
+            try:
+                await db.mailing_list.update_one(
+                    {"email": email},
+                    {
+                        "$setOnInsert": {
+                            "id": str(uuid.uuid4()),
+                            "email": email,
+                            "name": name or "",
+                            "source": "story_quest_postcard",
+                            "subscribed_at": _now_iso(),
+                            "unsubscribed": False,
+                        }
+                    },
+                    upsert=True,
+                )
+            except Exception:  # noqa: BLE001
+                logger.exception("Mailing list upsert failed (non-fatal)")
+
+        # Compose email
+        subject = (
+            f"A postcard from {character_name} for {name}!" if name
+            else f"A postcard from {character_name}!"
+        )
+        greeting_name = name or "Sea Star"
+        newsletter_line = (
+            "Want more Sea Star fun? You're on the newsletter — we'll send the next one soon. "
+            if body.join_newsletter
+            else "Your child can take the quest again any time at "
+        )
+        html = f"""
+        <div style="font-family:'Helvetica Neue',Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;background:#fff5ec;color:#3a4a55;">
+          <p style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:#5a8a6f;margin:0 0 4px;">A postcard from Stingray Cay</p>
+          <h1 style="font-size:26px;margin:0 0 16px;color:#3a4a55;">A note for {greeting_name} &#127775;</h1>
+          <p style="font-size:15px;line-height:1.6;background:#fff;padding:16px 18px;border-radius:14px;border:1px solid #f4e4c6;">
+            &ldquo;{finale_text}&rdquo;<br/><br/>
+            <em style="color:#5a8a6f;">— Love, {character_name}</em>
+          </p>
+          <p style="font-size:14px;line-height:1.5;margin-top:18px;">
+            We've attached a printable postcard you can pin on the fridge.
+            {newsletter_line}
+            <a href="https://myrtleandray.com/story-quest" style="color:#5a8a6f;">myrtleandray.com/story-quest</a>
+          </p>
+          <p style="font-size:11px;color:#9aa5b1;margin-top:24px;">Catch the W.A.V.E. of Excitement &middot; Myrtle and Ray and the First Day of Camp</p>
+        </div>
+        """
+
+        attachment_name = f"story-quest-postcard{('-' + name.lower()) if name else ''}.pdf"
+        emailed = await queue_email(
+            db,
+            to=email,
+            subject=subject,
+            html=html,
+            text=f"{finale_text}\n\n— Love, {character_name}",
+            purpose="story_quest_postcard",
+            attachments=[{
+                "filename": attachment_name,
+                "content_base64": base64.b64encode(pdf_bytes).decode("ascii"),
+                "content_type": "application/pdf",
+            }],
+        )
+
+        # Audit row (no PII beyond email already in outbox)
+        await db.story_quest_postcards.insert_one({
+            "id": str(uuid.uuid4()),
+            "email": email,
+            "matched_slug": slug,
+            "player_name": name,
+            "joined_newsletter": bool(body.join_newsletter),
+            "email_status": emailed.get("status", "unknown"),
+            "ip_hash": hashlib.sha256((request.client.host if request.client else "anon").encode()).hexdigest()[:16],
+            "created_at": _now_iso(),
+        })
+
+        return {
+            "success": True,
+            "status": emailed.get("status", "queued"),
+            "subscribed": bool(body.join_newsletter),
+        }
+
 
     # ---------------- Admin ----------------
     admin = APIRouter(prefix="/admin/story-quest", tags=["admin-story-quest"], dependencies=[Depends(require_admin)])

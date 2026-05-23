@@ -700,3 +700,48 @@ Casey, Dani, Sami, Izzy, Louie, Billy, Frankie.
     *"Way to go, Tessa! You really listened to my friends and to me
     today…"*. Wave badge toast still fires.
 
+
+## What's been implemented (2026-02-23 — Email a postcard)
+### "Send Tessa a postcard" → printable PDF in the parent's inbox
+- New backend endpoint **`POST /api/story-quest/postcard`** in
+  `story_quest_router.py`:
+  - Body: `{ email, matched_slug, player_name, share_card_png_base64,
+    join_newsletter }`.
+  - Validates email shape, looks up matched character, sanitizes name.
+  - Decodes the share-card PNG the kid generated client-side and
+    builds a **one-page letter-size PDF** with `reportlab`:
+    branded header strip · the share-card image full-width · "Dear
+    <Name>," greeting · personalized voice line as body · "Love,
+    <Character>" italic+bold signature · "Print me out and pin me on
+    the fridge!" footer with site URL.
+  - Sends via Resend (existing `queue_email` extended to support
+    attachments) with the PDF attached as `story-quest-postcard-tessa.pdf`.
+  - If `join_newsletter` is true, upserts the email into
+    `mailing_list` with `source: "story_quest_postcard"` (idempotent —
+    existing subscribers are not overwritten).
+  - Writes an audit row to `story_quest_postcards` (email, slug, name,
+    consent flag, email_status, IP hash, created_at).
+- Dependency: `reportlab==4.5.1` added to `requirements.txt`.
+- `email_service.queue_email` extended with an optional `attachments`
+  parameter (Resend-shape list of `{filename, content_base64}`).
+  Backward-compatible; existing callers unchanged.
+- Frontend `StoryQuest.jsx`:
+  - Finale button grid expanded to 5 columns. New **"Email a postcard"**
+    CTA (Mail icon, peach gradient) opens a modal.
+  - `<PostcardModal>` collects parent email + newsletter consent
+    (default opt-in). On submit: regenerates the share-card PNG via
+    the existing `buildShareBlob()` (reused to keep one source of
+    truth for the image), base64-encodes it, POSTs to the new
+    endpoint, then toasts "Postcard from Ms Bluegill is on its way to
+    parent@example.com!" and closes.
+  - Friendly error toasts from the backend's `HTTPException.detail`.
+- Tests: 3 new pytests (happy path with mailing-list + audit + outbox
+  attachment verification, bad email → 400, unknown character → 404).
+  **17/17 backend pytest pass**.
+- Live verified: Playwright walked through quest as "Tessa" → opened
+  modal → typed email → clicked Send → modal closed, success toast
+  shown. Backend confirmed: Resend returned `status="sent"`, audit
+  row written, mailing list opted-in. Gemini visual analysis of the
+  produced PDF confirmed all 6 required sections present without
+  overlap.
+
