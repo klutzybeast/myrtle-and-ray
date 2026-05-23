@@ -1915,6 +1915,286 @@ SING_ALONG_SONGS = [
         "duration_seconds": 50,
         "position": 10,
     },
+    # ----- 10 more bangers (positions 11-20) -----
+    {
+        "slug": "splash-splash-splash",
+        "title": "Splash Splash Splash",
+        "theme": "party",
+        "character_focus": "ray",
+        "lyrics": (
+            "Splash, splash, splash — jump into the bay!\n"
+            "Splash, splash, splash — Sea Stars come and play!\n"
+            "Cannonball, big and tall, soak the cay all day!\n"
+            "Splash, splash, splash — that's how we play!\n"
+            "Splash, splash, splash — jump into the bay!\n"
+            "Splash, splash, splash — Sea Stars come and play!\n"
+            "1-2-3 — splash with me!\n"
+            "1-2-3 — splash with me!\n"
+            "Splash, splash, splash — jump into the bay!\n"
+            "Splash, splash, splash — best summer day!"
+        ),
+        "music_prompt": (
+            "Fast, hype kids' party song at 138 BPM, like a pool-party banger. "
+            "FULLY SUNG ALL THE WAY THROUGH — no instrumental gaps. "
+            "Lead: a kid choir shouting in unison with a single playful boy lead on the verses. "
+            "Backing: kick-drum on every beat, hand-claps on 2 and 4, whistles, party-blowers, surf guitar stabs, "
+            "'whoo!' shouts on the chorus. "
+            "Every line clearly enunciated. 'Splash, splash, splash!' chant returns 4 times. "
+            "Beach-party, sprinkler-tag, cannonball energy."
+        ),
+        "duration_seconds": 35,
+        "position": 11,
+    },
+    {
+        "slug": "stomp-clap-cay",
+        "title": "Stomp Clap Cay",
+        "theme": "party",
+        "character_focus": "louie",
+        "lyrics": (
+            "STOMP your feet — boom boom boom!\n"
+            "CLAP your hands — make some room!\n"
+            "Stomp clap stomp clap, find the groove!\n"
+            "Stomp clap Stingray, watch us move!\n"
+            "STOMP your feet — boom boom boom!\n"
+            "CLAP your hands — make some room!\n"
+            "Faster, faster, don't stop now!\n"
+            "Faster, faster, take a bow!\n"
+            "STOMP CLAP STINGRAY CAY!\n"
+            "STOMP CLAP STINGRAY CAY!"
+        ),
+        "music_prompt": (
+            "High-energy stomp-clap kids' anthem at 136 BPM (think We Will Rock You vibe but FAST and KID-friendly). "
+            "FULLY SUNG ALL THE WAY THROUGH. "
+            "Lead: a kid-group shouting in unison with a strong boy-lead doing the call. "
+            "Backing: dominant foot-stomps on beat, big claps, drumline snare rolls, brass stabs, 'hey!' shouts. "
+            "Every lyric line shouted-sung. The 'STOMP CLAP STINGRAY CAY!' refrain returns at the end. "
+            "Sports-arena pep-rally energy."
+        ),
+        "duration_seconds": 35,
+        "position": 12,
+    },
+    {
+        "slug": "i-am-a-sea-star",
+        "title": "I Am a Sea Star",
+        "theme": "anthem",
+        "character_focus": "all",
+        "lyrics": (
+            "I am a Sea Star, shining bright!\n"
+            "I am a Sea Star, day and night!\n"
+            "Five big arms, one big heart,\n"
+            "Sea Star me — that's a start!\n"
+            "I am a Sea Star, shining bright!\n"
+            "I am a Sea Star, day and night!\n"
+            "Stretch them out, reach them wide,\n"
+            "Sea Star pride, take it in stride!\n"
+            "I am a Sea Star! Yes I am!\n"
+            "I am a Sea Star! Yes I am!"
+        ),
+        "music_prompt": (
+            "Empowerment kids' pop song at 126 BPM, very upbeat and hype. "
+            "FULLY SUNG by a strong kid-choir lead with individual kid solo lines on the verses. "
+            "Backing: bright piano, hand-claps, snare on 2 and 4, brass horns answering the chorus, "
+            "synth-pad on the bridge. Every lyric line crystal clear, easy to sing. "
+            "Self-confidence-anthem feel — like the kid is suddenly five feet taller."
+        ),
+        "duration_seconds": 35,
+        "position": 13,
+    },
+    {
+        "slug": "sandcastle-stomp",
+        "title": "Sandcastle Stomp",
+        "theme": "party",
+        "character_focus": "casey",
+        "lyrics": (
+            "Pack the sand, build it tall!\n"
+            "Sandcastle stomp — don't let it fall!\n"
+            "Towers, moats, and seashell doors,\n"
+            "Sandcastle stomp on the sandy shores!\n"
+            "Pack the sand, build it tall!\n"
+            "Sandcastle stomp — don't let it fall!\n"
+            "1-2-3, build with me!\n"
+            "1-2-3, build with me!\n"
+            "Sandcastle, sandcastle, hooray!\n"
+            "Sandcastle stomp — Stingray Cay!"
+        ),
+        "music_prompt": (
+            "Bouncy kids' marching tune at 130 BPM with stomp-clap energy. "
+            "FULLY SUNG with a fun unison kid-choir lead, group shouts of '1-2-3!' on the chant. "
+            "Backing: tom-tom drums on every beat, ukulele strums, hand-claps, whistles, "
+            "wood-block clops. Every line repeats so kids can join in. "
+            "Big-as-a-castle build-it-up energy."
+        ),
+        "duration_seconds": 35,
+        "position": 14,
+    },
+    {
+        "slug": "high-five-the-sky",
+        "title": "High Five the Sky",
+        "theme": "party",
+        "character_focus": "ollie",
+        "lyrics": (
+            "Up, up, UP! High five the sky!\n"
+            "Up, up, UP! Reach up high!\n"
+            "Crew on the count of one-two-three,\n"
+            "High five the sky and high five me!\n"
+            "Up, up, UP! High five the sky!\n"
+            "Up, up, UP! Reach up high!\n"
+            "Slap your palm — boom boom boom!\n"
+            "Sea Star squad in the room!\n"
+            "Up, up, UP! High five the sky!\n"
+            "Up, up, UP! Reach up high!"
+        ),
+        "music_prompt": (
+            "Crowd-pumping cheer-pop at 142 BPM. EXTREMELY hype. "
+            "FULLY SUNG ALL THE WAY THROUGH. "
+            "Lead: a megaphone-style group chant + booming boy-voice solo. "
+            "Backing: marching-band snare, big brass horns, stadium claps, kids' group 'whoo-hoo!' shouts every 4 beats. "
+            "Every lyric line shouted-sung. Pep-rally, victory-lap energy."
+        ),
+        "duration_seconds": 35,
+        "position": 15,
+    },
+    {
+        "slug": "shake-the-shells",
+        "title": "Shake the Shells",
+        "theme": "party",
+        "character_focus": "louie",
+        "lyrics": (
+            "Shake the shells, shake the shells!\n"
+            "Shaka-shaka shells — feels so swell!\n"
+            "Pick 'em up, shake 'em loud,\n"
+            "Shake those shells with the Sea Star crowd!\n"
+            "Shake the shells, shake the shells!\n"
+            "Shaka-shaka shells — feels so swell!\n"
+            "Side to side, up and down,\n"
+            "Shake those shells all around the town!\n"
+            "Shake, shake, shake, shake — shake the shells!\n"
+            "Shake, shake, shake, shake — shake the shells!"
+        ),
+        "music_prompt": (
+            "Funky maraca-driven kids' dance song at 128 BPM. "
+            "FULLY SUNG ALL THE WAY THROUGH with a kid-group lead. "
+            "Backing: dominant shaker percussion (egg shakers + maracas), bongo drums, "
+            "bright acoustic guitar, hand-claps on every beat. "
+            "Every lyric line clearly enunciated, call-and-response feel. "
+            "Caribbean-dance-party, hip-shaking energy."
+        ),
+        "duration_seconds": 35,
+        "position": 16,
+    },
+    {
+        "slug": "race-the-tide",
+        "title": "Race the Tide",
+        "theme": "party",
+        "character_focus": "ray",
+        "lyrics": (
+            "Run, run, run — race the tide!\n"
+            "Run, run, run — Sea Stars glide!\n"
+            "Faster than the waves can chase,\n"
+            "Race the tide — first place!\n"
+            "Run, run, run — race the tide!\n"
+            "Run, run, run — Sea Stars glide!\n"
+            "Sand below and sky above,\n"
+            "Race the tide with the crew you love!\n"
+            "Run-run, race-race, GO GO GO!\n"
+            "Run-run, race-race, GO GO GO!"
+        ),
+        "music_prompt": (
+            "Sprint-tempo kids' anthem at 144 BPM. Very fast, very hype. "
+            "FULLY SUNG ALL THE WAY THROUGH with a kid-choir lead. "
+            "Backing: galloping snare-tom drums, hand-claps, brass stabs, kids shouting 'GO GO GO!' on the breaks. "
+            "Every lyric crystal clear. The 'Run, run, run' chant returns at the start and end. "
+            "Track-meet, finish-line, wind-in-your-hair energy. No instrumental breaks longer than 2 seconds."
+        ),
+        "duration_seconds": 30,
+        "position": 17,
+    },
+    {
+        "slug": "dance-the-cay",
+        "title": "Dance the Cay",
+        "theme": "party",
+        "character_focus": "all",
+        "lyrics": (
+            "Dance the cay, dance the cay!\n"
+            "Move your feet the Sea Star way!\n"
+            "Spin around and clap your hands,\n"
+            "Dance the cay with all your friends!\n"
+            "Dance the cay, dance the cay!\n"
+            "Move your feet the Sea Star way!\n"
+            "Wiggle, jiggle, jump, repeat,\n"
+            "Dance the cay — best beat on the street!\n"
+            "Dance the cay! Yeah yeah yeah!\n"
+            "Dance the cay! Hey hey hey!"
+        ),
+        "music_prompt": (
+            "Joyful kids' dance-pop at 134 BPM, like an end-of-camp dance party. "
+            "FULLY SUNG ALL THE WAY THROUGH. "
+            "Lead: kid-group chorus with a single playful kid voice on the verses. "
+            "Backing: four-on-the-floor kick drum, hand-claps every beat, bright piano, "
+            "synth-bass, brass horns answering the chorus, group shouts of 'hey hey hey!' "
+            "Every lyric crystal clear. The 'Dance the cay!' refrain returns 4 times. "
+            "Camp-disco, glow-stick energy."
+        ),
+        "duration_seconds": 35,
+        "position": 18,
+    },
+    {
+        "slug": "sea-star-power",
+        "title": "Sea Star Power",
+        "theme": "anthem",
+        "character_focus": "all",
+        "lyrics": (
+            "Sea Star power! Watch me go!\n"
+            "Sea Star power! Top to toe!\n"
+            "Five-point arms and a heart so big,\n"
+            "Sea Star power — that's our jig!\n"
+            "Sea Star power! Watch me go!\n"
+            "Sea Star power! Top to toe!\n"
+            "S-E-A — S-T-A-R!\n"
+            "Sea Star power, here we are!\n"
+            "Sea Star power! Yeah yeah yeah!\n"
+            "Sea Star power! Stingray Cay!"
+        ),
+        "music_prompt": (
+            "Superhero-style kids' anthem at 132 BPM with a triumphant rising hook. "
+            "FULLY SUNG ALL THE WAY THROUGH. "
+            "Lead: a strong kid-choir + individual kid hero-voice on the verses. "
+            "Backing: cinematic brass, snare-roll fills, hand-claps on every beat, "
+            "synth-strings on the chorus, big group 'YEAH!' shouts. "
+            "Every lyric line punchy and clear. The 'S-E-A — S-T-A-R!' spelled-out chant is a highlight. "
+            "Cape-flying, cay-saving, hero-anthem energy."
+        ),
+        "duration_seconds": 35,
+        "position": 19,
+    },
+    {
+        "slug": "campfire-clap-along",
+        "title": "Campfire Clap-Along",
+        "theme": "camp",
+        "character_focus": "ms-bluegill",
+        "lyrics": (
+            "Round the fire, clap along!\n"
+            "Round the fire, sing this song!\n"
+            "Marshmallow, marshmallow, twist and turn,\n"
+            "Round the fire while the embers burn!\n"
+            "Round the fire, clap along!\n"
+            "Round the fire, sing this song!\n"
+            "Friends on the left, friends on the right,\n"
+            "Round the fire on a Stingray night!\n"
+            "Round-the-fire, clap-clap-CLAP!\n"
+            "Round-the-fire, clap-clap-CLAP!"
+        ),
+        "music_prompt": (
+            "Foot-tapping campfire singalong at 124 BPM — upbeat, NOT sleepy. "
+            "FULLY SUNG ALL THE WAY THROUGH by a kid-group with a warm female lead. "
+            "Backing: acoustic guitar strums, hand-claps on every beat, light shaker, "
+            "ukulele, soft bongo, 'la-la-la' choir on the chorus. "
+            "Every lyric line clearly enunciated. The 'clap-clap-CLAP!' tag returns at the end. "
+            "Roasted-marshmallow, song-around-the-fire energy — but danceable."
+        ),
+        "duration_seconds": 35,
+        "position": 20,
+    },
 ]
 
 
