@@ -384,3 +384,40 @@ Casey, Dani, Sami, Izzy, Louie, Billy, Frankie.
 ### Other tweaks shipped this pass
 - `PopupSignup` also suppressed on `/pen-pals`.
 - Read-Aloud test expectations updated to the 21-page seed (was 20).
+
+## What's been implemented (2026-02-22 — AI Coloring Pages + hero fix)
+### AI Coloring Pages (`/coloring`)
+- Kid-facing page that generates a **black-and-white line-art coloring
+  page** from a text prompt + optional Sea Star character.
+- Backend `/app/backend/coloring_router.py`:
+  - `POST /api/coloring/generate` — sanitizes the prompt (reuses PII +
+    banned-word helpers from `penpals_router`), blocks weapon/violence
+    subjects with a friendly message, rate-limits 5/day/visitor,
+    generates a single PNG via Gemini Nano Banana
+    (`gemini-3.1-flash-image-preview` via
+    `emergentintegrations.LlmChat` with `modalities=['image','text']`).
+  - SHA-256 content-hash caching by `(character_slug,
+    sanitized_prompt)` — second kid asking the same thing pays nothing.
+  - PNG persisted at `/app/backend/uploads/coloring/<hash>.png` and
+    pushed to Emergent Object Storage.
+  - System prompt enforces pure black outlines, white background, no
+    shading, no text, kid-safe single subject.
+- Admin `/admin/coloring`: settings panel (enable/disable, daily cap,
+  max chars, share-publicly) + grid of pages with prompt + character
+  + soft-delete.
+- Public extras: prompt-idea chips, character chip row, download +
+  print, "My coloring pages" localStorage history.
+- Verified: 17/17 pytest (cache-seeded — LLM never called from CI) +
+  Playwright e2e green for public AND admin flows.
+
+### Homepage hero regression fix
+- A leftover `TEST_marker_10a84b` from an older testing-agent run was
+  showing in the hero (the test wrote the marker but didn't restore).
+- Restored the canonical hero copy on preview **and patched seed.py**
+  so on every backend startup any seeded page containing
+  `TEST_marker_` is reset back to its canonical PAGES default —
+  prod is now defended against future test-agent leaks.
+
+### Other tweaks
+- PopupSignup suppressed on `/coloring`.
+- Coloring nav link added in public header + admin sidebar.
