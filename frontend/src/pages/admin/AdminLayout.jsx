@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../lib/auth";
-import { Waves, LayoutDashboard, Package, Users, FileText, Settings, Inbox, Mail, Image, Sparkles, LogOut, Send, Download, Layers, PenSquare, ExternalLink, Home, Megaphone, Menu, X, BarChart3, ShoppingBag, BookOpen, Tag, MessageCircle, Palette } from "lucide-react";
+import { Waves, LayoutDashboard, Package, Users, FileText, Settings, Inbox, Mail, Image, Sparkles, LogOut, Send, Download, Layers, PenSquare, ExternalLink, Home, Megaphone, Menu, X, BarChart3, ShoppingBag, BookOpen, Tag, MessageCircle, Palette, Wand2 } from "lucide-react";
 
 const ITEMS = [
   { to: "/admin", end: true, label: "Dashboard", icon: LayoutDashboard },
@@ -10,6 +10,7 @@ const ITEMS = [
   { to: "/admin/discounts", label: "Discounts", icon: Tag },
   { to: "/admin/pen-pals", label: "Pen Pals", icon: MessageCircle },
   { to: "/admin/coloring", label: "Coloring", icon: Palette },
+  { to: "/admin/sea-star-studio", label: "Sea Star Studio", icon: Wand2 },
   { to: "/admin/products", label: "Products", icon: Package },
   { to: "/admin/characters", label: "Characters", icon: Users },
   { to: "/admin/read-aloud", label: "Read-Aloud Book", icon: BookOpen },

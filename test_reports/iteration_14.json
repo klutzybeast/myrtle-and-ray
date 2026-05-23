@@ -1,0 +1,42 @@
+{
+  "summary": "Iteration 14 — Sea Star Studio combo experience (rhyme + voice + coloring). Created /app/backend/tests/test_seastar_studio.py (17 tests, all passing) covering settings (no model leak), parse helper, cache happy path, cache dedup across visitors, rate-limit 429, banned subject (gun), banned word (hate), unknown character 404, empty letter 400/422, PII strip (email→[email], phone→[phone]), history DESC+excludes deleted, admin list/filters/soft-delete/settings-roundtrip/disable→503. Cache-seeding strategy (db.studio_cache + tiny PNG + MP3 stub) ensures pytest NEVER calls Gemini/ElevenLabs/Nano Banana. All 5 previous suites still pass (96 passed, 1 skipped). Frontend /sea-star-studio public flow: page loaded, 13 picker cards (Myrtle picked), compose form rendered, name+letter filled, create → keepsake panel rendered in ~40s with 8-line rhyme (real Gemini Flash response signed 'Myrtle'), ElevenLabs audio player, real Nano Banana PNG (turtle in scout hat building sandcastle), Print button opened new window (about:blank confirmed), Write-another navigated back to picker, history grid appeared, quota chip 3→2, PopupSignup verified suppressed for 15s. Admin /admin/sea-star-studio: login via Sign In button, sidebar link clicked, settings panel (Status/Daily cap/Voice replies/Save) rendered, studio-list rendered with both keepsakes showing letter+rhyme reply+scene caption+coloring image, search input + character filter dropdown work, delete trash buttons present (studio-delete-{id}). NO critical issues.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "/admin/sea-star-studio list", "issues": ["Individual admin keepsake card containers don't expose data-testid='studio-keepsake-<id>' — only the wrapper (studio-list) and the trash delete buttons (studio-delete-<id>) have testids. Minor — main list testid is sufficient for current Playwright needs."]},
+      {"screen": "/admin/sea-star-studio settings", "issues": ["Settings panel exposes both 'text_model' (gemini-3-flash-preview) and 'image_model' (gemini-3.1-flash-image-preview) via GET /api/admin/sea-star-studio/settings — fine for admin context but PUT route accepts any string with no allow-list (admin could break the pipeline by saving a typo)."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_seastar_studio.py",
+    "/app/test_reports/pytest/iter14_studio.xml",
+    "/app/test_reports/pytest/iter14_regression.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "seastar_studio_router._settings() reads daily_cap as int(s.get('daily_cap') or 3) — if admin saves '' or 0 the OR-fallback restores 3 silently. Consider explicit None check + 400 on invalid PUT.",
+    "create_keepsake uses count_documents('day_key', _today_key()) for rate-limit, same pre-increment race condition as pen-pals / coloring. Two concurrent posts within ms could each see used=cap-1 and both succeed. Low risk for kids.",
+    "_generate_scene_image swallows all exceptions in the calling route (line 196-198) and returns keepsake with empty image_url — good for graceful degradation, but logger.warning loses the original traceback. Use logger.exception() to preserve trace.",
+    "studio_settings stores text_model & image_model as free-form strings; PUT (line 250) whitelists keys but not values. If admin typos 'gemini-3-flash-prevew' the route will silently call a non-existent model. Add an allow-list or a smoke 'test the model' button.",
+    "Visitor cap is enforced by day_key+visitor_id, but Studio + Pen Pals + Coloring all live in separate collections so a kid can technically get 3+3+3 = 9 AI calls/day. PRD says 'separate quota from /pen-pals and /coloring' so this is intentional and correctly implemented.",
+    "Cache key formula: sha256('studio|<slug>|<sanitized_letter_lowercase>'). The audio file at /api/uploads/penpals/<key>.mp3 collides namespace with pen-pals real cache keys only if a kid types EXACTLY the same letter to the same character in both /pen-pals AND /sea-star-studio — extremely unlikely but technically possible. Consider prefixing key with 'studio|' inside the file name too.",
+    "Header 'Studio' nav link uses /sea-star-studio — verified present and routes correctly. Mobile nav not specifically verified in this iteration.",
+    "PopupSignup suppression on /sea-star-studio confirmed (no popup after 15s). Suppression logic in PopupSignup.jsx appears to whitelist the path."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_seastar_studio.py (new — 17 tests, no real LLM calls)"
+  ],
+  "success_rate": {
+    "backend": "100% (17/17 studio + regression: 96 passed + 1 skipped)",
+    "frontend": "100% — public /sea-star-studio E2E (picker→compose→create→keepsake→print→history→quota) + /admin/sea-star-studio (settings + list + search + delete)"
+  },
+  "test_credentials": "Admin: community@rollingriver.com / Camp1993! (verified). Visitor key reused: mr_visitor_id. Studio history key: mr_studio_history_v1.",
+  "seed_data_creation": "Inserted studio_cache rows with sha256('studio|<slug>|<letter>') key + tiny 1x1 PNG at /app/backend/uploads/coloring/<key>.png + MP3 stub at /app/backend/uploads/penpals/<key>.mp3 so pytest skips paid APIs. Also live-generated 2 frontend test keepsakes (Sam: 'Hi Myrtle! ...' and Emma 'I am scared to swim ...') for Myrtle the Turtle — visible in admin. autouse fixture cleans TEST_ visitor keepsakes between runs.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Sea Star Studio backend + frontend pass end-to-end. To avoid burning ~$0.10/keepsake of Gemini+Nano-Banana+ElevenLabs credits, ALWAYS pre-seed db.studio_cache + write PNG (/app/backend/uploads/coloring/<key>.png) + MP3 (/app/backend/uploads/penpals/<key>.mp3) before POST /api/sea-star-studio/create. Cache key formula: sha256('studio|<character_slug>|<sanitize_letter(letter).lower()>'). Same admin login pattern (page.get_by_role('button', name='Sign In').click + expect_navigation). Studio nav uses data-testid='admin-nav-sea-star-studio'. Admin list rows lack individual data-testid but delete buttons have studio-delete-<id>.",
+  "rca_of_the_issue": "No bug to RCA this iteration. Two minor testing-pitfalls noted: (1) Login 'Sign In' button does NOT have type='submit' — must use get_by_role('button', name='Sign In') instead of button[type='submit']. (2) admin character filter dropdown options are character slugs (values '1','0' shown were truncated indices in eval; real options exist) — when filter-by-character, pass the slug not the name."
+}

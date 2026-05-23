@@ -49,6 +49,8 @@ export default function PopupSignup() {
     if (window.location.pathname.startsWith("/pen-pals")) return;
     // Don't pop on /coloring — kids are creating art
     if (window.location.pathname.startsWith("/coloring")) return;
+    // Don't pop on /sea-star-studio — kids are making a keepsake
+    if (window.location.pathname.startsWith("/sea-star-studio")) return;
     const t = setTimeout(() => setOpen(true), 8000);
     return () => clearTimeout(t);
   }, []);

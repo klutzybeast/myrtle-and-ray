@@ -13,6 +13,7 @@ const NAV = [
   { to: "/read-aloud", label: "Read Aloud" },
   { to: "/pen-pals", label: "Pen Pals" },
   { to: "/coloring", label: "Coloring" },
+  { to: "/sea-star-studio", label: "Studio" },
   { to: "/shop", label: "Shop" },
   { to: "/downloads", label: "Downloads" },
   { to: "/for-camps", label: "For Camps" },
