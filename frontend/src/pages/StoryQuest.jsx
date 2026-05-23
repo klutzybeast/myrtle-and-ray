@@ -88,17 +88,30 @@ export default function StoryQuest() {
     ? characters.find((c) => c.slug === current.narrator_slug)
     : null;
 
-  // Stop audio whenever the scene changes
+  // Stop audio whenever the scene changes, then auto-play the new
+  // narration if the user enabled sound. The user's "Start with
+  // narration" click is the gesture that unlocks autoplay.
   useEffect(() => {
-    try { audioRef.current?.pause(); audioRef.current && (audioRef.current.currentTime = 0); } catch {}
-  }, [idx, stage]);
+    const el = audioRef.current;
+    if (!el) return;
+    try { el.pause(); el.currentTime = 0; } catch {}
+    if (!muted && current?.audio_narration_url && stage === "scene") {
+      // microtask: wait for new <audio> src to settle
+      const t = setTimeout(() => {
+        const a = audioRef.current;
+        if (a) a.play().catch(() => {/* autoplay blocked — kid can hit play */});
+      }, 30);
+      return () => clearTimeout(t);
+    }
+  }, [idx, stage, muted, current?.audio_narration_url]);
 
   const totalScenes = scenes.length;
 
-  const start = () => {
+  const start = (withSound = false) => {
     setIdx(0);
     setScores(emptyScores());
     setLastChoice(null);
+    setMuted(!withSound);
     setStage("scene");
   };
 
@@ -167,7 +180,11 @@ export default function StoryQuest() {
         scores={scores}
         mappings={mappings}
         characters={characters}
-        onReplay={() => { reset(); setStage("splash"); setTimeout(start, 50); }}
+        onReplay={(withSound = false) => {
+          reset();
+          setStage("splash");
+          setTimeout(() => start(withSound), 50);
+        }}
       />
     );
   }
@@ -200,11 +217,13 @@ export default function StoryQuest() {
 
           {current?.audio_narration_url && !muted && (
             <audio
+              key={current.id}
               ref={audioRef}
               src={current.audio_narration_url.startsWith("http") ? current.audio_narration_url : `${process.env.REACT_APP_BACKEND_URL}${current.audio_narration_url}`}
               autoPlay
               controls
               className="w-full mb-4"
+              data-testid={`scene-audio-${current.scene_number}`}
             />
           )}
 
@@ -277,9 +296,24 @@ function Splash({ totalScenes, onStart }) {
 
         <p className="text-xs text-[#6b7280] mb-4">~{Math.max(10, Math.round(totalScenes * 1.1))} minutes · {totalScenes} scenes · earn the Story Quest Champion badge</p>
 
-        <button onClick={onStart} className="btn-primary text-lg" data-testid="quest-start">
-          <Waves className="w-5 h-5" /> Start the Quest
-        </button>
+        <p className="text-sm text-[#3a4a55] font-semibold mb-3">Every scene is narrated by a different Sea Star — pick how you want to play:</p>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center items-stretch">
+          <button
+            onClick={() => onStart(true)}
+            className="btn-primary text-lg justify-center"
+            data-testid="quest-start"
+          >
+            <Volume2 className="w-5 h-5" /> Start with narration
+          </button>
+          <button
+            onClick={() => onStart(false)}
+            className="btn-secondary text-base justify-center"
+            data-testid="quest-start-silent"
+          >
+            <VolumeX className="w-5 h-5" /> Quiet mode
+          </button>
+        </div>
+        <p className="text-[11px] text-[#6b7280] mt-3">You can switch sound on or off any time with the speaker button.</p>
       </div>
     </main>
   );

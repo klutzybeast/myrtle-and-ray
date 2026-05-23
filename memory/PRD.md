@@ -532,5 +532,26 @@ Casey, Dani, Sami, Izzy, Louie, Billy, Frankie.
   GET returns it.
 - Regression: `test_story_quest.py` now has 11 tests (added
   `test_every_scene_has_narrator_and_playable_audio` — HEAD-verifies
+
+## What's been implemented (2026-02-23 — Story Quest gesture auto-play)
+### Narration plays itself from scene 1 onward
+- Splash now offers two CTAs:
+  - `data-testid="quest-start"` → **"🔊 Start with narration"**
+  - `data-testid="quest-start-silent"` → **"🔇 Quiet mode"**
+- Clicking either is captured as a real user gesture. "Start with
+  narration" sets `muted=false` and a `useEffect([idx, stage, muted])`
+  explicitly calls `audioRef.current.play()` (with `.catch(()=>{})`
+  fallback) so each new scene plays the matched Sea Star's voice
+  automatically — no manual play button needed between scenes.
+- The audio element is keyed by `current.id` so React remounts it
+  cleanly when the narrator (and src) changes between scenes.
+- Speaker button in the progress bar still toggles muting at any time;
+  resuming a saved quest defaults to quiet mode (no autoplay until the
+  kid touches the unmute button to provide a gesture).
+- Verified: 11/11 backend pytest still green. Scene 1 audio element
+  mounts with the Ms Bluegill MP3 src on click of "Start with
+  narration"; subsequent scenes auto-play their respective narrator
+  voices on Continue.
+
   all 12 MP3s stream `audio/mpeg`). All passing.
 
