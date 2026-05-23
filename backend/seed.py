@@ -1656,23 +1656,29 @@ SING_ALONG_SONGS = [
         "theme": "anthem",
         "character_focus": "all",
         "lyrics": (
-            "W is for Welcome, come over and play!\n"
-            "A is for Acting kind every day!\n"
-            "V is for Valuing all of our friends!\n"
-            "E is Encouraging right to the end!\n"
-            "\n"
+            "W is for Welcome — say hi, say hi!\n"
+            "A is for Acting kind — try, try, try!\n"
+            "V is for Value the friends by your side!\n"
+            "E is Encourage with a smile so wide!\n"
             "Catch the wave, catch the wave!\n"
-            "Catch the W-A-V-E!\n"
+            "C-A-T-C-H the wave!\n"
             "Catch the wave, catch the wave!\n"
             "That's how a Sea Star be!\n"
+            "Catch the wave, catch the wave!\n"
+            "C-A-T-C-H the wave!\n"
+            "Catch the wave, catch the wave!\n"
+            "That's how a Sea Star be!"
         ),
         "music_prompt": (
-            "Upbeat, joyful kids' anthem in C major, 110 BPM, with a "
-            "cheerful children's-choir lead, hand-claps on the off-beat, "
-            "warm acoustic guitar, ukulele strums, and a playful brass "
-            "stab on the chorus. Sunny Caribbean feel."
+            "Bright, fast, upbeat children's anthem at 128 BPM in C major. "
+            "FULLY SUNG ALL THE WAY THROUGH — no instrumental gaps. "
+            "Lead vocal: cheerful kid-choir, clear enunciation. "
+            "Backing: hand-claps every beat, acoustic guitar strums on the down-beat, "
+            "ukulele on the up-beat, snare on 2 and 4. "
+            "Every line of lyrics is sung once and the chorus repeats twice. "
+            "Sunny Caribbean-camp energy. Punchy, danceable."
         ),
-        "duration_seconds": 60,
+        "duration_seconds": 45,
         "position": 1,
     },
     {
@@ -1681,17 +1687,23 @@ SING_ALONG_SONGS = [
         "theme": "camp",
         "character_focus": "ms-bluegill",
         "lyrics": (
-            "Pack your towel and your sunshine smile,\n"
-            "We're heading down to the cay for a while!\n"
-            "Sandy toes and a salty breeze,\n"
-            "Stingray Cay, our home away!\n"
+            "Stingray, Stingray, Stingray Cay!\n"
+            "We're going to camp today, hey, hey!\n"
+            "Sandy toes and salty hair,\n"
+            "Sea Stars meeting everywhere!\n"
+            "Stingray, Stingray, Stingray Cay!\n"
+            "Hooray, hooray, hooray!\n"
+            "Stingray, Stingray, Stingray Cay!\n"
+            "We're going to camp today!"
         ),
         "music_prompt": (
-            "Mid-tempo singalong with a friendly female lead vocalist, "
-            "ukulele, soft bongo drums, and a 'whoa-oh' choir on the "
-            "refrain. Warm, breezy, beach-day energy at 95 BPM."
+            "Marching camp-song at 120 BPM, 4/4 time. "
+            "FULLY SUNG by a kids' group — every line clearly enunciated, repeated for sing-along. "
+            "Backing: marching snare drum, ukulele strums, hand-claps, tambourine. "
+            "Bright, beach-day, parade-down-the-pier energy. "
+            "Each line repeats once. Chorus of 'Stingray, Stingray, Stingray Cay!' returns at start and end."
         ),
-        "duration_seconds": 45,
+        "duration_seconds": 40,
         "position": 2,
     },
     {
@@ -1700,17 +1712,25 @@ SING_ALONG_SONGS = [
         "theme": "character",
         "character_focus": "myrtle",
         "lyrics": (
-            "Slow and steady, kind and true,\n"
-            "Myrtle says I love you!\n"
-            "Pass it on, share the cheer,\n"
-            "Kindness travels far and near.\n"
+            "Be kind, be kind, that's Myrtle's way!\n"
+            "Be kind, be kind, every day!\n"
+            "Slow and steady, never rude,\n"
+            "Kindness is the attitude!\n"
+            "Be kind, be kind, that's Myrtle's way!\n"
+            "Be kind, be kind, every day!\n"
+            "Pass it on and pass it round,\n"
+            "Kindness makes the world go round!\n"
+            "Be kind, be kind, that's Myrtle's way!\n"
+            "Be kind, be kind, every day!"
         ),
         "music_prompt": (
-            "Gentle, swaying lullaby-pop at 80 BPM with a warm female "
-            "vocal, finger-picked nylon guitar, soft glockenspiel, and "
-            "subtle ocean waves. Tender, reassuring, bedtime energy."
+            "Warm, mid-tempo singalong at 110 BPM. NOT a lullaby — bouncy and bright. "
+            "FULLY SUNG with a warm female lead voice + kids' choir on the chorus. "
+            "Every lyric line is clearly enunciated. The 'Be kind, be kind' refrain repeats throughout. "
+            "Backing: finger-picked nylon guitar, soft glockenspiel chimes, light shaker on the off-beat. "
+            "Hopeful, hand-on-shoulder energy."
         ),
-        "duration_seconds": 45,
+        "duration_seconds": 40,
         "position": 3,
     },
     {
@@ -1719,17 +1739,26 @@ SING_ALONG_SONGS = [
         "theme": "character",
         "character_focus": "ray",
         "lyrics": (
-            "Ride that wave, hang ten in the sun,\n"
-            "Ray's the captain, here we come!\n"
-            "Splash and laugh and ride it back,\n"
-            "Best teammates on the surfing track!\n"
+            "Hey-ho, big wave! Surf's up — go go go!\n"
+            "Hey-ho, big wave! Hang on, here we go!\n"
+            "Ray is riding, ride along!\n"
+            "Sing it loud, sing it strong!\n"
+            "Hey-ho, big wave! Surf's up — go go go!\n"
+            "Hey-ho, big wave! Hang on, here we go!\n"
+            "Catch it, ride it, never stop!\n"
+            "Sea Star surfers — top to bop!\n"
+            "Hey-ho, big wave! Surf's up — go go go!\n"
+            "Hey-ho, big wave! Hang on, here we go!"
         ),
         "music_prompt": (
-            "Energetic surf-rock for kids at 130 BPM, twangy electric "
-            "guitar, kick-snare drums, hand-claps, group shouts of "
-            "'hey!' on the chorus. Bright, adventurous, ocean-spray feel."
+            "Fast surf-rock for kids at 140 BPM, very upbeat. "
+            "FULLY SUNG ALL THE WAY THROUGH — vocals are the main element, NOT background music. "
+            "Lead: a single playful boy voice for the verses + a kids' group shouting 'hey-ho!' on the chorus. "
+            "Backing: twangy electric surf guitar, kick-snare, hand-claps, '60s organ. "
+            "Every lyric line is sung clearly with group shouts. "
+            "Pure energy, beach-bonfire vibe."
         ),
-        "duration_seconds": 45,
+        "duration_seconds": 35,
         "position": 4,
     },
     {
@@ -1738,18 +1767,21 @@ SING_ALONG_SONGS = [
         "theme": "character",
         "character_focus": "ms-bluegill",
         "lyrics": (
-            "Welcome welcome to the cay,\n"
-            "So glad you came to camp today!\n"
-            "There's a wave with your name on it,\n"
-            "Catch it and you'll never quit!\n"
+            "Welcome, welcome, welcome to the cay!\n"
+            "Welcome, welcome, glad you came today!\n"
+            "Find your spot, find your crew,\n"
+            "There's a wave with your name on it too!\n"
+            "Welcome, welcome, welcome to the cay!\n"
+            "Welcome, welcome, glad you came today!"
         ),
         "music_prompt": (
-            "Warm, jazzy welcome song at 100 BPM with a friendly older "
-            "female lead, brushed snare, walking upright bass, and a "
-            "muted trumpet. Cozy bookend feel, like the start of a "
-            "great day."
+            "Cheerful welcome song at 118 BPM. NOT mellow — upbeat and inviting. "
+            "FULLY SUNG by a warm older female lead voice + kid choir backing. "
+            "Every lyric line enunciated clearly. The 'Welcome, welcome' refrain repeats. "
+            "Backing: bright piano, brushed snare, muted trumpet, walking upright bass. "
+            "Like the opening number of a great day at camp."
         ),
-        "duration_seconds": 40,
+        "duration_seconds": 30,
         "position": 5,
     },
     {
@@ -1758,17 +1790,25 @@ SING_ALONG_SONGS = [
         "theme": "character",
         "character_focus": "casey",
         "lyrics": (
-            "What's that? Look there!\n"
-            "Curious eyes and a curious stare!\n"
-            "Tide pool treasures, sky and sea,\n"
-            "Wonder is the gift you give to me!\n"
+            "What's that? Look here! What's that? Look there!\n"
+            "Curious eyes are everywhere!\n"
+            "Tide pool, sand, the bright blue sky,\n"
+            "Wonder, wonder — that's how we fly!\n"
+            "What's that? Look here! What's that? Look there!\n"
+            "Curious eyes are everywhere!\n"
+            "Ask a question, find a clue,\n"
+            "Curious kids always do!\n"
+            "What's that? Look here! What's that? Look there!\n"
+            "Curious eyes are everywhere!"
         ),
         "music_prompt": (
-            "Bouncy, whimsical xylophone-led tune at 120 BPM with "
-            "playful child-voice lead, kazoo accents, finger snaps, and "
-            "a rising 'whoa!' on every chorus. Curious explorer energy."
+            "Bouncy, fast playful tune at 132 BPM. "
+            "FULLY SUNG by a curious kid-voice lead, with a kids' group answering 'Look here! Look there!' "
+            "Every lyric line clearly enunciated, call-and-response style. "
+            "Backing: bright xylophone, kazoo, finger-snaps, light bongo drums. "
+            "Whimsical, adventurous explorer energy. No instrumental breaks longer than 2 seconds."
         ),
-        "duration_seconds": 40,
+        "duration_seconds": 35,
         "position": 6,
     },
     {
@@ -1777,17 +1817,25 @@ SING_ALONG_SONGS = [
         "theme": "character",
         "character_focus": "louie",
         "lyrics": (
-            "Drum drum drum on the lunchroom tray,\n"
-            "Louie's got a beat for the cay today!\n"
-            "Boom boom clap, give it your best,\n"
-            "Everybody join in, leave behind the rest!\n"
+            "Drum on the tray, drum on the tray!\n"
+            "Louie's got the beat for the cay today!\n"
+            "Boom-boom-clap, give it your best!\n"
+            "Everybody join in, give it a rest!\n"
+            "Drum on the tray, drum on the tray!\n"
+            "Louie's got the beat for the cay today!\n"
+            "Bang the drums, sing the song,\n"
+            "Lunchtime jamming all day long!\n"
+            "Drum on the tray, drum on the tray!\n"
+            "Louie's got the beat for the cay today!"
         ),
         "music_prompt": (
-            "Funky kid-hip-hop groove at 100 BPM with prominent "
-            "lunchroom-tray percussion, claps, a playful boy-voice rap, "
-            "and a deep bass line. Cafeteria celebration energy."
+            "Funky kid hip-hop / drumline crossover at 124 BPM, very groovy. "
+            "FULLY SUNG by a playful boy-voice lead doing call-and-response with the group. "
+            "Every lyric line spoken-sung clearly. The 'Drum on the tray' refrain repeats. "
+            "Backing: dominant lunchroom-tray percussion, hand-claps, deep bass, marching snare. "
+            "Cafeteria-celebration vibe. No long instrumental breaks."
         ),
-        "duration_seconds": 40,
+        "duration_seconds": 35,
         "position": 7,
     },
     {
@@ -1796,17 +1844,23 @@ SING_ALONG_SONGS = [
         "theme": "character",
         "character_focus": "sally",
         "lyrics": (
-            "Soft soft whispers in my ear,\n"
-            "Sally says it's okay right here.\n"
-            "Take your time, you are enough,\n"
-            "Brave is gentle, brave is love.\n"
+            "Brave can be quiet, brave can be soft,\n"
+            "Brave is the heart way up aloft!\n"
+            "You are enough, you are enough,\n"
+            "Take your time, brave is love!\n"
+            "Brave can be quiet, brave can be soft,\n"
+            "Brave is the heart way up aloft!\n"
+            "You are enough, you are enough,\n"
+            "Take your time, brave is love!"
         ),
         "music_prompt": (
-            "Gentle acoustic ballad at 70 BPM with a soft, breathy "
-            "young female vocalist, warm piano, mellotron strings, and "
-            "subtle wind chimes. Hopeful, calming, almost a lullaby."
+            "Gentle but PACED singalong at 100 BPM — NOT a lullaby, kids should be able to sing along easily. "
+            "FULLY SUNG by a soft young female voice + a small kids' choir on the repeat. "
+            "Every lyric line clearly enunciated. The verse repeats twice. "
+            "Backing: warm piano chords, light brushed snare, soft strings, wind chimes. "
+            "Hopeful, encouraging, never sleepy."
         ),
-        "duration_seconds": 45,
+        "duration_seconds": 35,
         "position": 8,
     },
     {
@@ -1816,16 +1870,24 @@ SING_ALONG_SONGS = [
         "character_focus": "ollie",
         "lyrics": (
             "You can do it! Yes you can!\n"
-            "Ollie's got your biggest fan!\n"
-            "Up and at 'em, here we go,\n"
-            "Cheering you on, take a bow!\n"
+            "Ollie's your biggest fan!\n"
+            "Go-go-go, hey-hey-hey!\n"
+            "Cheer it loud, cheer all day!\n"
+            "You can do it! Yes you can!\n"
+            "Ollie's your biggest fan!\n"
+            "Go-go-go, hey-hey-hey!\n"
+            "Cheer it loud, cheer all day!\n"
+            "You can do it! Yes you can!\n"
+            "Ollie's your biggest fan!"
         ),
         "music_prompt": (
-            "High-energy cheer-pop at 135 BPM with a big group chant, "
-            "marching-band snare, brass horns, and stadium-style "
-            "'hey-hey-hey!' shouts. Pure encouragement, megaphone vibe."
+            "High-energy cheer-pop at 144 BPM, EXTREMELY upbeat. "
+            "FULLY SUNG by a megaphone-style group chant with a punchy boy-voice lead. "
+            "Every lyric line shouted-sung clearly. 'Go-go-go, hey-hey-hey!' repeats. "
+            "Backing: marching-band snare, brass horns, stadium claps, big group 'hey!' shouts. "
+            "Pure pep-rally encouragement. No quiet moments, no long instrumental breaks."
         ),
-        "duration_seconds": 40,
+        "duration_seconds": 35,
         "position": 9,
     },
     {
@@ -1834,16 +1896,21 @@ SING_ALONG_SONGS = [
         "theme": "anthem",
         "character_focus": "all",
         "lyrics": (
-            "I promise, I promise,\n"
-            "I'll catch the W-A-V-E!\n"
-            "Welcome, Act, Value, Encourage,\n"
-            "That's the Sea Star in me!\n"
+            "I promise, I promise, I'll catch the wave!\n"
+            "Welcome, Act, Value, Encourage — that's the way!\n"
+            "I promise, I promise, I'll catch the wave!\n"
+            "Sea Star me, Sea Star you, Sea Star every day!\n"
+            "Welcome — Act — Value — Encourage!\n"
+            "Welcome — Act — Value — Encourage!\n"
+            "I promise, I promise, I'll catch the wave!\n"
+            "Sea Star me, Sea Star you, Sea Star every day!"
         ),
         "music_prompt": (
-            "Inspirational singalong-finale at 90 BPM building from a "
-            "single child voice to a full kid choir over swelling "
-            "strings, piano, and gentle drums. Emotional graduation "
-            "feel, anthem closer."
+            "Inspirational anthem-finale at 96 BPM — the ONE slow song. "
+            "FULLY SUNG by a single child voice for the first verse, then a full kids' choir joining in for the chorus. "
+            "Every lyric line clearly enunciated. The 'Welcome — Act — Value — Encourage!' line is chanted by the choir. "
+            "Backing: swelling strings, piano, gentle drums building to a big finish. "
+            "Emotional graduation/promise feel. Anthem closer."
         ),
         "duration_seconds": 50,
         "position": 10,

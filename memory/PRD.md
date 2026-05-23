@@ -849,3 +849,58 @@ Casey, Dani, Sami, Izzy, Louie, Billy, Frankie.
 - Both seed paths import on backend startup; production is fully
   self-contained — zero ElevenLabs cost going forward.
 
+
+## What's been implemented (2026-02-23 — Karaoke sing-along + Printify keys)
+### Real karaoke (line-by-line highlighting)
+- `SingAlong.jsx` rewritten:
+  - **Player is now a full-screen sheet** (was a tiny corner modal) —
+    works on mobile (375px), tablet (768px), and desktop. Header band
+    matches the song's character color, big play/skip/skip controls,
+    native audio controls, ESC + click-outside to close.
+  - **Karaoke line highlighting**: lyrics parsed into timed lines.
+    Active line is rendered 2x bigger + bold + in the character's
+    color; past lines fade to grey at 50%; upcoming lines are
+    visible but greyed. Auto-scrolls the active line into center on
+    each step. `aria-live="polite"` for accessibility.
+  - LRC support: if a song row has `lyrics_lrc` (`[mm:ss.xx]Line` format),
+    parser uses those timestamps. Otherwise it equally spaces the
+    plain lyrics across the audio duration with a small intro/outro
+    pad (~12% / 10%).
+  - Skip-back / skip-forward jump between songs without closing the
+    player — turns the page into an actual playlist experience.
+- `CookieBanner` + `PopupSignup` both suppressed on `/sing-along` and
+  `/story-quest` so they never block the karaoke experience.
+
+### All 10 sing-along songs regenerated (sung-first, fast)
+- Rewrote every lyric to be **shorter, repetitive, and chant-style**
+  (e.g. "Catch the wave, catch the wave! C-A-T-C-H the wave!").
+  Each lyric repeats its hook 2-3 times so kids learn it on first play.
+- Rewrote every `music_prompt` with explicit directives:
+  `FULLY SUNG ALL THE WAY THROUGH — no instrumental gaps.`,
+  exact BPM (118-144 BPM for all except the closing anthem at 96 BPM),
+  `Lead: a single playful boy voice... + a kids' group shouting...`,
+  `Every lyric line is sung once and the chorus repeats twice.`
+- Tempos: Catch the W.A.V.E. 128 · Camp Song 120 · Myrtle 110 · Ray 140 ·
+  Welcome 118 · Casey 132 · Louie 124 · Sally 100 · Ollie 144 · Promise 96.
+- Regenerated all 10 MP3s via the existing script. Old MP3s wiped.
+
+### Printify API key wired
+- Saved `PRINTIFY_API_KEY` + `PRINTIFY_SHOP_ID=27540836` (Etsy shop
+  "My Etsy Store") to `/app/backend/.env`. Verified token works via
+  `/v1/shops.json`. Awaiting product/design/pricing decisions from
+  user before building the admin Printify UI + product creators.
+
+### Mobile/Tablet/PC responsive audit
+- Finale button grid: was `lg:grid-cols-5` (cramped) → now
+  `grid-cols-1 sm:grid-cols-2` with the "See my badges" CTA spanning
+  full width on the second row.
+- All new Story Quest gallery + sing-along grid components use
+  `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`.
+- Player sheet uses `max-h-[calc(100dvh - 24px)]` so it never
+  overflows on small viewports — lyrics get a flex-1 overflow-y-auto
+  area with the controls pinned to the bottom.
+
+### Fixed
+- Removed a duplicate scene_number=11 in First Day of Camp that
+  test_scenes_returns_12 was failing on. 17/17 backend pytest pass.
+

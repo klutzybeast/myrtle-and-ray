@@ -65,6 +65,13 @@ export default function CookieBanner() {
   useEffect(() => {
     // Wait a tick so the banner doesn't fight the popup-signup on first paint.
     const t = setTimeout(() => {
+      // Don't show on focus-mode pages where kids are mid-experience.
+      const p = typeof window !== "undefined" ? window.location.pathname : "";
+      if (
+        p.startsWith("/sing-along") ||
+        p.startsWith("/story-quest") ||
+        p.startsWith("/sea-star-studio")
+      ) return;
       if (!getConsent()) setOpen(true);
     }, 1200);
     const reopen = () => { setOpen(true); setCustomizing(false); setRejectedNotice(false); };
