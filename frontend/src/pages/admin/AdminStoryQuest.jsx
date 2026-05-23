@@ -176,6 +176,11 @@ export default function AdminStoryQuest() {
               </div>
               <p className="text-sm text-[#4a5568] line-clamp-2 mt-1">{s.narrative}</p>
               <div className="text-xs text-[#6b7280] mt-1">
+                {s.narrator_slug && (
+                  <span data-testid={`scene-row-narrator-${s.scene_number}`}>
+                    🎙 {characters.find((c) => c.slug === s.narrator_slug)?.name || s.narrator_slug} ·{" "}
+                  </span>
+                )}
                 {(s.choices || []).length} choice{(s.choices || []).length === 1 ? "" : "s"} ·
                 {" "}
                 {(s.choices || []).map((c) => `${c.id}=${c.wave_principle.replace(/_/g, " ")}`).join(" · ")}
@@ -196,7 +201,7 @@ export default function AdminStoryQuest() {
         )}
       </section>
 
-      {editing && <SceneEditor initial={editing} onClose={() => setEditing(null)} onSave={save} />}
+      {editing && <SceneEditor initial={editing} characters={characters} onClose={() => setEditing(null)} onSave={save} />}
     </div>
   );
 }
@@ -219,7 +224,7 @@ function blankScene(nextNum) {
   };
 }
 
-function SceneEditor({ initial, onClose, onSave }) {
+function SceneEditor({ initial, characters, onClose, onSave }) {
   const [form, setForm] = useState({
     ...initial,
     choices: initial.choices && initial.choices.length ? initial.choices : blankScene(1).choices,
@@ -260,9 +265,26 @@ function SceneEditor({ initial, onClose, onSave }) {
           <Field label="Background image URL (optional)">
             <input value={form.background_image_url} onChange={(e) => set("background_image_url", e.target.value)} className="inp" data-testid="scene-input-image" />
           </Field>
-          <Field label="Audio narration URL (optional)">
-            <input value={form.audio_narration_url} onChange={(e) => set("audio_narration_url", e.target.value)} placeholder="https://... or /api/uploads/..." className="inp" data-testid="scene-input-audio" />
-          </Field>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <Field label="Narrator (Sea Star voice)">
+              <select
+                value={form.narrator_slug || ""}
+                onChange={(e) => set("narrator_slug", e.target.value)}
+                className="inp"
+                data-testid="scene-input-narrator"
+              >
+                <option value="">— pick a Sea Star —</option>
+                {(characters || []).map((c) => (
+                  <option key={c.slug} value={c.slug} disabled={!c.voice_id}>
+                    {c.name}{c.voice_id ? "" : " (no voice)"}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Audio narration URL (auto-generated)">
+              <input value={form.audio_narration_url} onChange={(e) => set("audio_narration_url", e.target.value)} placeholder="Auto-filled from narrator voice" className="inp" data-testid="scene-input-audio" />
+            </Field>
+          </div>
 
           <div>
             <div className="flex items-center justify-between mb-2">

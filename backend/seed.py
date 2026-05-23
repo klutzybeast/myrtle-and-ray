@@ -776,6 +776,23 @@ def _seed_map_image() -> None:
 # Story Quest seed (12 scenes that teach W.A.V.E. through choices)
 # ============================================================
 
+# Which Sea Star narrates each scene (matched to whose voice/perspective
+# fits the moment). Used to pick the ElevenLabs voice for narration.
+STORY_QUEST_NARRATORS = {
+    1: "ms-bluegill",   # Camp opening — Ms Bluegill welcomes the campers
+    2: "ray",           # Ray introduces the crew
+    3: "casey",         # Tide pool — Casey explains the rules
+    4: "myrtle",        # Sami's snorkel — Myrtle's helper voice
+    5: "louie",         # Lunchtime — Louie is drumming
+    6: "ray",           # Big wave — Ray calls everyone in
+    7: "myrtle",        # Casey is lost — Myrtle leads the search
+    8: "ms-bluegill",   # Treasure hunt — Ms Bluegill announces
+    9: "sally",         # Stories at sunset — Sally's quiet voice
+    10: "ms-bluegill",  # Goodbye for the day — Ms Bluegill closes camp
+    11: "myrtle",       # W.A.V.E. promise — Myrtle's reflective voice
+    12: "ms-bluegill",  # Reveal finale — Ms Bluegill (framing narrator)
+}
+
 STORY_QUEST_SCENES = [
     {
         "scene_number": 1,
@@ -971,20 +988,131 @@ STORY_QUEST_SCENES = [
 
 
 async def _seed_story_quest(db) -> None:
-    # 1) Scenes — insert any missing by scene_number
+    """Seed 12 Story Quest scenes with per-scene narrator voices.
+
+    Each scene is narrated by a Sea Star whose perspective fits the moment
+    (e.g. Ms Bluegill opens camp, Ray calls the crew during the big wave,
+    Sally narrates the shy storytime). Pre-generated MP3s shipped in
+    /app/backend/seed_assets/story_quest/ are imported into local uploads
+    + persistent Object Storage on first deploy so production never has
+    to call ElevenLabs for the quest.
+    """
+    import storage as _storage  # local import — avoids circular deps in tests
+    model_id = os.environ.get("ELEVENLABS_MODEL_ID", "eleven_turbo_v2_5")
+
+    voice_by_slug: dict = {}
+    async for ch in db.characters.find({}, {"_id": 0, "slug": 1, "voice_id": 1}):
+        if ch.get("voice_id"):
+            voice_by_slug[ch["slug"]] = ch["voice_id"]
+
+    asset_dir = os.path.join(os.path.dirname(__file__), "seed_assets", "story_quest")
+    upload_dir = os.environ.get("UPLOAD_DIR", "/app/backend/uploads")
+    voice_dir = os.path.join(upload_dir, "voice")
+    os.makedirs(voice_dir, exist_ok=True)
+
+    def _narration_audio_url(narrator_slug: str, text: str) -> str:
+        """Resolve an audio URL for (narrator, text). Returns '' if no
+        voice is available or no cached MP3 exists yet."""
+        voice_id = voice_by_slug.get(narrator_slug, "")
+        if not voice_id or not text:
+            return ""
+        # Cache key mirrors voice_router._cache_key so the runtime endpoint
+        # and the seed share a single cache entry.
+        raw = f"{model_id}|{voice_id}|{text.strip()}|0.45|0.85|0.35"
+        cache_key = hashlib.sha256(raw.encode("utf-8")).hexdigest()
+        storage_name = f"voice/{cache_key}.mp3"
+        local_path = os.path.join(voice_dir, f"{cache_key}.mp3")
+
+        # 1) Already cached locally?
+        if os.path.exists(local_path):
+            return f"/api/uploads/{storage_name}"
+        # 2) In persistent storage?
+        if _storage.is_enabled():
+            fetched = _storage.get_object(storage_name)
+            if fetched is not None:
+                return f"/api/uploads/{storage_name}"
+        # 3) Bundled MP3 ships with the deploy?
+        bundled = os.path.join(asset_dir, f"{cache_key}.mp3")
+        if os.path.exists(bundled):
+            try:
+                with open(bundled, "rb") as fh:
+                    data = fh.read()
+                with open(local_path, "wb") as fh:
+                    fh.write(data)
+                if _storage.is_enabled():
+                    _storage.put_object(storage_name, data, "audio/mpeg")
+            except Exception:  # noqa: BLE001
+                return ""
+            # Backfill the voice_cache row so admin "regenerate" is a no-op
+            try:
+                # We can't await here (sync helper); the upsert below in the
+                # main loop will use a separate path. So we return the URL
+                # and persist the cache row in the loop where db is available.
+                pass
+            except Exception:  # noqa: BLE001
+                pass
+            return f"/api/uploads/{storage_name}"
+        return ""
+
+    async def _record_voice_cache(narrator_slug: str, text: str) -> None:
+        voice_id = voice_by_slug.get(narrator_slug, "")
+        if not voice_id or not text:
+            return
+        raw = f"{model_id}|{voice_id}|{text.strip()}|0.45|0.85|0.35"
+        cache_key = hashlib.sha256(raw.encode("utf-8")).hexdigest()
+        storage_name = f"voice/{cache_key}.mp3"
+        local_path = os.path.join(voice_dir, f"{cache_key}.mp3")
+        if not os.path.exists(local_path):
+            return
+        await db.voice_cache.update_one(
+            {"key": cache_key},
+            {"$setOnInsert": {
+                "key": cache_key,
+                "voice_id": voice_id,
+                "text": text.strip(),
+                "model_id": model_id,
+                "chars": len(text.strip()),
+                "storage_filename": storage_name,
+                "created_at": _now_iso(),
+            }},
+            upsert=True,
+        )
+
+    # 1) Scenes — insert any missing by scene_number; backfill narrator + audio on existing
     for sc in STORY_QUEST_SCENES:
+        scene_num = sc["scene_number"]
+        narrator_slug = STORY_QUEST_NARRATORS.get(scene_num, "ms-bluegill")
+        audio_url = _narration_audio_url(narrator_slug, sc["narrative"])
+        await _record_voice_cache(narrator_slug, sc["narrative"])
+
         existing = await db.story_quest_scenes.find_one(
-            {"scene_number": sc["scene_number"]}, {"_id": 0, "id": 1}
+            {"scene_number": scene_num}, {"_id": 0}
         )
         if existing:
+            # Backfill narrator_slug and audio_narration_url if missing or out-of-date.
+            patch: dict = {}
+            if existing.get("narrator_slug") != narrator_slug:
+                patch["narrator_slug"] = narrator_slug
+            # Only overwrite audio URL if scene admin-edits haven't changed it AND
+            # we have a freshly resolvable URL. (Admins overriding the URL manually
+            # in the editor must take precedence and won't match the cache key.)
+            current_audio = existing.get("audio_narration_url") or ""
+            if audio_url and (not current_audio or current_audio.startswith("/api/uploads/voice/")):
+                if current_audio != audio_url:
+                    patch["audio_narration_url"] = audio_url
+            if patch:
+                patch["updated_at"] = _now_iso()
+                await db.story_quest_scenes.update_one({"id": existing["id"]}, {"$set": patch})
             continue
+
         await db.story_quest_scenes.insert_one({
             "id": str(__import__("uuid").uuid4()),
-            "scene_number": sc["scene_number"],
+            "scene_number": scene_num,
             "title": sc["title"],
             "narrative": sc["narrative"],
             "background_image_url": sc.get("background_image_url", ""),
-            "audio_narration_url": sc.get("audio_narration_url", ""),
+            "audio_narration_url": audio_url,
+            "narrator_slug": narrator_slug,
             "choices": sc["choices"],
             "is_intro": sc.get("is_intro", False),
             "is_finale": sc.get("is_finale", False),

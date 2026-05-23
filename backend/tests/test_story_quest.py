@@ -81,6 +81,29 @@ class TestStoryQuestPublic:
         for k, v in data.items():
             assert isinstance(v, str) and len(v) > 0, f"empty mapping for {k}"
 
+    def test_every_scene_has_narrator_and_playable_audio(self):
+        """Each of the 12 seeded scenes is narrated by a real Sea Star and the
+        bundled MP3 streams a 200 with audio/mpeg from /api/uploads/voice/..."""
+        r = requests.get(f"{BASE_URL}/api/story-quest/scenes")
+        assert r.status_code == 200, r.text
+        scenes = r.json()
+        chars = requests.get(f"{BASE_URL}/api/characters").json()
+        slugs_with_voice = {c["slug"] for c in chars if c.get("voice_id")}
+        for s in scenes:
+            assert s.get("narrator_slug"), f"scene {s['scene_number']} missing narrator_slug"
+            assert s["narrator_slug"] in slugs_with_voice, (
+                f"scene {s['scene_number']} narrator {s['narrator_slug']!r} has no voice_id"
+            )
+            url = s.get("audio_narration_url") or ""
+            assert url.startswith("/api/uploads/voice/"), (
+                f"scene {s['scene_number']} audio URL not from voice cache: {url!r}"
+            )
+            head = requests.head(f"{BASE_URL}{url}", allow_redirects=True)
+            assert head.status_code == 200, f"scene {s['scene_number']} audio HEAD {head.status_code}"
+            assert head.headers.get("content-type", "").startswith("audio/"), (
+                f"scene {s['scene_number']} content-type was {head.headers.get('content-type')}"
+            )
+
     def test_track_completion_success(self, mongo_db):
         marker = f"TEST_char_{uuid.uuid4().hex[:8]}"
         body = {

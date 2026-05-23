@@ -500,3 +500,37 @@ Casey, Dani, Sami, Izzy, Louie, Billy, Frankie.
   `/track-completion`; convert reorder to a `bulk_write`; shared
   constants module for `WAVE_KEYS`; lift `to_list(50)` cap on public
   scenes once admins create &gt;50.
+
+## What's been implemented (2026-02-23 — Story Quest narration)
+### Per-scene narrator voices baked into the deploy
+- Each of the 12 Story Quest scenes is now narrated by a Sea Star whose
+  perspective fits the moment (Ms Bluegill opens / closes camp + the
+  reveal, Ray captains the crew + the big wave, Casey runs the tide
+  pool, Sally narrates her shy storytime, Louie owns lunchtime, Myrtle
+  carries the kindness beats and the W.A.V.E. promise reflection).
+- New `STORY_QUEST_NARRATORS` map (scene_number → character slug) in
+  `seed.py`. `_seed_story_quest` now assigns `narrator_slug` on each
+  scene + resolves the ElevenLabs cache key for `(voice_id, narrative)`
+  and writes the bundled MP3 from `/app/backend/seed_assets/story_quest/`
+  into `/uploads/voice/<hash>.mp3` + Object Storage + `voice_cache`.
+  Same hash → existing `/api/uploads/voice/...` route streams the MP3
+  with the same `Cache-Control: immutable` headers as the rest of the
+  voice library. Backfills existing scenes on every restart.
+- One-time generator: `/app/backend/scripts/generate_story_quest_audio.py`
+  calls ElevenLabs once per scene with `eleven_turbo_v2_5` (0.45 /
+  0.85 / 0.35) and writes 12 MP3s (~1.6 MB total) to `seed_assets/`.
+  Re-run is a no-op (skips existing). Total chars synthesized: 1451.
+- Public UI (`StoryQuest.jsx`): each scene shows a "🎙 Narrated by
+  <name>" line with the Sea Star's avatar. Unmute toggle lights up
+  because every scene now has audio. Audio element resets src per
+  scene so the right voice plays every time.
+- Admin (`AdminStoryQuest.jsx`): scene editor now has a Narrator
+  selector populated from `/characters` (disabled for voiceless
+  characters). Scene list shows a 🎙 narrator chip per row.
+- Backend (`story_quest_router.py`): `SceneBody` accepts and persists
+  `narrator_slug`; create/patch flows already write through, public
+  GET returns it.
+- Regression: `test_story_quest.py` now has 11 tests (added
+  `test_every_scene_has_narrator_and_playable_audio` — HEAD-verifies
+  all 12 MP3s stream `audio/mpeg`). All passing.
+

@@ -56,6 +56,7 @@ class SceneBody(BaseModel):
     narrative: Optional[str] = ""
     background_image_url: Optional[str] = ""
     audio_narration_url: Optional[str] = ""
+    narrator_slug: Optional[str] = ""
     choices: Optional[List[Choice]] = None
     is_intro: Optional[bool] = False
     is_finale: Optional[bool] = False
@@ -117,6 +118,7 @@ def make_story_quest_router(db, require_admin):
             "narrative": body.narrative or "",
             "background_image_url": body.background_image_url or "",
             "audio_narration_url": body.audio_narration_url or "",
+            "narrator_slug": (body.narrator_slug or "").strip(),
             "choices": [c.model_dump() for c in (body.choices or [])],
             "is_intro": bool(body.is_intro),
             "is_finale": bool(body.is_finale),

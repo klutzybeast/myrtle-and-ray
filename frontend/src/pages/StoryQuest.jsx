@@ -84,6 +84,9 @@ export default function StoryQuest() {
   }, [idx, scores, stage]);
 
   const current = scenes[idx] || null;
+  const narrator = current?.narrator_slug
+    ? characters.find((c) => c.slug === current.narrator_slug)
+    : null;
 
   // Stop audio whenever the scene changes
   useEffect(() => {
@@ -182,6 +185,18 @@ export default function StoryQuest() {
           )}
           <h2 className="font-accent text-3xl font-bold mb-1" data-testid="scene-title">{current?.title}</h2>
           <div className="text-xs text-[#6b7280] uppercase tracking-wider mb-3">Scene {current?.scene_number} of {totalScenes}</div>
+
+          {narrator && (
+            <div className="flex items-center gap-2 mb-3" data-testid={`scene-narrator-${narrator.slug}`}>
+              <div className="gradient-ring shrink-0" style={{ width: 36, height: 36 }}>
+                <img src={narrator.image_url || "/logo.png"} alt="" className="w-full h-full rounded-full object-contain bg-[#fffbf3]" />
+              </div>
+              <div className="text-xs">
+                <span className="text-[#6b7280]">Narrated by</span>{" "}
+                <span className="font-bold text-[#3a4a55]">{narrator.name}</span>
+              </div>
+            </div>
+          )}
 
           {current?.audio_narration_url && !muted && (
             <audio
