@@ -57,6 +57,7 @@ export default function StoryQuest() {
   const [stage, setStage] = useState("splash"); // splash | scene | reaction | finale
   const [idx, setIdx] = useState(0);
   const [scores, setScores] = useState(emptyScores);
+  const [picks, setPicks] = useState([]); // [{scene_number, scene_title, scene_id, narrator_slug, narrator_name, wave_principle, matched_narrator}]
   const [lastChoice, setLastChoice] = useState(null);
   const [muted, setMuted] = useState(true);
   const [narrationDone, setNarrationDone] = useState(false);
@@ -76,6 +77,7 @@ export default function StoryQuest() {
       if (prev && prev.idx >= 0 && prev.scores) {
         setIdx(prev.idx);
         setScores(prev.scores);
+        if (Array.isArray(prev.picks)) setPicks(prev.picks);
         setStage(prev.stage || "scene");
       }
     }).catch(() => {});
@@ -87,9 +89,9 @@ export default function StoryQuest() {
 
   useEffect(() => {
     if (stage !== "splash") {
-      saveProgress({ idx, scores, stage });
+      saveProgress({ idx, scores, picks, stage });
     }
-  }, [idx, scores, stage]);
+  }, [idx, scores, picks, stage]);
 
   const current = scenes[idx] || null;
   const narrator = current?.narrator_slug
@@ -127,6 +129,7 @@ export default function StoryQuest() {
   const start = (withSound = false) => {
     setIdx(0);
     setScores(emptyScores());
+    setPicks([]);
     setLastChoice(null);
     setMuted(!withSound);
     setStage("scene");
@@ -136,12 +139,27 @@ export default function StoryQuest() {
     clearProgress();
     setIdx(0);
     setScores(emptyScores());
+    setPicks([]);
     setLastChoice(null);
     setStage("splash");
   };
 
   const choose = (choice) => {
     setScores((prev) => ({ ...prev, [choice.wave_principle]: (prev[choice.wave_principle] || 0) + 1 }));
+    if (current) {
+      setPicks((prev) => [
+        ...prev,
+        {
+          scene_id: current.id,
+          scene_number: current.scene_number,
+          scene_title: current.title,
+          narrator_slug: current.narrator_slug || "",
+          narrator_name: narrator?.name || "",
+          wave_principle: choice.wave_principle,
+          matched_narrator: !!narratorPrinciple && choice.wave_principle === narratorPrinciple,
+        },
+      ]);
+    }
     setLastChoice(choice);
     setStage("reaction");
   };
@@ -195,6 +213,7 @@ export default function StoryQuest() {
     return (
       <Finale
         scores={scores}
+        picks={picks}
         mappings={mappings}
         characters={characters}
         onReplay={(withSound = false) => {
@@ -373,7 +392,7 @@ function ProgressBar({ current, total, muted, onToggleMute, hasAudio }) {
   );
 }
 
-function Finale({ scores, mappings, characters, onReplay }) {
+function Finale({ scores, picks, mappings, characters, onReplay }) {
   const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
   const top = sorted[0]?.[1] ?? 0;
   const winners = sorted.filter(([_, v]) => v === top && v > 0).map(([k]) => k);
@@ -384,6 +403,19 @@ function Finale({ scores, mappings, characters, onReplay }) {
   const fingerprint = Object.entries(WAVE_META).map(([k, meta]) => ({
     key: k, ...meta, score: scores[k] || 0, pct: Math.round(((scores[k] || 0) / total) * 100),
   }));
+
+  // Top 3 W.A.V.E. moments: scenes where the kid's pick matched the narrator's value.
+  // If fewer than 3 narrator-matches, fill from remaining picks in scene order.
+  const matchedPicks = (picks || []).filter((p) => p.matched_narrator);
+  const otherPicks = (picks || []).filter((p) => !p.matched_narrator);
+  const topMoments = [...matchedPicks, ...otherPicks].slice(0, 3);
+  // Count how many times each narrator the kid "really listened" to.
+  const listenedTo = matchedPicks.reduce((acc, p) => {
+    if (p.narrator_slug) acc[p.narrator_slug] = (acc[p.narrator_slug] || 0) + 1;
+    return acc;
+  }, {});
+  const topListenedSlug = Object.entries(listenedTo).sort((a, b) => b[1] - a[1])[0]?.[0];
+  const topListenedChar = topListenedSlug ? characters.find((c) => c.slug === topListenedSlug) : null;
 
   const sharePayload = useMemo(() => {
     const names = matchedChars.map((c) => c.name).join(" & ") || "a Sea Star";
@@ -438,6 +470,58 @@ function Finale({ scores, mappings, characters, onReplay }) {
               : "Just like your Sea Star match, you make the cay shine in your own special way."}
           </p>
         </div>
+
+        {topMoments.length > 0 && (
+          <section className="bg-white rounded-[28px] p-6 mb-5" data-testid="quest-top-moments">
+            <h2 className="font-accent text-2xl font-bold mb-1 text-center">Your top W.A.V.E. moments</h2>
+            {topListenedChar && matchedPicks.length >= 2 ? (
+              <p className="text-center text-sm text-[#4a5568] mb-4" data-testid="quest-listened-callout">
+                You <b>really listened</b> to <span className="text-[#5a8a6f] font-bold">{topListenedChar.name}</span> — you matched their W.A.V.E. value{" "}
+                <b>{listenedTo[topListenedSlug]}×</b>.
+              </p>
+            ) : (
+              <p className="text-center text-sm text-[#4a5568] mb-4">
+                The three scenes where your choice felt the most <i>you</i>:
+              </p>
+            )}
+            <ol className="space-y-3">
+              {topMoments.map((p, i) => {
+                const meta = WAVE_META[p.wave_principle];
+                const narrChar = characters.find((c) => c.slug === p.narrator_slug);
+                return (
+                  <li
+                    key={p.scene_id || i}
+                    className={`flex items-center gap-3 p-3 rounded-2xl border-2 ${p.matched_narrator ? "border-[#7fcfc7] bg-[#eaf7f5]" : "border-[#f4e4c6] bg-[#fffbf3]"}`}
+                    data-testid={`top-moment-${i + 1}`}
+                    data-matched={p.matched_narrator ? "true" : "false"}
+                  >
+                    <span className="font-accent font-bold text-2xl text-[#a36b29] w-6 text-center">{i + 1}</span>
+                    {narrChar && (
+                      <div className="gradient-ring shrink-0" style={{ width: 40, height: 40 }}>
+                        <img src={narrChar.image_url || "/logo.png"} alt="" className="w-full h-full rounded-full object-contain bg-[#fffbf3]" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-[#3a4a55] text-sm truncate">{p.scene_title}</div>
+                      <div className="text-xs text-[#6b7280]">
+                        Scene {p.scene_number} · {p.narrator_name || "Narrator"}
+                        {p.matched_narrator && <span className="ml-1 text-[#5a8a6f] font-bold">· you listened ✓</span>}
+                      </div>
+                    </div>
+                    <span
+                      className="w-9 h-9 rounded-full grid place-items-center font-accent font-bold text-white shrink-0"
+                      style={{ backgroundColor: meta?.color || "#7fcfc7" }}
+                      title={meta?.label}
+                      aria-label={meta?.label}
+                    >
+                      {meta?.letter || "?"}
+                    </span>
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
+        )}
 
         <section className="bg-white rounded-[28px] p-6 mb-5" data-testid="quest-fingerprint">
           <h2 className="font-accent text-2xl font-bold mb-3 text-center">Your W.A.V.E. fingerprint</h2>

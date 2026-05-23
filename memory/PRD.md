@@ -579,6 +579,34 @@ Casey, Dani, Sami, Izzy, Louie, Billy, Frankie.
 - Each button now exposes `data-narrator-pick="true|false"` for
   testing & analytics.
 - Verified via Playwright: Quiet mode → choices open + W choice
+
+## What's been implemented (2026-02-23 — Top W.A.V.E. moments recap)
+### Finale shows "you really listened to <Narrator>"
+- Every choice the kid makes is now recorded as a `pick` with full
+  metadata: `scene_id`, `scene_number`, `scene_title`, `narrator_slug`,
+  `narrator_name`, `wave_principle`, and `matched_narrator` (bool —
+  true when the chosen principle matches the narrator's W.A.V.E. value).
+- Picks are persisted in `localStorage` alongside scores/idx/stage so
+  the recap survives a refresh.
+- Finale screen has a new section **"Your top W.A.V.E. moments"** (top
+  3 cards) — narrator-matched picks first, sorted by scene order;
+  unmatched picks fill any remaining slots. Each card shows the scene
+  title, narrator avatar + name, W.A.V.E. principle pill, and a
+  "you listened ✓" callout when matched.
+- Above the cards, when the kid hit ≥2 matches with the same narrator,
+  a personal callout reads "You **really listened** to <Name> — you
+  matched their W.A.V.E. value <count>×." This turns the same data we
+  already collect into a personal moment without any extra LLM call.
+- Implementation is local-only: no backend changes needed — the
+  existing `track-completion` endpoint still records scores;
+  matched_narrator can be computed from the same data if a future
+  admin analytic wants it.
+- Verified Playwright run: completed all 12 scenes picking the
+  narrator-match button each time → finale shows 3 matched moments
+  (Ms Bluegill / Louie / Ray) + "really listened to Ms Bluegill 4×"
+  callout + Story Quest Champion badge toast. 11/11 backend pytest
+  still green.
+
   pulses; Narration mode → choices dim + hint shown; firing the
   audio `ended` event flips choices to open + W choice glows. 11/11
   Story Quest backend pytest still green.
