@@ -904,3 +904,35 @@ Casey, Dani, Sami, Izzy, Louie, Billy, Frankie.
 - Removed a duplicate scene_number=11 in First Day of Camp that
   test_scenes_returns_12 was failing on. 17/17 backend pytest pass.
 
+
+## What's been implemented (2026-02-23 — Karaoke sync via forced alignment)
+### "highlight moves faster than song" → fixed
+- Root cause: equal-spacing the lyrics across the audio duration
+  doesn't match when the model adds an intro (Sally's Quiet Song
+  started vocals at 11.02s; the equal-space heuristic was assuming
+  ~4s pad).
+- New script `/app/backend/scripts/align_sing_along_lyrics.py`:
+  - Loads each baked MP3 from `seed_assets/sing_along/`
+  - Calls **ElevenLabs Forced Alignment** (`client.forced_alignment.create`)
+    with the lyrics
+  - Walks the returned word-level timestamps and snaps each lyric
+    line to the timestamp of its first matching word (fuzzy 3-char
+    fallback if exact match fails)
+  - Writes the LRC string (`[mm:ss.xx]Line`) to
+    `sing_along_songs.lyrics_lrc`
+- Ran across all 10 songs. Real intro times now baked into the DB —
+  examples: catch-the-wave 0.10s, ms-bluegill's welcome 4.12s,
+  sally's quiet song 11.02s, the-wave-promise 1.98s.
+- `SingAlong.jsx` was already wired to prefer `lyrics_lrc` when
+  present, so the fix takes effect immediately with zero frontend
+  changes. Verified at multiple timestamps — line highlight now lags
+  through the intro and changes when the vocal actually does.
+- Auto-alignment now hooked into `generate_sing_along_audio.py` so
+  any future re-bake (e.g. after a prompt tweak) immediately runs
+  alignment and persists the LRC. Idempotent.
+
+### Cleanup
+- Test residue from reorder test corrupted `first-day-of-camp` scene
+  numbering (14 rows, duplicated 9/11/12). Wiped and re-seeded
+  cleanly. 17/17 backend pytest passing again.
+

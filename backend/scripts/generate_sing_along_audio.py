@@ -110,6 +110,12 @@ def main(argv: list) -> int:
         out_upload.write_bytes(data)
         print(f"    saved ({len(data)/1024:.1f} KB) → {out_asset.name}")
         asyncio.run(_update_audio_url(s["slug"], f"/api/uploads/sing_along/{s['slug']}.mp3", s.get("duration_seconds", 0)))
+        # Run forced alignment so karaoke timing is correct out of the box.
+        try:
+            from scripts.align_sing_along_lyrics import main as align_main
+            align_main([s["slug"]])
+        except Exception as exc:  # noqa: BLE001
+            print(f"    (alignment skipped: {exc})")
     print("\nDone.")
     return 0
 
