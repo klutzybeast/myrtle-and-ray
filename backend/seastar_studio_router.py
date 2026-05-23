@@ -192,6 +192,34 @@ def make_seastar_studio_router(db, require_admin):
                             )
                     except Exception as exc:  # noqa: BLE001
                         logger.warning("Studio audio re-sync failed: %s", exc)
+
+            # Symmetric defense for the coloring image: if the cached
+            # image_url doesn't include the scene-hash fragment we'd
+            # expect for the current scene_prompt, the PNG was generated
+            # for a different scene — regenerate.
+            if scene_prompt and image_url:
+                expected_scene = _expected_image_fragment(scene_prompt)
+                if expected_scene and expected_scene not in image_url:
+                    logger.info(
+                        "Studio image cache stale for key=%s — re-generating",
+                        cache_key,
+                    )
+                    try:
+                        fresh_img = await _generate_scene_image(
+                            character_name=ch.get("name", ""),
+                            character_role=ch.get("role", ""),
+                            scene_prompt=scene_prompt,
+                            image_model=settings["image_model"],
+                            cache_key=cache_key,
+                        )
+                        if fresh_img:
+                            image_url = fresh_img
+                            await db.studio_cache.update_one(
+                                {"key": cache_key},
+                                {"$set": {"image_url": fresh_img, "updated_at": _now_iso()}},
+                            )
+                    except Exception as exc:  # noqa: BLE001
+                        logger.warning("Studio image re-sync failed: %s", exc)
         else:
             # 1) ONE LLM call → rhyme + scene
             reply_text, scene_prompt = await _generate_rhyme_and_scene(
@@ -339,11 +367,21 @@ async def _generate_rhyme_and_scene(ch: dict, child_letter: str, child_name: str
         return (_fallback_reply(ch, child_name), f"{ch.get('name','')} at Stingray Cay")
 
 
+def _expected_image_fragment(scene_prompt: str) -> str:
+    """Returns the scene-hash suffix that should appear in the coloring
+    image URL for the given scene_prompt. Used to detect stale legacy
+    cache rows whose image PNG was generated for a different scene."""
+    if not scene_prompt:
+        return ""
+    return hashlib.sha256(scene_prompt.strip().lower().encode("utf-8")).hexdigest()[:16]
+
+
 async def _generate_scene_image(character_name: str, character_role: str, scene_prompt: str,
                                 image_model: str, cache_key: str) -> str:
     """Generate the coloring-book PNG for the LLM-chosen scene. Writes
-    /app/backend/uploads/coloring/<cache_key>.png so it reuses the existing
-    coloring assets folder + storage path. Returns the /api/uploads URL."""
+    /app/backend/uploads/coloring/<cache_key>_<scene_hash>.png so the on-disk
+    file is uniquely identified by its scene content — prevents the
+    'stale image' counterpart of the audio bug fixed earlier."""
     api_key = (os.environ.get("EMERGENT_LLM_KEY") or "").strip()
     if not api_key:
         return ""
@@ -352,8 +390,10 @@ async def _generate_scene_image(character_name: str, character_role: str, scene_
     except Exception:  # noqa: BLE001
         return ""
 
-    local_path = os.path.join(COLORING_DIR, f"{cache_key}.png")
-    url_path = f"/api/uploads/coloring/{cache_key}.png"
+    scene_hash = _expected_image_fragment(scene_prompt)
+    fname = f"{cache_key}_{scene_hash}.png" if scene_hash else f"{cache_key}.png"
+    local_path = os.path.join(COLORING_DIR, fname)
+    url_path = f"/api/uploads/coloring/{fname}"
     if os.path.exists(local_path):
         return url_path
 
@@ -379,7 +419,7 @@ async def _generate_scene_image(character_name: str, character_role: str, scene_
     try:
         import storage as _storage
         if _storage.is_enabled():
-            _storage.put_object(f"coloring/{cache_key}.png", image_bytes, "image/png")
+            _storage.put_object(f"coloring/{fname}", image_bytes, "image/png")
     except Exception:  # noqa: BLE001
         pass
     return url_path

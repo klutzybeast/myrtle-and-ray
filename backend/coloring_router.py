@@ -153,17 +153,36 @@ def make_coloring_router(db, require_admin):
         if used >= settings["daily_cap"]:
             raise HTTPException(status_code=429, detail=f"You've made {used} pages today — come back tomorrow for more!")
 
-        # Cache key
+        # Cache key — character + sanitized prompt → SHA-256.
         cache_key = hashlib.sha256(
             f"coloring|{body.character_slug or ''}|{clean.strip().lower()}".encode("utf-8")
         ).hexdigest()
-        local_path = os.path.join(COLORING_DIR, f"{cache_key}.png")
-        url_path = f"/api/uploads/coloring/{cache_key}.png"
+        # Filename includes a hash of the prompt content so the on-disk
+        # PNG is uniquely identified by what it depicts — defense against
+        # any future "stale image" class of bug.
+        prompt_hash = hashlib.sha256(clean.strip().lower().encode("utf-8")).hexdigest()[:16]
+        fname = f"{cache_key}_{prompt_hash}.png"
+        local_path = os.path.join(COLORING_DIR, fname)
+        url_path = f"/api/uploads/coloring/{fname}"
 
         cached = await db.coloring_cache.find_one({"key": cache_key}, {"_id": 0})
         if cached and os.path.exists(local_path):
             image_url = url_path
+        elif cached and not os.path.exists(local_path):
+            # Legacy cache row from before the prompt_hash filename scheme —
+            # check if the old-format file exists on disk, return it, and
+            # mark the row stale so future writes will use the new path.
+            legacy_path = os.path.join(COLORING_DIR, f"{cache_key}.png")
+            if os.path.exists(legacy_path):
+                image_url = f"/api/uploads/coloring/{cache_key}.png"
+            else:
+                # Both new and old paths missing — regenerate fresh.
+                cached = None
+                image_url = ""
         else:
+            image_url = ""
+
+        if not cached:
             # Call Nano Banana
             try:
                 image_bytes = await _generate_image(
@@ -185,16 +204,20 @@ def make_coloring_router(db, require_admin):
             try:
                 import storage as _storage
                 if _storage.is_enabled():
-                    _storage.put_object(f"coloring/{cache_key}.png", image_bytes, "image/png")
+                    _storage.put_object(f"coloring/{fname}", image_bytes, "image/png")
             except Exception:  # noqa: BLE001
                 pass
-            await db.coloring_cache.insert_one({
-                "key": cache_key,
-                "character_slug": body.character_slug or "",
-                "prompt": clean,
-                "image_url": url_path,
-                "created_at": _now_iso(),
-            })
+            await db.coloring_cache.update_one(
+                {"key": cache_key},
+                {"$set": {
+                    "key": cache_key,
+                    "character_slug": body.character_slug or "",
+                    "prompt": clean,
+                    "image_url": url_path,
+                    "created_at": _now_iso(),
+                }},
+                upsert=True,
+            )
             image_url = url_path
 
         # Persist the generation

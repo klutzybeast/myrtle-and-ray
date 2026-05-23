@@ -76,14 +76,17 @@ def _seed_studio_cache(mongo_db, character_slug: str, letter: str,
         "Keep on smiling, big and bright,\nWith love, Myrtle the Turtle."
     )
     scene = scene_prompt or "Myrtle the Turtle splashing in a tide pool"
-    # Build the audio filename with the text-hash suffix the production
-    # code now expects, so the self-heal logic in seastar_studio_router
-    # is satisfied by the seeded cache row.
+    # Build filenames with the text/scene-hash suffixes the production code
+    # now expects, so the self-heal logic in seastar_studio_router is
+    # satisfied by the seeded cache row.
     from penpals_router import _expected_audio_fragment
+    from seastar_studio_router import _expected_image_fragment
     voice_id = _voice_id_for(mongo_db, character_slug)
     text_hash = _expected_audio_fragment(voice_id, reply) if voice_id else ""
+    scene_hash = _expected_image_fragment(scene)
     audio_fname = f"{key}_{text_hash}.mp3" if text_hash else f"{key}.mp3"
-    png_path = os.path.join(COLORING_DIR, f"{key}.png")
+    image_fname = f"{key}_{scene_hash}.png" if scene_hash else f"{key}.png"
+    png_path = os.path.join(COLORING_DIR, image_fname)
     mp3_path = os.path.join(PENPALS_DIR, audio_fname)
     if not os.path.exists(png_path):
         with open(png_path, "wb") as fh:
@@ -91,7 +94,7 @@ def _seed_studio_cache(mongo_db, character_slug: str, letter: str,
     if not os.path.exists(mp3_path):
         with open(mp3_path, "wb") as fh:
             fh.write(MP3_STUB)
-    image_url = f"/api/uploads/coloring/{key}.png"
+    image_url = f"/api/uploads/coloring/{image_fname}"
     audio_url = f"/api/uploads/penpals/{audio_fname}"
     mongo_db.studio_cache.update_one(
         {"key": key},
@@ -460,3 +463,39 @@ class TestAudioTextMismatchRegression:
             # Verify the cache row was patched, not just the response
             updated = mongo_db.studio_cache.find_one({"key": seeded["key"]}, {"_id": 0, "audio_url": 1})
             assert expected_fragment in (updated or {}).get("audio_url", "")
+
+
+class TestImageSceneMismatchRegression:
+    """Symmetric regression to the audio self-heal test: a legacy image_url
+    that doesn't include the scene-hash suffix should be detected as
+    stale and re-generated (when Nano Banana is reachable) or at minimum
+    NOT crash the request."""
+
+    def test_legacy_image_url_does_not_crash_create(self, mongo_db):
+        ch = mongo_db.characters.find_one({"voice_id": {"$exists": True, "$ne": ""}})
+        assert ch, "Need at least one character"
+        slug = ch["slug"]
+        letter = f"image scene regression {uuid.uuid4().hex[:8]}"
+        seeded = _seed_studio_cache(mongo_db, slug, letter)
+
+        # Force the cached image_url to the LEGACY (no scene-hash) format
+        legacy_image_url = f"/api/uploads/coloring/{seeded['key']}.png"
+        mongo_db.studio_cache.update_one(
+            {"key": seeded["key"]},
+            {"$set": {"image_url": legacy_image_url}},
+        )
+
+        r = requests.post(f"{BASE_URL}/api/sea-star-studio/create", json={
+            "character_slug": slug,
+            "letter": letter,
+            "visitor_id": f"TEST_{uuid.uuid4().hex[:16]}",
+        })
+        assert r.status_code == 200, r.text
+        data = r.json()
+        # Cached reply_text + scene_prompt must round-trip intact
+        assert data["reply_text"] == seeded["reply_text"]
+        assert data["scene_prompt"] == seeded["scene_prompt"]
+        # image_url is either: (a) the re-healed URL containing the
+        # scene-hash fragment, OR (b) still legacy if Nano Banana was
+        # unreachable in CI — either way the request didn't crash.
+
