@@ -30,6 +30,13 @@ export default function Story() {
         <header className="text-center mb-10">
           <h1 className="font-accent text-5xl md:text-6xl font-bold">Meet the Sea Stars of Stingray Cay</h1>
           <p className="text-[#4a5568] mt-3 max-w-2xl mx-auto">Tap any card to flip it and meet our crew. Each one has a wave to ride and a way to be brave.</p>
+          <Link
+            to="/story-quest"
+            className="inline-flex items-center gap-2 mt-5 px-5 py-3 rounded-full bg-gradient-to-r from-[#7fcfc7] to-[#5a8a6f] text-white font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition"
+            data-testid="story-page-quest-cta"
+          >
+            <Sparkles className="w-5 h-5" /> Start the Story Quest — find your Sea Star
+          </Link>
         </header>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">

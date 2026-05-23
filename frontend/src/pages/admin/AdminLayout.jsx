@@ -11,6 +11,7 @@ const ITEMS = [
   { to: "/admin/pen-pals", label: "Pen Pals", icon: MessageCircle },
   { to: "/admin/coloring", label: "Coloring", icon: Palette },
   { to: "/admin/sea-star-studio", label: "Sea Star Studio", icon: Wand2 },
+  { to: "/admin/story-quest", label: "Story Quest", icon: Sparkles },
   { to: "/admin/products", label: "Products", icon: Package },
   { to: "/admin/characters", label: "Characters", icon: Users },
   { to: "/admin/read-aloud", label: "Read-Aloud Book", icon: BookOpen },
