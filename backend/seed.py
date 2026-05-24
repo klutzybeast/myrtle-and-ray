@@ -1777,8 +1777,12 @@ async def _seed_story_quest(db) -> None:
             if patched_count:
                 logger.info("story_quest seed: backfilled audio on %d scenes from manifest", patched_count)
 
-            # 5) Dedupe legacy duplicate (quest_id, scene_number) rows. Keep
-            # the one with audio if any, else the most recent.
+            # 5) Dedupe legacy duplicate scene rows. Two strategies:
+            # (a) same (quest_id, scene_number) — happens from re-runs.
+            # (b) same (quest_id, narrative text) but different scene_number —
+            #     happens when an old set of scenes was re-inserted with new
+            #     scene_numbers while the originals were still present.
+            #     This caused scene #4 to play scene #1's audio (same narrative).
             dupe_pipeline = [
                 {"$group": {"_id": {"quest_id": "$quest_id", "scene_number": "$scene_number"}, "ids": {"$push": "$id"}, "count": {"$sum": 1}}},
                 {"$match": {"count": {"$gt": 1}}},
@@ -1791,6 +1795,25 @@ async def _seed_story_quest(db) -> None:
                 ).to_list(20)
                 keep_id = next((d["id"] for d in docs if (d.get("audio_narration_url") or "").strip()), None) or docs[0]["id"]
                 delete_ids = [d["id"] for d in docs if d["id"] != keep_id]
+                if delete_ids:
+                    r = await db.story_quest_scenes.delete_many({"id": {"$in": delete_ids}})
+                    deduped += r.deleted_count
+
+            # (b) Same narrative under different scene_numbers — keep the lowest
+            # scene_number (which is the legit one from the original 8-scene seed).
+            narr_pipeline = [
+                {"$match": {"narrative": {"$exists": True, "$nin": ["", None]}}},
+                {"$group": {
+                    "_id": {"quest_id": "$quest_id", "narrative": "$narrative"},
+                    "rows": {"$push": {"id": "$id", "scene_number": "$scene_number"}},
+                    "count": {"$sum": 1},
+                }},
+                {"$match": {"count": {"$gt": 1}}},
+            ]
+            async for group in db.story_quest_scenes.aggregate(narr_pipeline):
+                rows = sorted(group["rows"], key=lambda r: r["scene_number"])
+                keep_id = rows[0]["id"]  # lowest scene_number wins
+                delete_ids = [r["id"] for r in rows[1:]]
                 if delete_ids:
                     r = await db.story_quest_scenes.delete_many({"id": {"$in": delete_ids}})
                     deduped += r.deleted_count
