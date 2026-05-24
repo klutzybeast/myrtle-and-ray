@@ -14,6 +14,7 @@ const ITEMS = [
   { to: "/admin/story-quest", label: "Story Quest", icon: Sparkles },
   { to: "/admin/sing-along", label: "Sing-Along", icon: Music2 },
   { to: "/admin/printify", label: "Printify Shop", icon: ShoppingBag },
+  { to: "/admin/etsy", label: "Etsy Storefront", icon: ShoppingBag },
   { to: "/admin/products", label: "Products", icon: Package },
   { to: "/admin/characters", label: "Characters", icon: Users },
   { to: "/admin/read-aloud", label: "Read-Aloud Book", icon: BookOpen },
