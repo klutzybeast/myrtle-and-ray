@@ -32,6 +32,7 @@ from voice_router import make_voice_router
 from readaloud_router import make_readaloud_router
 from printify_router import make_printify_router
 from etsy_router import make_etsy_router
+from thumbnails_router import make_thumbnails_router
 import storage as _storage
 
 
@@ -63,6 +64,7 @@ api_router.include_router(make_voice_router(db))
 api_router.include_router(make_readaloud_router(db, require_admin))
 api_router.include_router(make_printify_router(db, require_admin))
 api_router.include_router(make_etsy_router(db, require_admin))
+api_router.include_router(make_thumbnails_router(db, require_admin))
 admin_router_obj = make_admin_router(db, require_admin)
 # Mount admin orders under the existing /admin prefix
 admin_router_obj.include_router(make_admin_orders_router(db))

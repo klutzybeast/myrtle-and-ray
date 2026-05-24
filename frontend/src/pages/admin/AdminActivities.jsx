@@ -4,22 +4,24 @@ import { toast } from "sonner";
 import { Save } from "lucide-react";
 import SchemaForm from "./SchemaForm";
 import { ACTIVITY_SCHEMAS } from "./schemas";
+import AIThumbnailButton from "../../components/admin/AIThumbnailButton";
 
 export default function AdminActivities() {
   const [items, setItems] = useState([]);
   const [active, setActive] = useState(null);
   const [data, setData] = useState({});
+  const [thumb, setThumb] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => { api.get("/admin/activity-content").then(({ data }) => setItems(data)); }, []);
-  useEffect(() => { if (active) setData(active.data || {}); }, [active]);
+  useEffect(() => { if (active) { setData(active.data || {}); setThumb(active.thumbnail_url || ""); } }, [active]);
 
   const save = async () => {
     setBusy(true);
     try {
-      await api.put(`/admin/activity-content/${active.key}`, { data });
+      await api.put(`/admin/activity-content/${active.key}`, { data, thumbnail_url: thumb });
       toast.success("Saved");
-      setItems((arr) => arr.map((p) => p.key === active.key ? { ...p, data } : p));
+      setItems((arr) => arr.map((p) => p.key === active.key ? { ...p, data, thumbnail_url: thumb } : p));
     } catch { toast.error("Save failed"); }
     finally { setBusy(false); }
   };
@@ -52,6 +54,19 @@ export default function AdminActivities() {
             <>
               <h2 className="font-accent text-2xl font-bold">{schema.title}</h2>
               {schema.description && <p className="text-[#5a6b76] text-sm mb-4">{schema.description}</p>}
+              <div className="mb-4 p-3 bg-[#fffbf3] rounded-2xl border-2 border-[#f4e4c6]">
+                <div className="text-sm font-semibold text-[#3a4a55] mb-1">Tile artwork</div>
+                <div className="flex gap-2 items-center flex-wrap">
+                  <input value={thumb} onChange={(e) => setThumb(e.target.value)} placeholder="Paste image URL" className="inp flex-1 min-w-[200px]" />
+                  <AIThumbnailButton
+                    kind="activity"
+                    title={schema.title}
+                    defaultPrompt={`Tile/badge art for the "${schema.title}" mini-game.`}
+                    onChosen={(url) => setThumb(url)}
+                  />
+                </div>
+                {thumb && <img src={thumb} alt="" className="mt-2 w-24 h-24 rounded-2xl object-cover border border-[#f4e4c6]" />}
+              </div>
               <SchemaForm fields={schema.fields} value={data} onChange={setData} />
               <button onClick={save} disabled={busy} className="btn-primary mt-5" data-testid="activity-save"><Save className="w-4 h-4" />{busy ? "Saving..." : "Save"}</button>
             </>

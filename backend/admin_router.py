@@ -69,6 +69,7 @@ class DlCatBody(BaseModel):
     icon: Optional[str] = None
     description: Optional[str] = None
     color: Optional[str] = None
+    thumbnail_url: Optional[str] = None
     order: Optional[int] = None
     visible: Optional[bool] = None
 
@@ -149,6 +150,7 @@ class MailingBody(BaseModel):
 class ActivityBody(BaseModel):
     title: Optional[str] = None
     data: Optional[dict] = None
+    thumbnail_url: Optional[str] = None
 
 
 def make_admin_router(db, require_admin):

@@ -3,6 +3,7 @@ import { api } from "../../lib/api";
 import { toast } from "sonner";
 import { Plus, Trash2, Pencil, X, Save, ChevronLeft, Search, Star } from "lucide-react";
 import { ImageGalleryUploader, ImageUploader } from "./ImageUploader";
+import AIThumbnailButton from "../../components/admin/AIThumbnailButton";
 import TagsInput from "./TagsInput";
 import { slugify, autoTags, truncate } from "../../lib/seo";
 
@@ -119,6 +120,17 @@ function Editor({ item, setItem, cats, chars, statuses, onSave, onCancel }) {
               onChange={(urls) => setItem({ ...item, images: urls, primary_image: urls[0] || "", og_image: item.og_image || urls[0] || "" })}
               testid="product-images"
             />
+            <div className="mt-2">
+              <AIThumbnailButton
+                kind="product"
+                title={item.name || ""}
+                defaultPrompt={item.short_description || ""}
+                onChosen={(url) => {
+                  const next = [url, ...((item.images || []).filter((u) => u !== url))];
+                  setItem({ ...item, images: next, primary_image: url, og_image: item.og_image || url });
+                }}
+              />
+            </div>
           </div>
           <Field label="Short Description" full><input value={item.short_description || ""} onChange={(e) => setShortDesc(e.target.value)} className="inp" /></Field>
           <Field label="Long Description" full><textarea value={item.long_description || ""} onChange={(e) => set("long_description", e.target.value)} className="inp min-h-[100px]" rows={4} /></Field>
@@ -206,6 +218,14 @@ function Editor({ item, setItem, cats, chars, statuses, onSave, onCancel }) {
               <Field label="Meta description (≤160 chars)"><input value={item.meta_description || ""} maxLength={160} onChange={(e) => set("meta_description", e.target.value)} placeholder={truncate(item.short_description || "", 160)} className="inp" data-testid="product-edit-meta-desc" /></Field>
               <div className="sm:col-span-2">
                 <ImageUploader label="Sharing image (1200×630 ideal — shows on Facebook, iMessage, X)" value={item.og_image || item.primary_image || ""} onChange={(u) => set("og_image", u)} testid="product-edit-og-image" />
+                <div className="mt-2">
+                  <AIThumbnailButton
+                    kind="product"
+                    title={item.name || ""}
+                    defaultPrompt={`Sharing card for ${item.name || "product"}: ${item.short_description || ""}`}
+                    onChosen={(url) => set("og_image", url)}
+                  />
+                </div>
               </div>
             </div>
           </div>

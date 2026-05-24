@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../../lib/api";
 import { toast } from "sonner";
 import { Pencil, X, Save } from "lucide-react";
+import AIThumbnailButton from "../../components/admin/AIThumbnailButton";
 
 export default function AdminCharacters() {
   const [items, setItems] = useState([]);
@@ -53,7 +54,17 @@ function Editor({ item, setItem, onSave, onCancel }) {
           <F label="Species"><input value={item.species || ""} onChange={(e) => set("species", e.target.value)} className="inp" /></F>
           <F label="Role"><input value={item.role || ""} onChange={(e) => set("role", e.target.value)} className="inp" /></F>
           <F label="W.A.V.E. value (W/A/V/E)"><input value={item.wave_value || ""} onChange={(e) => set("wave_value", e.target.value)} className="inp" /></F>
-          <F label="Image URL" full><input value={item.image_url || ""} onChange={(e) => set("image_url", e.target.value)} className="inp" data-testid="char-edit-image" /></F>
+          <F label="Image URL" full>
+            <div className="flex gap-2">
+              <input value={item.image_url || ""} onChange={(e) => set("image_url", e.target.value)} className="inp flex-1" data-testid="char-edit-image" />
+              <AIThumbnailButton
+                kind="character"
+                title={item.name || ""}
+                defaultPrompt={`Portrait of ${item.name || ""}, ${item.species || ""}, ${item.role || ""}`}
+                onChosen={(url) => set("image_url", url)}
+              />
+            </div>
+          </F>
           <F label="Linked product slug"><input value={item.linked_product_slug || ""} onChange={(e) => set("linked_product_slug", e.target.value)} className="inp" /></F>
           <F label="Audio URL"><input value={item.audio_url || ""} onChange={(e) => set("audio_url", e.target.value)} className="inp" /></F>
           <F label="ElevenLabs Voice ID"><input value={item.voice_id || ""} onChange={(e) => set("voice_id", e.target.value)} className="inp" placeholder="e.g. EXAVITQu4vr4xnSDxMaL" data-testid="char-edit-voice-id" /></F>

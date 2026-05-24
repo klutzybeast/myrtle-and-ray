@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { api } from "../../lib/api";
 import { toast } from "sonner";
 import { Plus, Trash2, Pencil, X, Save, Upload, FileText, GripVertical, FolderUp } from "lucide-react";
+import AIThumbnailButton from "../../components/admin/AIThumbnailButton";
 
 const AUDIENCES = ["Parents", "Teachers", "Camp Directors", "Kids"];
 const WAVE = ["W", "A", "V", "E"];
@@ -151,9 +152,15 @@ function Editor({ item, setItem, cats, chars, onSave, onCancel }) {
             <div className="flex gap-3 items-start">
               <div className="flex-1">
                 <input value={item.cover_image || ""} onChange={(e) => set("cover_image", e.target.value)} placeholder="Paste image URL or upload below" className="inp" />
-                <div className="flex gap-2 mt-2">
+                <div className="flex gap-2 mt-2 flex-wrap">
                   <button type="button" onClick={() => coverRef.current?.click()} className="btn-secondary text-xs"><Upload className="w-4 h-4" />Upload cover image</button>
                   <input ref={coverRef} type="file" hidden accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadCover(f); e.target.value = ""; }} data-testid="download-cover-upload-input" />
+                  <AIThumbnailButton
+                    kind="download"
+                    title={item.title || ""}
+                    defaultPrompt={item.short_description || `Cover art for the printable "${item.title || ""}"`}
+                    onChosen={(url) => set("cover_image", url)}
+                  />
                   {item.cover_image && <button type="button" onClick={() => set("cover_image", "")} className="btn-ghost text-xs text-red-500"><Trash2 className="w-4 h-4" />Remove</button>}
                 </div>
               </div>

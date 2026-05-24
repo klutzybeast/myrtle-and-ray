@@ -28,6 +28,7 @@ const ITEMS = [
   { to: "/admin/campaigns", label: "Campaigns", icon: Megaphone },
   { to: "/admin/email-outbox", label: "Email Outbox", icon: Send },
   { to: "/admin/media", label: "Media Library", icon: Image },
+  { to: "/admin/thumbnails", label: "AI Thumbnails", icon: Wand2 },
   { to: "/admin/activities", label: "Activities", icon: Sparkles },
 ];
 

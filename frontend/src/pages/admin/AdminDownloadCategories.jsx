@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../../lib/api";
 import { toast } from "sonner";
 import { Plus, Trash2, Pencil, X, Save } from "lucide-react";
+import AIThumbnailButton from "../../components/admin/AIThumbnailButton";
 
 export default function AdminDownloadCategories() {
   const [items, setItems] = useState([]);
@@ -11,7 +12,7 @@ export default function AdminDownloadCategories() {
   const load = () => api.get("/admin/download-categories").then(({ data }) => setItems(data));
   useEffect(() => { load(); }, []);
 
-  const blank = { name: "", slug: "", icon: "FileText", description: "", color: "#7fcfc7", order: 99, visible: true };
+  const blank = { name: "", slug: "", icon: "FileText", description: "", color: "#7fcfc7", thumbnail_url: "", order: 99, visible: true };
   const save = async (data) => {
     try {
       if (creating) await api.post("/admin/download-categories", data);
@@ -35,7 +36,9 @@ export default function AdminDownloadCategories() {
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {items.map((c) => (
           <div key={c.slug} className="bg-white rounded-3xl border border-[#f4e4c6] p-5">
-            <div className="w-10 h-10 rounded-2xl mb-3" style={{ background: c.color }} />
+            <div className="w-10 h-10 rounded-2xl mb-3 overflow-hidden" style={{ background: c.color }}>
+              {c.thumbnail_url && <img src={c.thumbnail_url} alt="" className="w-full h-full object-cover" />}
+            </div>
             <div className="font-bold">{c.name}</div>
             <div className="text-xs text-[#6b7280]">/{c.slug}</div>
             <p className="text-sm text-[#4a5568] mt-1">{c.description}</p>

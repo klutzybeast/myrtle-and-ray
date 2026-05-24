@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { api } from "../../lib/api";
 import { toast } from "sonner";
 import { Save, Trash2, GripVertical, Plus, Heading1, Type, Image as ImageIcon, Images, Film, MousePointer, Quote, Code, Minus, Eye, EyeOff, Upload, ExternalLink } from "lucide-react";
+import AIThumbnailButton from "../../components/admin/AIThumbnailButton";
 import BlockPreview from "./BlockPreview";
 
 let blockId = 0;
@@ -144,6 +145,12 @@ export default function AdminCustomPageEditor() {
                 <div className="flex gap-2">
                   <input value={page.hero_image || ""} onChange={(e) => update({ hero_image: e.target.value })} placeholder="Paste image URL or upload" className="inp flex-1" />
                   <button type="button" onClick={() => triggerUpload({ field: "hero" })} className="btn-ghost text-xs"><Upload className="w-4 h-4" />Upload</button>
+                  <AIThumbnailButton
+                    kind="custom_page"
+                    title={page.title || ""}
+                    defaultPrompt={`Hero banner for the page: ${page.title || ""}`}
+                    onChosen={(url) => update({ hero_image: url })}
+                  />
                 </div>
               </label>
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={page.published !== false} onChange={(e) => update({ published: e.target.checked })} />Published</label>
