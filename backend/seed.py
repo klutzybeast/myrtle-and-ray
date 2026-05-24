@@ -412,29 +412,61 @@ async def seed_database(db) -> None:
     import random as _rand
 
     def _build_hidden_levels():
-        """Programmatically build 10 hidden-object levels."""
+        """Build hidden-object levels with rich emoji scenery (no color
+        squares!) and GUARANTEED find placement. Three difficulty tiers
+        per theme — Easy/Medium/Hard — varying grid size, find count,
+        and decoy density. 10 themes × 3 = 30 levels."""
         themes = [
-            {"name": "Beach finds", "bg": ["🌊", "🌊", "🏖️", "🟦", "🟦"], "finds": ["🐚", "⭐", "🦀", "🐠"], "decoys": ["🌊", "🟦", "🏖️", "☀️", "🌴"]},
-            {"name": "Coral reef", "bg": ["🪸", "🟦", "🌊", "🟦"], "finds": ["🐠", "🐡", "🐙", "🦞"], "decoys": ["🪸", "🌊", "🟦", "🫧"]},
-            {"name": "Tide pool", "bg": ["🟫", "🪨", "🌿"], "finds": ["🐌", "🐚", "🦐", "🪼"], "decoys": ["🟫", "🪨", "🌿", "🫧"]},
-            {"name": "Camp scene", "bg": ["🌲", "🟫", "🟩"], "finds": ["⛺", "🔥", "🪵", "🥾"], "decoys": ["🌲", "🟩", "🟫", "🌳"]},
-            {"name": "Night sky", "bg": ["⬛", "🌌", "⬛"], "finds": ["⭐", "🌙", "✨", "☄️"], "decoys": ["⬛", "🌌"]},
-            {"name": "Picnic time", "bg": ["🟩", "🟩", "🟫"], "finds": ["🥪", "🍎", "🧃", "🧺"], "decoys": ["🟩", "🟫", "🌼", "🦋"]},
-            {"name": "Ocean deep", "bg": ["🟦", "🟦", "🔵"], "finds": ["🐳", "🦈", "🐋", "🐬"], "decoys": ["🟦", "🔵", "🫧", "🌊"]},
-            {"name": "Garden", "bg": ["🟩", "🌱", "🟩"], "finds": ["🌻", "🐞", "🦋", "🐝"], "decoys": ["🟩", "🌱", "🌼", "🌿"]},
-            {"name": "Treasure hunt", "bg": ["🟨", "🏖️", "🟨"], "finds": ["🪙", "💎", "🗝️", "📜"], "decoys": ["🟨", "🏖️", "🪨", "🐚"]},
-            {"name": "Rainy day", "bg": ["⬜", "💧", "🟦"], "finds": ["☂️", "🌈", "🦆", "👢"], "decoys": ["⬜", "💧", "🟦", "☁️"]},
+            # bg = scenery emojis. finds = target emojis player must locate.
+            # decoys = visually-similar items that aren't on the find list (anti-cheat).
+            {"name": "Beach finds",   "bg": ["🌊", "🌴", "🏖️", "☀️", "🌥️", "🪨", "🌾"], "finds": ["🐚", "⭐", "🦀", "🐠"], "decoys": ["🪶", "🥥", "🌺", "🐌", "🏐"]},
+            {"name": "Coral reef",    "bg": ["🪸", "🌊", "🫧", "🌿", "🐟"],                 "finds": ["🐠", "🐡", "🐙", "🦞"], "decoys": ["🐟", "🪼", "🪸", "🦐", "🐌"]},
+            {"name": "Tide pool",     "bg": ["🪨", "🌿", "🫧", "🦠"],                       "finds": ["🐌", "🐚", "🦐", "🪼"], "decoys": ["🪨", "🌿", "🍃", "🦠"]},
+            {"name": "Camp scene",    "bg": ["🌲", "🌳", "🌿", "🌾", "🍄", "🌷"],          "finds": ["⛺", "🔥", "🪵", "🥾"], "decoys": ["🌲", "🌳", "🐿️", "🦔", "🍂"]},
+            {"name": "Night sky",     "bg": ["🌌", "🌃", "🌠"],                            "finds": ["⭐", "🌙", "✨", "☄️"], "decoys": ["🪐", "🛸", "🌟", "🌃"]},
+            {"name": "Picnic time",   "bg": ["🌿", "🌳", "🌼", "🍃", "🦋"],                "finds": ["🥪", "🍎", "🧃", "🧺"], "decoys": ["🍅", "🥕", "🧀", "🥨", "🥯"]},
+            {"name": "Ocean deep",    "bg": ["🌊", "🫧", "🌿", "🪼"],                       "finds": ["🐳", "🦈", "🐋", "🐬"], "decoys": ["🐠", "🐡", "🦑", "🐟", "🪼"]},
+            {"name": "Garden",        "bg": ["🌿", "🌱", "🍃", "🌳", "🦋"],                "finds": ["🌻", "🐞", "🦋", "🐝"], "decoys": ["🌷", "🌸", "🌺", "🐛", "🐌"]},
+            {"name": "Treasure hunt", "bg": ["🏖️", "🪨", "🌾", "🌴", "🐚"],                "finds": ["🪙", "💎", "🗝️", "📜"], "decoys": ["🐚", "⭐", "🪨", "🐌", "🌴"]},
+            {"name": "Rainy day",     "bg": ["☁️", "🌧️", "💧", "🌫️"],                     "finds": ["☂️", "🌈", "🦆", "👢"], "decoys": ["☁️", "💧", "🐦", "🍂", "🐌"]},
         ]
-        _rand.seed(42)  # deterministic placement so a re-seed doesn't shuffle
+        # Three difficulty tiers per theme.
+        tiers = [
+            {"label": "Easy",   "rows":  8, "cols": 10, "copies_per_find": 3, "decoy_chance": 0.15},
+            {"label": "Medium", "rows": 10, "cols": 14, "copies_per_find": 2, "decoy_chance": 0.30},
+            {"label": "Hard",   "rows": 12, "cols": 18, "copies_per_find": 1, "decoy_chance": 0.50},
+        ]
         levels = []
-        ROWS, COLS = 8, 12
-        for theme in themes:
-            grid = [[_rand.choice(theme["bg"] + theme["decoys"]) for _ in range(COLS)] for _ in range(ROWS)]
-            for f in theme["finds"]:
-                for _ in range(3):
-                    r, c = _rand.randint(0, ROWS - 1), _rand.randint(0, COLS - 1)
-                    grid[r][c] = f
-            levels.append({"name": theme["name"], "scene_emoji_grid": grid, "finds": theme["finds"]})
+        for theme_i, theme in enumerate(themes):
+            for tier_i, tier in enumerate(tiers):
+                _rand.seed(theme_i * 100 + tier_i)  # deterministic per (theme, tier)
+                ROWS, COLS = tier["rows"], tier["cols"]
+                # 1) Fill the whole grid with scenery (bg + occasional decoys).
+                grid = [[None] * COLS for _ in range(ROWS)]
+                for r in range(ROWS):
+                    for c in range(COLS):
+                        if _rand.random() < tier["decoy_chance"] and theme["decoys"]:
+                            grid[r][c] = _rand.choice(theme["decoys"])
+                        else:
+                            grid[r][c] = _rand.choice(theme["bg"])
+                # 2) GUARANTEE placement of every find at least N times — pick
+                #    free cells (or overwrite) so the player can always find them.
+                positions = [(r, c) for r in range(ROWS) for c in range(COLS)]
+                _rand.shuffle(positions)
+                pos_iter = iter(positions)
+                for f in theme["finds"]:
+                    for _ in range(tier["copies_per_find"]):
+                        try:
+                            r, c = next(pos_iter)
+                        except StopIteration:
+                            break
+                        grid[r][c] = f
+                levels.append({
+                    "name": f"{theme['name']} — {tier['label']}",
+                    "scene_emoji_grid": grid,
+                    "finds": theme["finds"],
+                    "difficulty": tier["label"].lower(),
+                })
         return levels
 
     activity_seeds = [
@@ -1005,25 +1037,30 @@ async def seed_database(db) -> None:
             ]},
         ]}},
     ]
+    # Activities whose `levels` should be hard-replaced (not unioned) on
+    # every restart. Use this for procedurally-generated content that was
+    # buggy in earlier revisions and needs to be regenerated cleanly.
+    REPLACE_LEVELS_FOR = {"hidden_objects"}
+
     for a in activity_seeds:
         existing = await db.activity_content.find_one({"key": a["key"]})
         seed_data = a["data"]
         if existing:
             cur_data = existing.get("data") or {}
-            existing_levels = cur_data.get("levels") or []
-            existing_names = {lvl.get("name") for lvl in existing_levels if isinstance(lvl, dict) and lvl.get("name")}
-            # Append any new canonical level not already present, preserving
-            # existing ones (which may include admin tweaks).
-            new_levels = list(existing_levels)
-            for lvl in seed_data.get("levels", []):
-                if lvl.get("name") not in existing_names:
-                    new_levels.append(lvl)
-                    existing_names.add(lvl.get("name"))
-            merged = {**cur_data, "levels": new_levels}
-            # Carry forward 'palette' if seed defines one and DB doesn't.
-            for top_key in ("palette",):
-                if top_key in seed_data and top_key not in cur_data:
-                    merged[top_key] = seed_data[top_key]
+            if a["key"] in REPLACE_LEVELS_FOR:
+                merged = {**cur_data, **seed_data}  # full overwrite of levels
+            else:
+                existing_levels = cur_data.get("levels") or []
+                existing_names = {lvl.get("name") for lvl in existing_levels if isinstance(lvl, dict) and lvl.get("name")}
+                new_levels = list(existing_levels)
+                for lvl in seed_data.get("levels", []):
+                    if lvl.get("name") not in existing_names:
+                        new_levels.append(lvl)
+                        existing_names.add(lvl.get("name"))
+                merged = {**cur_data, "levels": new_levels}
+                for top_key in ("palette",):
+                    if top_key in seed_data and top_key not in cur_data:
+                        merged[top_key] = seed_data[top_key]
             await db.activity_content.update_one(
                 {"key": a["key"]},
                 {"$set": {"data": merged, "title": a["title"], "updated_at": _now_iso()}}

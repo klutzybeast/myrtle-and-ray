@@ -36,7 +36,12 @@ export default function HiddenObjects({ data, onComplete }) {
     <div className="space-y-3" data-testid="game-hidden-objects">
       <LevelHeader idx={idx} total={total} levels={L} onPick={setLevel} onAdvance={advance} />
       <div className="bg-[#fff8ec] rounded-2xl px-3 py-2 text-sm text-center">
-        <div className="font-bold text-[#3a4a55]">Find: <span className="text-2xl mx-1">{done ? "🎉" : target}</span></div>
+        <div className="font-bold text-[#3a4a55] flex items-center justify-center gap-2">
+          {level.difficulty && (
+            <span className={`text-[10px] uppercase tracking-wider font-black px-2 py-0.5 rounded-full ${level.difficulty === "easy" ? "bg-[#eaf7f5] text-[#5a8a6f]" : level.difficulty === "medium" ? "bg-[#fff4d6] text-[#a36b29]" : "bg-[#fde2e7] text-[#b04a5c]"}`}>{level.difficulty}</span>
+          )}
+          <span>Find: <span className="text-2xl mx-1">{done ? "🎉" : target}</span></span>
+        </div>
         <div className="text-xs text-[#6b7280] mt-1">Found {found.length} / {finds.length}: <span className="text-lg">{found.join(" ")}</span></div>
       </div>
       <div className="bg-gradient-to-b from-[#e8f8f5] to-[#cfeef0] rounded-3xl p-2 overflow-auto" style={{ maxHeight: 420 }}>
