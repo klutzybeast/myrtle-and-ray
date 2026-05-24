@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../lib/api";
 import { toast } from "sonner";
 import { useAudio } from "../lib/audio";
-import { Puzzle, Search, Map as MapIcon, Award, Star, Palette, Music, Sticker, X, Hash, ArrowUpDown, FolderTree, Eye } from "lucide-react";
+import { Puzzle, Search, Map as MapIcon, Award, Star, Palette, Music, Sticker, X, Hash, ArrowUpDown, FolderTree, Eye, EyeOff, Repeat, PenLine, ToggleLeft } from "lucide-react";
 import SEO from "../components/SEO";
 
 import MemoryMatch from "./games/MemoryMatch";
@@ -18,6 +18,10 @@ import NumberBubbles from "./games/NumberBubbles";
 import StorySequence from "./games/StorySequence";
 import DragSortBins from "./games/DragSortBins";
 import HiddenObjects from "./games/HiddenObjects";
+import WhatsMissing from "./games/WhatsMissing";
+import PatternContinue from "./games/PatternContinue";
+import LetterTrace from "./games/LetterTrace";
+import TrueOrFalse from "./games/TrueOrFalse";
 
 const BADGE_LABELS = {
   memory_match: "Memory Master",
@@ -32,6 +36,10 @@ const BADGE_LABELS = {
   story_sequence: "Story Stitcher",
   drag_sort: "Sorter Pro",
   hidden_objects: "Eagle-Eye Finder",
+  whats_missing: "Memory Detective",
+  pattern_continue: "Pattern Pro",
+  letter_trace: "Letter Master",
+  true_or_false: "Trivia Whiz",
   story_quest: "Story Quest Champion",
 };
 
@@ -48,6 +56,10 @@ const TILES = [
   { key: "story_sequence", title: "Story Sequence", subtitle: "Put scenes in order.", icon: ArrowUpDown, color: "#e89bab", Comp: StorySequence },
   { key: "drag_sort", title: "Sort It Out", subtitle: "Drag into the right bin.", icon: FolderTree, color: "#7cbf94", Comp: DragSortBins },
   { key: "hidden_objects", title: "Hidden Objects", subtitle: "Find things in the scene.", icon: Eye, color: "#b8a3d9", Comp: HiddenObjects },
+  { key: "whats_missing", title: "What's Missing?", subtitle: "Memorize and spot the gone one.", icon: EyeOff, color: "#f4d28a", Comp: WhatsMissing },
+  { key: "pattern_continue", title: "Pattern Continue", subtitle: "What comes next?", icon: Repeat, color: "#8fbfe0", Comp: PatternContinue },
+  { key: "letter_trace", title: "Letter Trace", subtitle: "Tap the dots in order.", icon: PenLine, color: "#b8a3d9", Comp: LetterTrace },
+  { key: "true_or_false", title: "True or False?", subtitle: "Trivia round, quick fire!", icon: ToggleLeft, color: "#e89bab", Comp: TrueOrFalse },
 ];
 
 function readBadges() {
