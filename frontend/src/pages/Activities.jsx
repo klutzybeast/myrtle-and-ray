@@ -236,8 +236,8 @@ export default function Activities() {
               {badges.map((b) => (
                 <span key={b} className="bg-white px-3 py-1 rounded-full text-sm font-bold border-2 border-[#f4e4c6]" data-testid={`badge-${b}`}>🌟 {BADGE_LABELS[b] || b.replace(/_/g, " ")}</span>
               ))}
-              {badges.length >= TILES.length && (
-                <span className="bg-gradient-to-r from-[#a8e6e1] to-[#fcd5b4] px-3 py-1 rounded-full text-sm font-bold border-2 border-white" data-testid="captain-of-the-cay">👑 All {TILES.length} — Captain of the Cay!</span>
+              {(badges.length >= TILES.length + 1) && (
+                <span className="bg-gradient-to-r from-[#a8e6e1] to-[#fcd5b4] px-3 py-1 rounded-full text-sm font-bold border-2 border-white" data-testid="captain-of-the-cay">👑 All {TILES.length + 1} — Captain of the Cay!</span>
               )}
             </div>
           )}

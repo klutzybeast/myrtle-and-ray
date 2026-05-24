@@ -1106,3 +1106,31 @@ batches of new mechanics, each with 10 seeded levels (80 new levels):
 - Playwright: 24/24 tiles render; 8/8 new modals open with game UI;
   end-to-end playthroughs of ConnectDots + OddOneOut earned badges and
   persisted to localStorage.
+
+
+## What's been implemented (2026-05-24 — Activities Batches 5 & 6)
+Activities catalog expanded from 24 to **32 mini-games** with two more
+batches (80 new levels):
+
+**Batch 5:** Math Pond (visual addition/subtraction), Time Teller (analog
+clock reading w/ SVG hands), Color Mixer (mix 2 → make target color),
+Big Feelings (emotion identification with W.A.V.E. coaching).
+
+**Batch 6:** Tap-the-Turtle (whack-a-mole w/ traps), Trail Tracker (N/E/S/W
+grid navigation), Before & After (sequence reasoning), Balance the Scales
+(weight comparisons w/ auto-tilting beam).
+
+### Files added
+- `/app/frontend/src/pages/games/{MathPond,TimeTeller,ColorMixer,EmotionMatch,TapTheTarget,MapDirections,BeforeAfter,ScalesBalance}.jsx`
+- 8 new seed blocks in `/app/backend/seed.py`
+- Captain of the Cay banner now correctly accounts for story_quest as
+  the 33rd badge (`TILES.length + 1`)
+
+### Verified (iteration_18.json)
+- Backend pytest 19/19 PASS — all 8 endpoints return 10 levels with
+  required shape (scales sums asserted, math op results asserted, time
+  bounds asserted, palette shape asserted, map steps ∈ {N,E,S,W}).
+- Playwright: 32/32 tiles render; 8/8 new modals open with game UI;
+  MathPond + EmotionMatch playthroughs earned badges and persisted.
+- Regression: 4 existing tiles (connect_dots, color_by_number,
+  odd_one_out, hidden_objects) still open + render.
