@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../lib/api";
 import { toast } from "sonner";
 import { useAudio } from "../lib/audio";
-import { Puzzle, Search, Map as MapIcon, Award, Star, Palette, Music, Sticker, X, Hash, ArrowUpDown, FolderTree, Eye, EyeOff, Repeat, PenLine, ToggleLeft, Spline, Brush, Moon, AlertTriangle, Zap, SpellCheck, Sigma, Volume2 } from "lucide-react";
+import { Puzzle, Search, Map as MapIcon, Award, Star, Palette, Music, Sticker, X, Hash, ArrowUpDown, FolderTree, Eye, EyeOff, Repeat, PenLine, ToggleLeft, Spline, Brush, Moon, AlertTriangle, Zap, SpellCheck, Sigma, Volume2, Plus, Clock, Droplets, Smile, Target, Compass, Hourglass, Scale } from "lucide-react";
 import SEO from "../components/SEO";
 
 import MemoryMatch from "./games/MemoryMatch";
@@ -30,6 +30,14 @@ import SimonSays from "./games/SimonSays";
 import WordUnscramble from "./games/WordUnscramble";
 import CountAndClick from "./games/CountAndClick";
 import AnimalSounds from "./games/AnimalSounds";
+import MathPond from "./games/MathPond";
+import TimeTeller from "./games/TimeTeller";
+import ColorMixer from "./games/ColorMixer";
+import EmotionMatch from "./games/EmotionMatch";
+import TapTheTarget from "./games/TapTheTarget";
+import MapDirections from "./games/MapDirections";
+import BeforeAfter from "./games/BeforeAfter";
+import ScalesBalance from "./games/ScalesBalance";
 
 const BADGE_LABELS = {
   memory_match: "Memory Master",
@@ -56,6 +64,14 @@ const BADGE_LABELS = {
   word_unscramble: "Word Wrangler",
   count_and_click: "Counting Captain",
   animal_sounds: "Sound Scholar",
+  math_pond: "Math Pond Pro",
+  time_teller: "Time Keeper",
+  color_mixer: "Color Alchemist",
+  emotion_match: "Heart-Smart",
+  tap_target: "Quick Tapper",
+  map_directions: "Trail Tracker",
+  before_after: "Story Sleuth",
+  scales_balance: "Balance Master",
   story_quest: "Story Quest Champion",
 };
 
@@ -84,6 +100,14 @@ const TILES = [
   { key: "word_unscramble", title: "Word Unscramble", subtitle: "Tap letters in order.", icon: SpellCheck, color: "#8fbfe0", Comp: WordUnscramble },
   { key: "count_and_click", title: "Count & Click", subtitle: "Find them all in the scene.", icon: Sigma, color: "#e89bab", Comp: CountAndClick },
   { key: "animal_sounds", title: "Sounds of the Sea", subtitle: "Match the animal to its sound.", icon: Volume2, color: "#7fcfc7", Comp: AnimalSounds },
+  { key: "math_pond", title: "Math Pond", subtitle: "Count + add with sea critters.", icon: Plus, color: "#7cbf94", Comp: MathPond },
+  { key: "time_teller", title: "Time Teller", subtitle: "Read the camp clock.", icon: Clock, color: "#f4d28a", Comp: TimeTeller },
+  { key: "color_mixer", title: "Color Mixer", subtitle: "Mix 2 colors to make a 3rd.", icon: Droplets, color: "#b8a3d9", Comp: ColorMixer },
+  { key: "emotion_match", title: "Big Feelings", subtitle: "Match the face to the feeling.", icon: Smile, color: "#e89bab", Comp: EmotionMatch },
+  { key: "tap_target", title: "Tap-the-Turtle", subtitle: "Quick! Catch them, dodge sharks.", icon: Target, color: "#f0a988", Comp: TapTheTarget },
+  { key: "map_directions", title: "Trail Tracker", subtitle: "Follow N/E/S/W arrows.", icon: Compass, color: "#8fbfe0", Comp: MapDirections },
+  { key: "before_after", title: "Before & After", subtitle: "What happens next in the story?", icon: Hourglass, color: "#f4d28a", Comp: BeforeAfter },
+  { key: "scales_balance", title: "Balance the Scales", subtitle: "Which side weighs more?", icon: Scale, color: "#7cbf94", Comp: ScalesBalance },
 ];
 
 function readBadges() {
@@ -144,7 +168,7 @@ export default function Activities() {
         <header className="text-center mb-10">
           <Award className="w-10 h-10 text-[#f0a988] mx-auto mb-3" />
           <h1 className="font-accent text-5xl md:text-6xl font-bold">Activities & Games</h1>
-          <p className="text-[#4a5568] mt-2 max-w-2xl mx-auto">Two dozen mini-games to play with Myrtle, Ray, and the crew. Collect W.A.V.E. badges as you go!</p>
+          <p className="text-[#4a5568] mt-2 max-w-2xl mx-auto">Over thirty mini-games to play with Myrtle, Ray, and the crew. Collect W.A.V.E. badges as you go!</p>
         </header>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">

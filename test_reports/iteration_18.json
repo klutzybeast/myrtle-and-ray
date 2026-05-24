@@ -1,0 +1,52 @@
+{
+  "summary": "Iteration 18 — Verified 8 new mini-games (Batches 5 & 6): math_pond, time_teller, color_mixer, emotion_match, tap_target, map_directions, before_after, scales_balance. Backend pytest 19/19 PASS (/app/backend/tests/test_activities_batch5_6.py): GET /api/activities returns 32 distinct activity keys (24 previously shipped + 8 new). Each new endpoint returns exactly 10 levels with the required shape — math_pond rounds[{a,op,b,emoji,choices}] (also asserted that a±b is in choices); time_teller rounds[{hour,minute,choices,answer}] (answer in choices, hour 0-23, minute 0-59); color_mixer rounds[{target,a,b,colors[]}] where palette items are {name,hex} objects and a/b names appear in palette; emotion_match rounds[{scene,face,choices,answer}] (answer in choices); tap_target {target,trap,duration_seconds,pop_ms,win_score}; map_directions {cols,rows,start,goal,steps[]} (each step ∈ {N,E,S,W}); before_after rounds[{when,anchor,choices,answer_idx}] (answer_idx in range); scales_balance rounds[{left:[{emoji,weight}],right:[{emoji,weight}]}]; standalone unit test confirmed sum logic (left=[{w:3}] vs right=[{w:1},{w:1},{w:1}] → equal). /api/activities/zz_unknown_game → 404. Regression on memory_match/maze/hidden_objects/connect_dots/color_by_number/odd_one_out/word_unscramble/animal_sounds all 200 with matching key. Frontend Playwright on https://wave-of-excitement.preview.emergentagent.com/activities: page renders 32 [data-testid=activity-tile-*] tiles; all 8 new tiles (math_pond, time_teller, color_mixer, emotion_match, tap_target, map_directions, before_after, scales_balance) open the modal and render their game container testid (game-math-pond, game-time-teller, game-color-mixer, game-emotion-match, game-tap-target, game-map-directions, game-before-after, game-scales-balance) with substantive HTML (12k–19k chars, no 'Loading game…' stuck state). End-to-end playthrough: MathPond completed in 8 clicks across the 'Add to 5' rounds → onComplete fired → toast 'Wave badge unlocked: Math Pond Pro!' + localStorage badge 'math_pond' persisted + [data-testid=badge-math_pond] chip rendered. EmotionMatch completed in 12 clicks → onComplete fired → badge 'emotion_match' persisted + [data-testid=badge-emotion_match] chip rendered. ScalesBalance: modal opens, weights render in scales-left-tray / scales-right-tray, scales-option-{left,right,equal} are clickable, scales-feedback shows '❌ It was right' for wrong picks and the Score/Puzzle counter advances on correct picks (verified via screenshot — game UI functional and auto-advances rounds). Regression: existing tiles connect_dots, color_by_number, odd_one_out, hidden_objects all still open modals with rendered content (12k–48k HTML chars).",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Activities.jsx Captain-of-the-Cay banner",
+        "issues": [
+          "STILL UNFIXED from iteration 17: line 240 reads 'All {TILES.length} — Captain of the Cay!' which now interpolates correctly (32) BUT the condition `badges.length >= TILES.length` (32) is reachable only by earning all 32 grid badges and excludes the story_quest badge defined in BADGE_LABELS but NOT in TILES. Confirm intended completion count (32 from grid? or 33 with story_quest?) and align the condition + copy."
+        ]
+      },
+      {
+        "screen": "/activities header subtitle",
+        "issues": [
+          "Reads 'Over thirty mini-games' — accurate for 32, but consider parameterising from TILES.length so it stays in sync after future batches."
+        ]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_activities_batch5_6.py",
+    "/app/test_reports/pytest/iter18_activities_batch5_6.xml"
+  ],
+  "action_items": [
+    "(LOW) Decide whether 'Captain of the Cay' requires 32 (all grid tiles) or 33 (grid + story_quest) badges; update Activities.jsx condition + copy to match. Carried over from iteration 17.",
+    "(LOW) Console shows repeated 'Failed to load resource: 401' on /activities — most likely an unauthenticated /api/auth/me probe. Not blocking, but consider suppressing the network 401 for anonymous visitors (try/catch + 'no session' status) so dev consoles stay clean."
+  ],
+  "critical_code_review_comments": [
+    "ScalesBalance auto-computes answer from left/right weight sums client-side — good for not duplicating data, but seed currently does not store the precomputed answer so any future schema change must keep the {emoji,weight} contract intact. Consider adding `answer` to each round at seed time as a defensive cross-check.",
+    "TapTheTarget gates onComplete on `score >= winScore` (line 77) which is correct, but the 'Play again' button (tap-retry) is shown even when winScore is met — players might think they didn't win. Consider hiding tap-retry when score >= winScore, or label it 'Play again' vs 'Try again' based on outcome.",
+    "MapDirections: only the FIRST level's `steps[]` is followed; if the user takes a wrong path the level should reset the turtle to start. Confirm reset behaviour in the component (not verified in this run because grid is randomised on open).",
+    "All 8 new game components share the same round/feedback/auto-advance pattern (600ms timeout). Consider extracting a useRoundProgression hook to DRY the boilerplate across MathPond/EmotionMatch/ColorMixer/TimeTeller/BeforeAfter/ScalesBalance.",
+    "Activities.jsx (249 lines, ~111 lines of TILES config) is healthy in size; lucide-react import line is now 1.2 KB of identifiers — consider grouping into ICONS = {memory_match: Puzzle, ...} so adding a new game is a single-line edit.",
+    "GET /api/activities returns ALL activities including their full `data.levels` — with 32 games at 10 levels each, the response is now ~hundreds of KB. The /activities page already re-fetches per modal open via /api/activities/:key, so the LIST endpoint could be slimmed to {key,title,subtitle,order} only. (Optimisation, not blocking.)"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_activities_batch5_6.py (NEW — 19 tests, all passing)"
+  ],
+  "success_rate": {
+    "backend": "100% (19/19 pytest passed)",
+    "frontend": "100% — 32/32 tiles render; 8/8 new modals open with game UI rendered; 2/2 end-to-end playthroughs (MathPond 'Math Pond Pro' + EmotionMatch 'Heart-Smart') triggered onComplete with toast + persisted badge + visible chip; ScalesBalance UI functional (rounds advance, feedback chip renders); 4/4 regression tile opens (connect_dots, color_by_number, odd_one_out, hidden_objects)."
+  },
+  "test_credentials": "Not needed — all activity endpoints are public.",
+  "seed_data_creation": "None. Tests are read-only against /api/activities/* seeded data.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All 32 activities are seeded and accessible via /api/activities and /api/activities/{key}. New testids for batch 5 & 6 e2e: math-option-{i}/math-feedback/game-math-pond-done; time-option-{i}/time-feedback/game-time-teller-done; mix-color-{i}/mix-feedback/game-color-mixer-done; emotion-option-{i}/emotion-feedback/game-emotion-match-done; tap-start/tap-grid/tap-hole-{i}/tap-retry/tap-next/tap-result/game-tap-target; map-N/E/S/W/map-feedback/map-next/game-map-directions; ba-option-{i}/ba-feedback/ba-next/game-before-after-done; scales-option-{left,right,equal}/scales-left-tray/scales-right-tray/scales-feedback/game-scales-balance-done. Brute-force playthrough pattern (click each option, 800ms wait, repeat until done-testid appears) works reliably for round-based games but NOT for ScalesBalance because feedback message persists across rounds — for scales prefer reading the trays and computing sum-of-weights to pick the correct option deterministically. Carried-over design issue: 'Captain of the Cay' badge-count condition still uses TILES.length while BADGE_LABELS includes a 33rd 'story_quest' key.",
+  "rca_of_the_issue": "N/A — feature works end-to-end. Only design concern is the long-standing Captain-of-the-Cay badge count vs story_quest mismatch."
+}
