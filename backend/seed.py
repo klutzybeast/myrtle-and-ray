@@ -1,9 +1,12 @@
 """Seed data for Myrtle and Ray site."""
 from __future__ import annotations
 import hashlib
+import logging
 import os
 from datetime import datetime, timezone
 import bcrypt
+
+logger = logging.getLogger(__name__)
 
 # Per-character ElevenLabs voice IDs + greetings. These ship with the seed
 # so a fresh production deploy has fully voiced characters and a working
@@ -2199,12 +2202,64 @@ SING_ALONG_SONGS = [
 
 
 async def _seed_sing_along(db) -> None:
-    """Insert any missing sing-along song stub. Audio is added by the
-    generator script (`scripts/generate_sing_along_audio.py`)."""
+    """Insert any missing sing-along song stub, then backfill audio + LRC
+    from committed seed_assets so production deploys ship with working
+    karaoke without re-running ElevenLabs. MP3s and metadata live at
+    /app/backend/seed_assets/sing_along/<slug>.{mp3,json}."""
+    import json
+    import shutil
+    from pathlib import Path
+    asset_dir = Path("/app/backend/seed_assets/sing_along")
+    upload_dir = Path(os.environ.get("UPLOAD_DIR", "/app/backend/uploads")) / "sing_along"
+    upload_dir.mkdir(parents=True, exist_ok=True)
+
+    # Lazy import storage helper.
+    try:
+        import storage as _storage  # type: ignore
+    except Exception:  # noqa: BLE001
+        _storage = None
+
+    def _hydrate_from_assets(slug: str, push_to_storage: bool):
+        """Return dict of fields to backfill from disk. Only pushes to Object
+        Storage when explicitly requested (i.e. on first-time backfill)."""
+        mp3 = asset_dir / f"{slug}.mp3"
+        meta_path = asset_dir / f"{slug}.json"
+        out = {}
+        if not mp3.exists():
+            return out
+        # Copy MP3 to local uploads if missing.
+        target_mp3 = upload_dir / f"{slug}.mp3"
+        if not target_mp3.exists() or target_mp3.stat().st_size != mp3.stat().st_size:
+            try:
+                shutil.copyfile(mp3, target_mp3)
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("seed sing-along: copy %s failed: %s", slug, exc)
+        # Push to persistent storage on first backfill so files survive redeploys.
+        if push_to_storage and _storage is not None and _storage.is_enabled():
+            storage_key = f"sing_along/{slug}.mp3"
+            try:
+                _storage.put_object(storage_key, mp3.read_bytes(), "audio/mpeg")
+                logger.info("seed sing-along: pushed %s to object storage", storage_key)
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("seed sing-along: storage put %s failed: %s", slug, exc)
+        out["audio_url"] = f"/api/uploads/sing_along/{slug}.mp3"
+        if meta_path.exists():
+            try:
+                meta = json.loads(meta_path.read_text())
+                if meta.get("lyrics_lrc"):
+                    out["lyrics_lrc"] = meta["lyrics_lrc"]
+                if meta.get("duration_seconds"):
+                    out["duration_seconds"] = int(meta["duration_seconds"])
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("seed sing-along: meta %s parse failed: %s", slug, exc)
+        return out
+
     for s in SING_ALONG_SONGS:
-        existing = await db.sing_along_songs.find_one({"slug": s["slug"]}, {"_id": 0, "id": 1, "audio_url": 1})
+        slug = s["slug"]
+        existing = await db.sing_along_songs.find_one({"slug": slug}, {"_id": 0, "id": 1, "audio_url": 1, "lyrics_lrc": 1})
+        needs_backfill = (not existing) or not (existing.get("audio_url") or "").strip() or not (existing.get("lyrics_lrc") or "").strip()
+        hydrate = _hydrate_from_assets(slug, push_to_storage=needs_backfill)
         if existing:
-            # Patch metadata but don't clobber a working audio URL once set.
             patch = {
                 "title": s["title"],
                 "theme": s["theme"],
@@ -2215,18 +2270,26 @@ async def _seed_sing_along(db) -> None:
                 "position": s.get("position", 99),
                 "updated_at": _now_iso(),
             }
-            await db.sing_along_songs.update_one({"slug": s["slug"]}, {"$set": patch})
+            # Only backfill audio/lrc if the existing doc is missing them — never clobber
+            # admin-uploaded covers or admin-edited audio.
+            if not (existing.get("audio_url") or "").strip() and hydrate.get("audio_url"):
+                patch["audio_url"] = hydrate["audio_url"]
+            if not (existing.get("lyrics_lrc") or "").strip() and hydrate.get("lyrics_lrc"):
+                patch["lyrics_lrc"] = hydrate["lyrics_lrc"]
+            if hydrate.get("duration_seconds"):
+                patch["duration_seconds"] = hydrate["duration_seconds"]
+            await db.sing_along_songs.update_one({"slug": slug}, {"$set": patch})
             continue
         await db.sing_along_songs.insert_one({
             "id": str(__import__("uuid").uuid4()),
-            "slug": s["slug"],
+            "slug": slug,
             "title": s["title"],
             "theme": s["theme"],
             "cover_image_url": "",
-            "audio_url": "",
+            "audio_url": hydrate.get("audio_url", ""),
             "lyrics": s["lyrics"],
-            "lyrics_lrc": "",
-            "duration_seconds": s.get("duration_seconds", 0),
+            "lyrics_lrc": hydrate.get("lyrics_lrc", ""),
+            "duration_seconds": hydrate.get("duration_seconds") or s.get("duration_seconds", 0),
             "character_focus": s.get("character_focus", ""),
             "music_prompt": s["music_prompt"],
             "active": True,
