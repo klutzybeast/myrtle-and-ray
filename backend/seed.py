@@ -409,6 +409,34 @@ async def seed_database(db) -> None:
     # Idempotent: every level is keyed by a 'name' string; the seed unions
     # the canonical set into existing data, so re-running adds new levels
     # without duplicating ones already in the DB.
+    import random as _rand
+
+    def _build_hidden_levels():
+        """Programmatically build 10 hidden-object levels."""
+        themes = [
+            {"name": "Beach finds", "bg": ["🌊", "🌊", "🏖️", "🟦", "🟦"], "finds": ["🐚", "⭐", "🦀", "🐠"], "decoys": ["🌊", "🟦", "🏖️", "☀️", "🌴"]},
+            {"name": "Coral reef", "bg": ["🪸", "🟦", "🌊", "🟦"], "finds": ["🐠", "🐡", "🐙", "🦞"], "decoys": ["🪸", "🌊", "🟦", "🫧"]},
+            {"name": "Tide pool", "bg": ["🟫", "🪨", "🌿"], "finds": ["🐌", "🐚", "🦐", "🪼"], "decoys": ["🟫", "🪨", "🌿", "🫧"]},
+            {"name": "Camp scene", "bg": ["🌲", "🟫", "🟩"], "finds": ["⛺", "🔥", "🪵", "🥾"], "decoys": ["🌲", "🟩", "🟫", "🌳"]},
+            {"name": "Night sky", "bg": ["⬛", "🌌", "⬛"], "finds": ["⭐", "🌙", "✨", "☄️"], "decoys": ["⬛", "🌌"]},
+            {"name": "Picnic time", "bg": ["🟩", "🟩", "🟫"], "finds": ["🥪", "🍎", "🧃", "🧺"], "decoys": ["🟩", "🟫", "🌼", "🦋"]},
+            {"name": "Ocean deep", "bg": ["🟦", "🟦", "🔵"], "finds": ["🐳", "🦈", "🐋", "🐬"], "decoys": ["🟦", "🔵", "🫧", "🌊"]},
+            {"name": "Garden", "bg": ["🟩", "🌱", "🟩"], "finds": ["🌻", "🐞", "🦋", "🐝"], "decoys": ["🟩", "🌱", "🌼", "🌿"]},
+            {"name": "Treasure hunt", "bg": ["🟨", "🏖️", "🟨"], "finds": ["🪙", "💎", "🗝️", "📜"], "decoys": ["🟨", "🏖️", "🪨", "🐚"]},
+            {"name": "Rainy day", "bg": ["⬜", "💧", "🟦"], "finds": ["☂️", "🌈", "🦆", "👢"], "decoys": ["⬜", "💧", "🟦", "☁️"]},
+        ]
+        _rand.seed(42)  # deterministic placement so a re-seed doesn't shuffle
+        levels = []
+        ROWS, COLS = 8, 12
+        for theme in themes:
+            grid = [[_rand.choice(theme["bg"] + theme["decoys"]) for _ in range(COLS)] for _ in range(ROWS)]
+            for f in theme["finds"]:
+                for _ in range(3):
+                    r, c = _rand.randint(0, ROWS - 1), _rand.randint(0, COLS - 1)
+                    grid[r][c] = f
+            levels.append({"name": theme["name"], "scene_emoji_grid": grid, "finds": theme["finds"]})
+        return levels
+
     activity_seeds = [
         {"key": "rhyme_time", "title": "Rhyme Time", "data": {"levels": [
             {"name": "Sea Star starters", "prompts": [
@@ -645,6 +673,229 @@ async def seed_database(db) -> None:
             {"name": "Starlit shore", "scene_image": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=1200&h=700&fit=crop"},
             {"name": "Rainbow reef", "scene_image": "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=1200&h=700&fit=crop"},
         ]}},
+        {"key": "number_bubbles", "title": "Number Bubbles", "data": {"levels": [
+            {"name": "Count to 5", "numbers": [1, 2, 3, 4, 5]},
+            {"name": "Count to 8", "numbers": [1, 2, 3, 4, 5, 6, 7, 8]},
+            {"name": "Skip-count by 2", "numbers": [2, 4, 6, 8, 10]},
+            {"name": "Skip-count by 5", "numbers": [5, 10, 15, 20, 25]},
+            {"name": "Skip-count by 10", "numbers": [10, 20, 30, 40, 50]},
+            {"name": "Teen numbers", "numbers": [11, 12, 13, 14, 15, 16]},
+            {"name": "Big jumps to 100", "numbers": [10, 25, 40, 60, 75, 100]},
+            {"name": "Backwards from 10", "numbers": [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]},
+            {"name": "Odd numbers", "numbers": [1, 3, 5, 7, 9, 11]},
+            {"name": "Even numbers", "numbers": [2, 4, 6, 8, 10, 12]},
+        ]}},
+        {"key": "story_sequence", "title": "Story Sequence", "data": {"levels": [
+            {"name": "Surf morning", "intro": "Help Ray get ready for surf time.",
+                "steps": [
+                    {"id": "wakeup", "label": "Ray wakes up to the sun rising over Stingray Cay.", "emoji": "🌅"},
+                    {"id": "wetsuit", "label": "He zips up his wetsuit and grabs his surfboard.", "emoji": "🏄"},
+                    {"id": "paddle", "label": "Ray paddles out past the gentle waves.", "emoji": "🌊"},
+                    {"id": "ride", "label": "He catches the biggest wave and rides it back to shore!", "emoji": "🤙"},
+                ]},
+            {"name": "Sandcastle build", "intro": "Casey wants to build a sandcastle. Put the steps in order.",
+                "steps": [
+                    {"id": "bucket", "label": "Fill the bucket with damp sand.", "emoji": "🪣"},
+                    {"id": "flip", "label": "Flip the bucket upside-down and tap.", "emoji": "🔄"},
+                    {"id": "decorate", "label": "Decorate with shells and seaweed.", "emoji": "🐚"},
+                    {"id": "flag", "label": "Plant the Sea Star flag on top!", "emoji": "🚩"},
+                ]},
+            {"name": "Beach cleanup", "intro": "The Sea Stars help clean the beach.",
+                "steps": [
+                    {"id": "spot", "label": "Spot the trash washed up on shore.", "emoji": "👀"},
+                    {"id": "gloves", "label": "Put on gloves to stay safe.", "emoji": "🧤"},
+                    {"id": "pick", "label": "Pick up bottles and wrappers carefully.", "emoji": "🧺"},
+                    {"id": "sort", "label": "Sort everything into the right bins.", "emoji": "♻️"},
+                ]},
+            {"name": "Snack time", "intro": "Time for Myrtle's seaweed smoothie!",
+                "steps": [
+                    {"id": "wash", "label": "Wash hands at the camp sink.", "emoji": "🧼"},
+                    {"id": "blend", "label": "Blend up the fruit and seaweed.", "emoji": "🥤"},
+                    {"id": "pour", "label": "Pour into a cup.", "emoji": "🧋"},
+                    {"id": "sip", "label": "Sip and enjoy!", "emoji": "😋"},
+                ]},
+            {"name": "Bedtime", "intro": "How does a Sea Star get ready for bed?",
+                "steps": [
+                    {"id": "brush", "label": "Brush teeth at the wash station.", "emoji": "🦷"},
+                    {"id": "pajamas", "label": "Slip into cozy seaweed pajamas.", "emoji": "🌙"},
+                    {"id": "book", "label": "Pick a bedtime book to read.", "emoji": "📖"},
+                    {"id": "sleep", "label": "Snuggle into the bunk and drift to sleep.", "emoji": "😴"},
+                ]},
+            {"name": "Camp arrival", "intro": "Your first day at Stingray Cay!",
+                "steps": [
+                    {"id": "boat", "label": "Hop off the welcome boat at the dock.", "emoji": "⛴️"},
+                    {"id": "name", "label": "Get your name badge at the check-in.", "emoji": "🪪"},
+                    {"id": "cabin", "label": "Find your cabin and meet your bunkmates.", "emoji": "🏕️"},
+                    {"id": "circle", "label": "Join the welcome circle at the campfire.", "emoji": "🔥"},
+                ]},
+            {"name": "Stormy day", "intro": "A storm rolls in. What's the safe order?",
+                "steps": [
+                    {"id": "see", "label": "Counselors spot dark clouds on the horizon.", "emoji": "⛈️"},
+                    {"id": "whistle", "label": "Ms Bluegill blows the whistle to gather everyone.", "emoji": "📣"},
+                    {"id": "inside", "label": "Campers walk calmly to the dining hall.", "emoji": "🏠"},
+                    {"id": "wait", "label": "Sing songs and stay cozy until the storm passes.", "emoji": "🎶"},
+                ]},
+            {"name": "Talent show", "intro": "Get ready for the camp talent show.",
+                "steps": [
+                    {"id": "signup", "label": "Sign up at the talent-show board.", "emoji": "✍️"},
+                    {"id": "rehearse", "label": "Rehearse your act with a buddy.", "emoji": "🎭"},
+                    {"id": "stage", "label": "Step onto the campfire stage.", "emoji": "🪵"},
+                    {"id": "bow", "label": "Take a big bow and listen to the cheers!", "emoji": "🎉"},
+                ]},
+            {"name": "Snorkel adventure", "intro": "Take a peek at the coral reef.",
+                "steps": [
+                    {"id": "mask", "label": "Put on snorkel mask and fins.", "emoji": "🤿"},
+                    {"id": "swim", "label": "Swim slowly out to the reef.", "emoji": "🏊"},
+                    {"id": "look", "label": "Float quietly and watch the fish swim by.", "emoji": "🐠"},
+                    {"id": "return", "label": "Wave goodbye and swim back to the boat.", "emoji": "👋"},
+                ]},
+            {"name": "Make a friend", "intro": "A brand-new camper looks shy.",
+                "steps": [
+                    {"id": "spot2", "label": "Notice someone sitting alone.", "emoji": "👀"},
+                    {"id": "smile", "label": "Walk over and smile warmly.", "emoji": "😊"},
+                    {"id": "ask", "label": "Ask them their name and what they like.", "emoji": "💬"},
+                    {"id": "play", "label": "Invite them to join your group activity.", "emoji": "🤝"},
+                ]},
+        ]}},
+        {"key": "drag_sort", "title": "Sort It Out", "data": {"levels": [
+            {"name": "Beach cleanup",
+                "bins": [
+                    {"id": "recycle", "label": "Recycle", "emoji": "♻️"},
+                    {"id": "trash", "label": "Trash", "emoji": "🗑️"},
+                    {"id": "keep", "label": "Treasure", "emoji": "💎"},
+                ],
+                "items": [
+                    {"id": "bottle", "label": "Plastic bottle", "emoji": "🍶", "bin_id": "recycle"},
+                    {"id": "wrapper", "label": "Candy wrapper", "emoji": "🍬", "bin_id": "trash"},
+                    {"id": "shell", "label": "Pretty shell", "emoji": "🐚", "bin_id": "keep"},
+                    {"id": "can", "label": "Soda can", "emoji": "🥤", "bin_id": "recycle"},
+                    {"id": "starfish", "label": "Real starfish", "emoji": "⭐", "bin_id": "keep"},
+                    {"id": "straw", "label": "Plastic straw", "emoji": "🥢", "bin_id": "trash"},
+                ]},
+            {"name": "Land or sea",
+                "bins": [
+                    {"id": "land", "label": "Lives on Land", "emoji": "🌴"},
+                    {"id": "sea", "label": "Lives in the Sea", "emoji": "🌊"},
+                ],
+                "items": [
+                    {"id": "iguana", "label": "Izzy the iguana", "emoji": "🦎", "bin_id": "land"},
+                    {"id": "shark", "label": "Sami the shark", "emoji": "🦈", "bin_id": "sea"},
+                    {"id": "flamingo", "label": "Frankie the flamingo", "emoji": "🦩", "bin_id": "land"},
+                    {"id": "turtle", "label": "Sea turtle", "emoji": "🐢", "bin_id": "sea"},
+                    {"id": "dolphin", "label": "Dani the dolphin", "emoji": "🐬", "bin_id": "sea"},
+                    {"id": "lizard", "label": "Lizard", "emoji": "🦎", "bin_id": "land"},
+                ]},
+            {"name": "W.A.V.E. values",
+                "bins": [
+                    {"id": "welcome", "label": "Welcome", "emoji": "👋"},
+                    {"id": "act", "label": "Act of Kindness", "emoji": "🤝"},
+                    {"id": "encourage", "label": "Encourage", "emoji": "📣"},
+                ],
+                "items": [
+                    {"id": "smile", "label": "Smile at a new friend", "emoji": "😊", "bin_id": "welcome"},
+                    {"id": "share", "label": "Share your snack", "emoji": "🍎", "bin_id": "act"},
+                    {"id": "cheer", "label": "Cheer someone on", "emoji": "📣", "bin_id": "encourage"},
+                    {"id": "hug", "label": "Hug a sad friend", "emoji": "🤗", "bin_id": "act"},
+                    {"id": "invite", "label": "Invite them to play", "emoji": "🎈", "bin_id": "welcome"},
+                    {"id": "trophy", "label": "Say 'You can do it!'", "emoji": "💪", "bin_id": "encourage"},
+                ]},
+            {"name": "Food groups",
+                "bins": [
+                    {"id": "fruit", "label": "Fruit", "emoji": "🍎"},
+                    {"id": "veggie", "label": "Veggie", "emoji": "🥦"},
+                    {"id": "treat", "label": "Sometimes Treat", "emoji": "🍭"},
+                ],
+                "items": [
+                    {"id": "banana", "label": "Banana", "emoji": "🍌", "bin_id": "fruit"},
+                    {"id": "carrot", "label": "Carrot", "emoji": "🥕", "bin_id": "veggie"},
+                    {"id": "cookie", "label": "Cookie", "emoji": "🍪", "bin_id": "treat"},
+                    {"id": "apple", "label": "Apple", "emoji": "🍎", "bin_id": "fruit"},
+                    {"id": "broccoli", "label": "Broccoli", "emoji": "🥦", "bin_id": "veggie"},
+                    {"id": "icecream", "label": "Ice cream", "emoji": "🍦", "bin_id": "treat"},
+                ]},
+            {"name": "Camp gear",
+                "bins": [
+                    {"id": "beach", "label": "Beach Day", "emoji": "🏖️"},
+                    {"id": "hike", "label": "Hike Day", "emoji": "🥾"},
+                    {"id": "night", "label": "Night Time", "emoji": "🌙"},
+                ],
+                "items": [
+                    {"id": "sunscreen", "label": "Sunscreen", "emoji": "🧴", "bin_id": "beach"},
+                    {"id": "boots", "label": "Hiking boots", "emoji": "🥾", "bin_id": "hike"},
+                    {"id": "lantern", "label": "Lantern", "emoji": "🏮", "bin_id": "night"},
+                    {"id": "towel", "label": "Beach towel", "emoji": "🩴", "bin_id": "beach"},
+                    {"id": "compass", "label": "Compass", "emoji": "🧭", "bin_id": "hike"},
+                    {"id": "flashlight", "label": "Flashlight", "emoji": "🔦", "bin_id": "night"},
+                ]},
+            {"name": "Hot or cold",
+                "bins": [
+                    {"id": "hot", "label": "Hot", "emoji": "🔥"},
+                    {"id": "cold", "label": "Cold", "emoji": "❄️"},
+                ],
+                "items": [
+                    {"id": "sun", "label": "Summer sun", "emoji": "☀️", "bin_id": "hot"},
+                    {"id": "ice", "label": "Ice cube", "emoji": "🧊", "bin_id": "cold"},
+                    {"id": "fire", "label": "Campfire", "emoji": "🔥", "bin_id": "hot"},
+                    {"id": "snow", "label": "Snowflake", "emoji": "❄️", "bin_id": "cold"},
+                    {"id": "soup", "label": "Hot soup", "emoji": "🍲", "bin_id": "hot"},
+                    {"id": "popsicle", "label": "Popsicle", "emoji": "🍡", "bin_id": "cold"},
+                ]},
+            {"name": "Loud or quiet",
+                "bins": [
+                    {"id": "loud", "label": "Loud", "emoji": "📢"},
+                    {"id": "quiet", "label": "Quiet", "emoji": "🤫"},
+                ],
+                "items": [
+                    {"id": "drum", "label": "Drum solo", "emoji": "🥁", "bin_id": "loud"},
+                    {"id": "whisper", "label": "Whispering", "emoji": "💭", "bin_id": "quiet"},
+                    {"id": "thunder", "label": "Thunder", "emoji": "⛈️", "bin_id": "loud"},
+                    {"id": "read", "label": "Reading a book", "emoji": "📖", "bin_id": "quiet"},
+                    {"id": "horn", "label": "Boat horn", "emoji": "📯", "bin_id": "loud"},
+                    {"id": "sleep", "label": "Napping", "emoji": "😴", "bin_id": "quiet"},
+                ]},
+            {"name": "Healthy habits",
+                "bins": [
+                    {"id": "yes", "label": "Healthy ✓", "emoji": "💚"},
+                    {"id": "no", "label": "Not So Much", "emoji": "🙅"},
+                ],
+                "items": [
+                    {"id": "veggies", "label": "Eat veggies", "emoji": "🥕", "bin_id": "yes"},
+                    {"id": "tv", "label": "Watch TV all day", "emoji": "📺", "bin_id": "no"},
+                    {"id": "water", "label": "Drink water", "emoji": "💧", "bin_id": "yes"},
+                    {"id": "sleep2", "label": "Get good sleep", "emoji": "😴", "bin_id": "yes"},
+                    {"id": "candy", "label": "Only candy for dinner", "emoji": "🍬", "bin_id": "no"},
+                    {"id": "exercise", "label": "Move your body", "emoji": "🏃", "bin_id": "yes"},
+                ]},
+            {"name": "Big feelings",
+                "bins": [
+                    {"id": "happy", "label": "Happy", "emoji": "😊"},
+                    {"id": "sad", "label": "Sad", "emoji": "😢"},
+                    {"id": "mad", "label": "Mad", "emoji": "😡"},
+                    {"id": "scared", "label": "Scared", "emoji": "😨"},
+                ],
+                "items": [
+                    {"id": "birthday", "label": "Birthday surprise", "emoji": "🎂", "bin_id": "happy"},
+                    {"id": "spill", "label": "Spilling your milk", "emoji": "🥛", "bin_id": "sad"},
+                    {"id": "tease", "label": "Someone teasing you", "emoji": "😣", "bin_id": "mad"},
+                    {"id": "dark", "label": "Hearing a thump at night", "emoji": "🌙", "bin_id": "scared"},
+                    {"id": "playdate", "label": "Best-friend playdate", "emoji": "🎈", "bin_id": "happy"},
+                    {"id": "broken", "label": "Toy that broke", "emoji": "💔", "bin_id": "sad"},
+                ]},
+            {"name": "Tools or toys",
+                "bins": [
+                    {"id": "tool", "label": "Tool", "emoji": "🔧"},
+                    {"id": "toy", "label": "Toy", "emoji": "🧸"},
+                ],
+                "items": [
+                    {"id": "hammer", "label": "Hammer", "emoji": "🔨", "bin_id": "tool"},
+                    {"id": "ball", "label": "Soccer ball", "emoji": "⚽", "bin_id": "toy"},
+                    {"id": "screwdriver", "label": "Screwdriver", "emoji": "🪛", "bin_id": "tool"},
+                    {"id": "doll", "label": "Doll", "emoji": "🧸", "bin_id": "toy"},
+                    {"id": "wrench", "label": "Wrench", "emoji": "🔧", "bin_id": "tool"},
+                    {"id": "yoyo", "label": "Yo-yo", "emoji": "🪀", "bin_id": "toy"},
+                ]},
+        ]}},
+        {"key": "hidden_objects", "title": "Hidden Objects", "data": {"levels": _build_hidden_levels()}},
     ]
     for a in activity_seeds:
         existing = await db.activity_content.find_one({"key": a["key"]})

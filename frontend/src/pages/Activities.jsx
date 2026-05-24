@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../lib/api";
 import { toast } from "sonner";
 import { useAudio } from "../lib/audio";
-import { Puzzle, Search, Map as MapIcon, Award, Star, Palette, Music, Sticker, X } from "lucide-react";
+import { Puzzle, Search, Map as MapIcon, Award, Star, Palette, Music, Sticker, X, Hash, ArrowUpDown, FolderTree, Eye } from "lucide-react";
 import SEO from "../components/SEO";
 
 import MemoryMatch from "./games/MemoryMatch";
@@ -14,6 +14,10 @@ import Maze from "./games/Maze";
 import Coloring from "./games/Coloring";
 import StickerBeach from "./games/StickerBeach";
 import SpotDifference from "./games/SpotDifference";
+import NumberBubbles from "./games/NumberBubbles";
+import StorySequence from "./games/StorySequence";
+import DragSortBins from "./games/DragSortBins";
+import HiddenObjects from "./games/HiddenObjects";
 
 const BADGE_LABELS = {
   memory_match: "Memory Master",
@@ -24,6 +28,10 @@ const BADGE_LABELS = {
   rhyme_time: "Rhyme Rider",
   maze: "Maze Maker",
   sticker_beach: "Beach Builder",
+  number_bubbles: "Bubble Math Champ",
+  story_sequence: "Story Stitcher",
+  drag_sort: "Sorter Pro",
+  hidden_objects: "Eagle-Eye Finder",
   story_quest: "Story Quest Champion",
 };
 
@@ -36,6 +44,10 @@ const TILES = [
   { key: "rhyme_time", title: "Rhyme Time", subtitle: "Pick the word that rhymes.", icon: Music, color: "#8fbfe0", Comp: RhymeTime },
   { key: "maze", title: "Maze with Billy", subtitle: "Find the shell.", icon: MapIcon, color: "#f4d28a", Comp: Maze },
   { key: "sticker_beach", title: "Sticker Beach", subtitle: "Build a beach scene.", icon: Sticker, color: "#f0a988", Comp: StickerBeach },
+  { key: "number_bubbles", title: "Number Bubbles", subtitle: "Pop bubbles in order.", icon: Hash, color: "#7fcfc7", Comp: NumberBubbles },
+  { key: "story_sequence", title: "Story Sequence", subtitle: "Put scenes in order.", icon: ArrowUpDown, color: "#e89bab", Comp: StorySequence },
+  { key: "drag_sort", title: "Sort It Out", subtitle: "Drag into the right bin.", icon: FolderTree, color: "#7cbf94", Comp: DragSortBins },
+  { key: "hidden_objects", title: "Hidden Objects", subtitle: "Find things in the scene.", icon: Eye, color: "#b8a3d9", Comp: HiddenObjects },
 ];
 
 function readBadges() {
