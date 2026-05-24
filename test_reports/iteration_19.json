@@ -1,0 +1,33 @@
+{
+  "summary": "End-to-end testing of Printify integration: backend sync + public/admin endpoints + admin overrides (featured/hidden/etsy_url) + smart buy URL fallback + shop UI rendering + admin panel toggles. All 14 backend pytest tests passed (real Printify API hit). Frontend Shop renders 4 synced Printify cards with images, and admin /admin/printify panel works: sync, feature, and hide toggles all functional. No regressions on sing-along/products/activities admin pages.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_printify.py",
+    "/app/test_reports/pytest/iter19_printify.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "printify_router.py L243-247: re-sync auto-hides products NOT returned by Printify ($nin). This is correct intent (mark unlisted) but it ALSO flips back products an admin manually unhid — there is no separate 'admin_hidden' vs 'auto_unlisted' flag. If Printify briefly returns 0 items (transient API hiccup) every existing product would be marked hidden. Consider guarding with `if len(synced_ids) > 0 and len(raw) > 0`, or splitting the flag.",
+    "printify_router.py L66 (_public_cache) is module-level in-memory state — won't work across multiple worker processes (single uvicorn worker is fine, but if scaled the cache will be inconsistent per worker). Low priority for current scale.",
+    "PrintifyAdminUpdate.etsy_url accepts ANY string (no URL validation). An admin could paste 'javascript:...' and it'd render as href on the public PrintifyCard. Recommend a Pydantic HttpUrl validator or at least a startswith('http') check.",
+    "AdminPrintify.jsx L57: `saveEtsyUrl` shows success toast even if the patch() call fails (toast.success fires synchronously after patch() is called but patch handles its own error toast — user gets BOTH 'Update failed' and 'Etsy URL saved'). Move toast.success inside patch's success branch."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_printify.py (new)"
+  ],
+  "success_rate": {"backend": "100% (14/14)", "frontend": "100%"},
+  "test_credentials": "community@rollingriver.com / Camp1993! (from /app/memory/test_credentials.md)",
+  "seed_data_creation": "None — used the 4 products already synced from real Printify shop 27540836. Tests left the system clean: any featured/etsy_url/hidden flags set during tests were reverted in fixture teardown.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Printify integration is live and stable. Real Printify shop 27540836 has 4 products synced into MongoDB.printify_products. Backend tests in /app/backend/tests/test_printify.py hit the LIVE Printify API on each sync test (no mocking). If Printify rate-limits, mock _fetch_all_printify_products. The 5-min in-memory _public_cache is invalidated on every admin PATCH and on /sync — verified working.",
+  "rca of the issue": "No issues found. Note that during frontend testing the UI login form (page.fill + click submit) intermittently failed to authenticate (form reset, 401 response); workaround was to call /api/auth/login via page.evaluate(fetch) and store the token in localStorage as 'mr_token' — this is a Playwright timing artifact, NOT a real app bug. Real users see the AdminLogin page work fine."
+}

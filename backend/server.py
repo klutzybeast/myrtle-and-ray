@@ -30,6 +30,7 @@ from story_quest_router import make_story_quest_router
 from sing_along_router import make_sing_along_router
 from voice_router import make_voice_router
 from readaloud_router import make_readaloud_router
+from printify_router import make_printify_router
 import storage as _storage
 
 
@@ -59,6 +60,7 @@ api_router.include_router(make_story_quest_router(db, require_admin))
 api_router.include_router(make_sing_along_router(db, require_admin))
 api_router.include_router(make_voice_router(db))
 api_router.include_router(make_readaloud_router(db, require_admin))
+api_router.include_router(make_printify_router(db, require_admin))
 admin_router_obj = make_admin_router(db, require_admin)
 # Mount admin orders under the existing /admin prefix
 admin_router_obj.include_router(make_admin_orders_router(db))
