@@ -170,15 +170,22 @@ async def _call_llm(body: GenerateBody, cast: list) -> dict:
 
 
 def _normalize_scenes(raw_scenes: list, valid_slugs: set) -> list:
-    """Defensive shape-fixer so a slightly off LLM response still works."""
+    """Defensive shape-fixer so a slightly off LLM response still works.
+
+    Scene numbering is AUTHORITATIVE — we ignore whatever the LLM put in
+    `scene_number` and renumber 1..N by position so the database can
+    never end up with two scenes sharing a scene_number inside the same
+    quest. Same applies to is_intro/is_finale.
+    """
     out = []
     total = len(raw_scenes)
     for idx, s in enumerate(raw_scenes, start=1):
-        scene_number = int(s.get("scene_number") or idx)
+        # Force sequential numbering — ignore whatever the LLM claims.
+        scene_number = idx
         # Only mark intro/finale by position when there are >=2 scenes; otherwise
         # a single-scene response would be both at once.
-        is_intro = (total >= 2 and idx == 1) or bool(s.get("is_intro"))
-        is_finale = (total >= 2 and idx == total) or bool(s.get("is_finale"))
+        is_intro = total >= 2 and idx == 1
+        is_finale = total >= 2 and idx == total
         choices_raw = s.get("choices") if (not is_intro and not is_finale) else []
         choices = []
         for ci, c in enumerate(choices_raw or []):
@@ -432,6 +439,9 @@ async def _run_job(db, job_id: str, body: GenerateBody) -> None:
         # Narration
         if body.generate_narration:
             await _set(status="generating_narration", step="Recording narration…")
+            narration_ok = 0
+            narration_fail = 0
+            narration_errors: list = []
             for s, sid in zip(scenes, scene_ids):
                 audio_url = await _generate_scene_narration(
                     db, s["narrator_slug"], s["narrative"]
@@ -441,11 +451,22 @@ async def _run_job(db, job_id: str, body: GenerateBody) -> None:
                         {"id": sid},
                         {"$set": {"audio_narration_url": audio_url, "updated_at": _now_iso()}},
                     )
+                    narration_ok += 1
+                else:
+                    narration_fail += 1
+                    narration_errors.append({
+                        "scene_number": s["scene_number"],
+                        "narrator_slug": s["narrator_slug"],
+                        "reason": "no voice_id for narrator" if not s["narrator_slug"] else "tts call failed",
+                    })
                 done += 1
                 await _set(
                     progress=35 + int(60 * done / total_assets),
                     scenes_done=done,
                     step=f"Narrated scene {s['scene_number']}",
+                    narration_ok=narration_ok,
+                    narration_fail=narration_fail,
+                    narration_errors=narration_errors[:8],
                 )
 
         await _set(status="done", step="Quest ready!", progress=100,
