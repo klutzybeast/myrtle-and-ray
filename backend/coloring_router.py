@@ -30,7 +30,7 @@ import os
 import re
 import uuid
 from datetime import datetime, timezone
-from typing import Optional
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
@@ -49,7 +49,8 @@ from penpals_router import sanitize_letter, contains_banned, _today_key, _now_is
 
 class GenerateBody(BaseModel):
     prompt: str = Field(min_length=2, max_length=240)
-    character_slug: Optional[str] = ""
+    character_slug: Optional[str] = ""  # legacy: single slug
+    character_slugs: Optional[List[str]] = None  # new: multi-select (up to 4)
     visitor_id: str = Field(min_length=8, max_length=64)
     child_name: Optional[str] = ""
 
@@ -88,6 +89,18 @@ def _system_prompt(character_name: str, character_role: str) -> str:
 def _build_user_text(character_name: str, prompt: str) -> str:
     intro = f"Create a coloring-book line-art page of {character_name}" if character_name else "Create a coloring-book line-art page"
     return f"{intro} {prompt.strip()}. {_NEG_HINTS}."
+
+
+def _join_character_names(names: List[str]) -> str:
+    """Format ['Myrtle','Ray','Sally'] -> 'Myrtle, Ray, and Sally'."""
+    names = [n for n in names if n]
+    if not names:
+        return ""
+    if len(names) == 1:
+        return names[0]
+    if len(names) == 2:
+        return f"{names[0]} and {names[1]}"
+    return f"{', '.join(names[:-1])}, and {names[-1]}"
 
 
 # ---------------- Router factory ----------------
@@ -135,15 +148,33 @@ def make_coloring_router(db, require_admin):
         if _is_blocked(clean):
             raise HTTPException(status_code=400, detail="Let's pick a friendlier idea! Try a beach, a kite, or a Sea Star.")
 
-        # Character lookup
-        character_name = ""
-        character_role = ""
-        ch = None
-        if body.character_slug:
-            ch = await db.characters.find_one({"slug": body.character_slug}, {"_id": 0, "name": 1, "role": 1})
+        # Character lookup — supports both single (legacy) and multi-select.
+        # Cap at 4 to keep the line-art readable and the prompt focused.
+        slugs: List[str] = []
+        if body.character_slugs:
+            seen = set()
+            for s in body.character_slugs:
+                s = (s or "").strip()
+                if s and s not in seen:
+                    seen.add(s)
+                    slugs.append(s)
+                if len(slugs) >= 4:
+                    break
+        elif body.character_slug:
+            slugs = [body.character_slug]
+
+        character_names: List[str] = []
+        character_roles: List[str] = []
+        for slug in slugs:
+            ch = await db.characters.find_one({"slug": slug}, {"_id": 0, "name": 1, "role": 1})
             if ch:
-                character_name = ch.get("name", "")
-                character_role = ch.get("role", "")
+                character_names.append(ch.get("name", ""))
+                character_roles.append(ch.get("role", ""))
+
+        # Backward-compatible single-value fields (used by older callers + cache key)
+        character_name = _join_character_names(character_names)
+        character_role = "; ".join(r for r in character_roles if r)
+        primary_slug = slugs[0] if slugs else ""
 
         # Rate limit per visitor per day
         used = await db.coloring_pages.count_documents({
@@ -153,9 +184,11 @@ def make_coloring_router(db, require_admin):
         if used >= settings["daily_cap"]:
             raise HTTPException(status_code=429, detail=f"You've made {used} pages today — come back tomorrow for more!")
 
-        # Cache key — character + sanitized prompt → SHA-256.
+        # Cache key — character set + sanitized prompt → SHA-256.
+        # Sort the slugs so {Myrtle,Ray} == {Ray,Myrtle} for cache reuse.
+        slugs_key = ",".join(sorted(slugs))
         cache_key = hashlib.sha256(
-            f"coloring|{body.character_slug or ''}|{clean.strip().lower()}".encode("utf-8")
+            f"coloring|{slugs_key}|{clean.strip().lower()}".encode("utf-8")
         ).hexdigest()
         # Filename includes a hash of the prompt content so the on-disk
         # PNG is uniquely identified by what it depicts — defense against
@@ -211,7 +244,8 @@ def make_coloring_router(db, require_admin):
                 {"key": cache_key},
                 {"$set": {
                     "key": cache_key,
-                    "character_slug": body.character_slug or "",
+                    "character_slug": primary_slug,
+                    "character_slugs": slugs,
                     "prompt": clean,
                     "image_url": url_path,
                     "created_at": _now_iso(),

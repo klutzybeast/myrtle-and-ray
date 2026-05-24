@@ -37,10 +37,12 @@ const PROMPT_IDEAS = [
   "exploring a tide pool",
 ];
 
+const MAX_CHARACTERS = 4;
+
 export default function Coloring() {
   const [visitorId] = useState(getOrCreateVisitorId);
   const [characters, setCharacters] = useState([]);
-  const [characterSlug, setCharacterSlug] = useState("");
+  const [characterSlugs, setCharacterSlugs] = useState([]);
   const [prompt, setPrompt] = useState("");
   const [childName, setChildName] = useState("");
   const [generating, setGenerating] = useState(false);
@@ -60,7 +62,29 @@ export default function Coloring() {
     return Math.max(0, (settings.daily_cap || 5) - usedToday);
   }, [history, settings.daily_cap]);
 
-  const selectedCharacter = characters.find((c) => c.slug === characterSlug) || null;
+  const selectedCharacters = useMemo(
+    () => characterSlugs.map((s) => characters.find((c) => c.slug === s)).filter(Boolean),
+    [characterSlugs, characters]
+  );
+
+  const toggleCharacter = (slug) => {
+    setCharacterSlugs((prev) => {
+      if (prev.includes(slug)) return prev.filter((s) => s !== slug);
+      if (prev.length >= MAX_CHARACTERS) {
+        toast.error(`Pick up to ${MAX_CHARACTERS} Sea Stars per page`);
+        return prev;
+      }
+      return [...prev, slug];
+    });
+  };
+
+  const clearCharacters = () => setCharacterSlugs([]);
+
+  const promptPlaceholder = selectedCharacters.length === 0
+    ? "A sandcastle on the beach..."
+    : selectedCharacters.length === 1
+      ? `${selectedCharacters[0].name.split(" ")[0]} doing...`
+      : `${selectedCharacters.map((c) => c.name.split(" ")[0]).join(" + ")} doing...`;
 
   const generate = async () => {
     const text = prompt.trim();
@@ -69,7 +93,7 @@ export default function Coloring() {
     try {
       const { data } = await api.post("/coloring/generate", {
         prompt: text,
-        character_slug: characterSlug || "",
+        character_slugs: characterSlugs,
         visitor_id: visitorId,
         child_name: childName.trim().slice(0, 30),
       });
@@ -127,27 +151,41 @@ export default function Coloring() {
             <h2 className="font-accent text-2xl font-bold mb-4">What should we draw?</h2>
 
             <label className="text-sm block mb-3">
-              <div className="font-semibold text-[#3a4a55] mb-1">Pick a Sea Star (optional)</div>
-              <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1" data-testid="coloring-character-row">
-                <button
-                  onClick={() => setCharacterSlug("")}
-                  className={`flex-shrink-0 px-3 py-2 rounded-full text-sm font-semibold border-2 ${characterSlug === "" ? "border-[#7fcfc7] bg-[#eaf7f5]" : "border-[#f4e4c6] bg-white"}`}
-                  data-testid="coloring-character-none"
-                >
-                  No character
-                </button>
-                {characters.map((c) => (
+              <div className="font-semibold text-[#3a4a55] mb-1 flex items-center justify-between">
+                <span>Pick Sea Stars <span className="font-normal text-[#6b7280]">(up to {MAX_CHARACTERS}, optional)</span></span>
+                {characterSlugs.length > 0 && (
                   <button
-                    key={c.slug}
-                    onClick={() => setCharacterSlug(c.slug)}
-                    className={`flex-shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold border-2 ${characterSlug === c.slug ? "border-[#7fcfc7] bg-[#eaf7f5]" : "border-[#f4e4c6] bg-white"}`}
-                    data-testid={`coloring-character-${c.slug}`}
-                  >
-                    {c.image_url && <img src={c.image_url} alt="" className="w-6 h-6 rounded-full object-contain" />}
-                    {c.name.split(" ")[0]}
-                  </button>
-                ))}
+                    onClick={clearCharacters}
+                    type="button"
+                    className="text-xs text-[#5a6b76] underline"
+                    data-testid="coloring-clear-characters"
+                  >Clear</button>
+                )}
               </div>
+              <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1" data-testid="coloring-character-row">
+                {characters.map((c) => {
+                  const picked = characterSlugs.includes(c.slug);
+                  return (
+                    <button
+                      key={c.slug}
+                      onClick={() => toggleCharacter(c.slug)}
+                      type="button"
+                      aria-pressed={picked}
+                      className={`flex-shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold border-2 transition ${picked ? "border-[#7fcfc7] bg-[#eaf7f5] shadow-sm" : "border-[#f4e4c6] bg-white hover:bg-[#fffbf3]"}`}
+                      data-testid={`coloring-character-${c.slug}`}
+                    >
+                      {c.image_url && <img src={c.image_url} alt="" className="w-6 h-6 rounded-full object-contain" />}
+                      {picked && <span className="text-[#5a8a6f] text-base leading-none">✓</span>}
+                      {c.name.split(" ")[0]}
+                    </button>
+                  );
+                })}
+              </div>
+              {characterSlugs.length > 0 && (
+                <p className="text-xs text-[#5a8a6f] mt-1" data-testid="coloring-selected-count">
+                  {characterSlugs.length} Sea Star{characterSlugs.length === 1 ? "" : "s"} picked: {selectedCharacters.map((c) => c.name.split(" ")[0]).join(", ")}
+                </p>
+              )}
             </label>
 
             <label className="text-sm block mb-3">
@@ -155,7 +193,7 @@ export default function Coloring() {
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value.slice(0, settings.max_prompt_chars))}
-                placeholder={selectedCharacter ? `${selectedCharacter.name.split(" ")[0]} doing...` : "A sandcastle on the beach..."}
+                placeholder={promptPlaceholder}
                 rows={3}
                 className="inp resize-none"
                 data-testid="coloring-input-prompt"
