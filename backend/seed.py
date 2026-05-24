@@ -1710,6 +1710,95 @@ async def _seed_story_quest(db) -> None:
             {"$set": {"status": "ready", "updated_at": _now_iso()}},
         )
 
+    # 4) Multi-quest manifest backfill — bake committed MP3s into every
+    # quest's scenes on every startup so production deploys ship audio for
+    # ALL 10 quests, not just first-day-of-camp. Idempotent: only patches
+    # scenes whose audio_narration_url is empty or a /api/uploads/voice/ URL
+    # that doesn't match the committed cache_key.
+    try:
+        import json as _json
+        import shutil as _shutil
+        manifest_path = os.path.join(asset_dir, "manifest.json")
+        if os.path.exists(manifest_path):
+            try:
+                _manifest = _json.loads(open(manifest_path).read())
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("story_quest seed: manifest parse failed: %s", exc)
+                _manifest = {}
+            per_quest = _manifest.get("quests") or {}
+            # Legacy flat-list maps to first-day-of-camp.
+            if not per_quest and _manifest.get("scenes"):
+                per_quest = {"first-day-of-camp": _manifest["scenes"]}
+
+            logger.info("story_quest seed: applying multi-quest manifest (%d quests)", len(per_quest))
+            patched_count = 0
+            for quest_slug, entries in per_quest.items():
+                qid = quest_id_by_slug.get(quest_slug)
+                if not qid:
+                    continue
+                for entry in entries:
+                    n = int(entry["scene_number"])
+                    cache_key = entry["cache_key"]
+                    mp3 = os.path.join(asset_dir, entry["audio_filename"])
+                    if not os.path.exists(mp3):
+                        continue
+                    # Copy MP3 to local uploads/voice/ if missing.
+                    target = os.path.join(voice_dir, f"{cache_key}.mp3")
+                    if not os.path.exists(target):
+                        try:
+                            with open(mp3, "rb") as fh:
+                                data = fh.read()
+                            with open(target, "wb") as fh:
+                                fh.write(data)
+                            if _storage.is_enabled():
+                                _storage.put_object(f"voice/{cache_key}.mp3", data, "audio/mpeg")
+                        except Exception as exc:  # noqa: BLE001
+                            logger.warning("seed manifest: copy %s/%s failed: %s", quest_slug, n, exc)
+                            continue
+                    audio_url = f"/api/uploads/voice/{cache_key}.mp3"
+                    # Only patch scenes whose audio is empty or a stale voice/ URL.
+                    r = await db.story_quest_scenes.update_one(
+                        {
+                            "quest_id": qid, "scene_number": n,
+                            "$or": [
+                                {"audio_narration_url": ""},
+                                {"audio_narration_url": {"$exists": False}},
+                                {"audio_narration_url": {"$regex": "^/api/uploads/voice/", "$ne": audio_url}},
+                            ],
+                        },
+                        {"$set": {
+                            "audio_narration_url": audio_url,
+                            "narrator_slug": entry.get("narrator_slug", "") or None,
+                            "updated_at": _now_iso(),
+                        }},
+                    )
+                    if r.modified_count:
+                        patched_count += 1
+            if patched_count:
+                logger.info("story_quest seed: backfilled audio on %d scenes from manifest", patched_count)
+
+            # 5) Dedupe legacy duplicate (quest_id, scene_number) rows. Keep
+            # the one with audio if any, else the most recent.
+            dupe_pipeline = [
+                {"$group": {"_id": {"quest_id": "$quest_id", "scene_number": "$scene_number"}, "ids": {"$push": "$id"}, "count": {"$sum": 1}}},
+                {"$match": {"count": {"$gt": 1}}},
+            ]
+            deduped = 0
+            async for group in db.story_quest_scenes.aggregate(dupe_pipeline):
+                ids = group["ids"]
+                docs = await db.story_quest_scenes.find(
+                    {"id": {"$in": ids}}, {"_id": 0, "id": 1, "audio_narration_url": 1}
+                ).to_list(20)
+                keep_id = next((d["id"] for d in docs if (d.get("audio_narration_url") or "").strip()), None) or docs[0]["id"]
+                delete_ids = [d["id"] for d in docs if d["id"] != keep_id]
+                if delete_ids:
+                    r = await db.story_quest_scenes.delete_many({"id": {"$in": delete_ids}})
+                    deduped += r.deleted_count
+            if deduped:
+                logger.info("story_quest seed: deduped %d duplicate scene rows", deduped)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("story_quest seed: manifest backfill failed: %s", exc)
+
 
 # ============================================================
 # Sing-Along seed (10 short songs kids can sing along to)
