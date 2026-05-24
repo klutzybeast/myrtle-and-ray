@@ -473,6 +473,28 @@ def make_story_quest_router(db, require_admin):
     # ---------------- Admin ----------------
     admin = APIRouter(prefix="/admin/story-quest", tags=["admin-story-quest"], dependencies=[Depends(require_admin)])
 
+    @admin.get("/quests")
+    async def admin_list_quests():
+        cur = db.story_quests.find({}, {"_id": 0}).sort([("position", 1), ("created_at", 1)])
+        quests = await cur.to_list(50)
+        for q in quests:
+            q["scene_count"] = await db.story_quest_scenes.count_documents(
+                {"quest_id": q["id"], "active": True}
+            )
+        return quests
+
+    @admin.patch("/quests/{quest_id}")
+    async def admin_update_quest(quest_id: str, body: dict):
+        allowed = {"title", "blurb", "hero_image_url", "theme_color", "character_focus", "position", "status", "active"}
+        patch = {k: v for k, v in (body or {}).items() if k in allowed and v is not None}
+        if not patch:
+            raise HTTPException(status_code=400, detail="No fields to update.")
+        patch["updated_at"] = _now_iso()
+        res = await db.story_quests.update_one({"id": quest_id}, {"$set": patch})
+        if res.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Quest not found.")
+        return await db.story_quests.find_one({"id": quest_id}, {"_id": 0})
+
     @admin.get("/scenes")
     async def list_scenes():
         cur = db.story_quest_scenes.find({}, {"_id": 0}).sort("scene_number", 1)

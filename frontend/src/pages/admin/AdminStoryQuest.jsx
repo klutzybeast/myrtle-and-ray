@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { api } from "../../lib/api";
 import { Sparkles, Plus, Trash2, Edit2, X, Save, BarChart3, GripVertical, ArrowUp, ArrowDown, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { ImageUploader } from "./ImageUploader";
 
 const WAVE_KEYS = ["welcome_curiosity", "act_with_kindness", "value_teamwork", "encourage_others"];
 const WAVE_LABEL = {
@@ -13,6 +14,7 @@ const WAVE_LABEL = {
 
 export default function AdminStoryQuest() {
   const [scenes, setScenes] = useState([]);
+  const [quests, setQuests] = useState([]);
   const [editing, setEditing] = useState(null);
   const [mappings, setMappings] = useState({});
   const [characters, setCharacters] = useState([]);
@@ -23,16 +25,18 @@ export default function AdminStoryQuest() {
   const refresh = async () => {
     setLoading(true);
     try {
-      const [s, m, c, a] = await Promise.all([
+      const [s, m, c, a, q] = await Promise.all([
         api.get("/admin/story-quest/scenes"),
         api.get("/admin/story-quest/character-mappings"),
         api.get("/characters"),
         api.get("/admin/story-quest/analytics").catch(() => ({ data: null })),
+        api.get("/admin/story-quest/quests").catch(() => ({ data: [] })),
       ]);
       setScenes(s.data || []);
       setMappings(m.data || {});
       setCharacters(c.data || []);
       setAnalytics(a.data);
+      setQuests(q.data || []);
     } catch {
       toast.error("Failed to load Story Quest");
     }
@@ -90,6 +94,17 @@ export default function AdminStoryQuest() {
     setSavingMappings(false);
   };
 
+  const updateQuestCover = async (questId, url) => {
+    setQuests((qs) => qs.map((q) => (q.id === questId ? { ...q, hero_image_url: url } : q)));
+    try {
+      await api.patch(`/admin/story-quest/quests/${questId}`, { hero_image_url: url });
+      toast.success("Quest cover saved");
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Save failed");
+      refresh();
+    }
+  };
+
   if (loading) return <div className="text-[#6b7280]">Loading…</div>;
 
   return (
@@ -101,6 +116,35 @@ export default function AdminStoryQuest() {
         </div>
         <button onClick={() => setEditing(blankScene(scenes.length + 1))} className="btn-primary inline-flex" data-testid="story-quest-new-scene"><Plus className="w-4 h-4" /> New scene</button>
       </header>
+
+      {/* Quest gallery covers */}
+      {quests.length > 0 && (
+        <section className="bg-white rounded-3xl p-5 mb-6 border border-[#f4e4c6]" data-testid="story-quest-covers">
+          <h2 className="font-accent text-xl font-bold mb-1">Quest covers</h2>
+          <p className="text-xs text-[#6b7280] mb-4">Upload the hero image shown on the Story Quest gallery card for each quest.</p>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {quests.map((q) => (
+              <div key={q.id} className="border border-[#f4e4c6] rounded-2xl p-3 bg-[#fffbf3]" data-testid={`quest-cover-${q.slug}`}>
+                <div className="flex items-center justify-between mb-2 gap-2">
+                  <div className="min-w-0">
+                    <div className="font-accent font-bold truncate">{q.title}</div>
+                    <div className="text-[11px] text-[#6b7280]">{q.scene_count || 0} scene{q.scene_count === 1 ? "" : "s"} · {q.status}</div>
+                  </div>
+                  <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full" style={{ background: `${q.theme_color}22`, color: q.theme_color }}>
+                    {q.character_focus || "all"}
+                  </span>
+                </div>
+                <ImageUploader
+                  value={q.hero_image_url}
+                  onChange={(url) => updateQuestCover(q.id, url)}
+                  label=""
+                  testid={`quest-cover-upload-${q.slug}`}
+                />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Character mappings */}
       <section className="bg-white rounded-3xl p-5 mb-6 border border-[#f4e4c6]" data-testid="story-quest-mappings">
@@ -262,9 +306,12 @@ function SceneEditor({ initial, characters, onClose, onSave }) {
           <Field label="Narrative (2–3 sentences)">
             <textarea value={form.narrative} onChange={(e) => set("narrative", e.target.value)} rows={4} className="inp resize-none" data-testid="scene-input-narrative" />
           </Field>
-          <Field label="Background image URL (optional)">
-            <input value={form.background_image_url} onChange={(e) => set("background_image_url", e.target.value)} className="inp" data-testid="scene-input-image" />
-          </Field>
+          <ImageUploader
+            value={form.background_image_url}
+            onChange={(url) => set("background_image_url", url)}
+            label="Background / cover image"
+            testid="scene-cover-upload"
+          />
           <div className="grid sm:grid-cols-2 gap-3">
             <Field label="Narrator (Sea Star voice)">
               <select

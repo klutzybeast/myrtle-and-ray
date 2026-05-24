@@ -55,6 +55,7 @@ import AdminPenPals from "@/pages/admin/AdminPenPals";
 import AdminColoring from "@/pages/admin/AdminColoring";
 import AdminSeaStarStudio from "@/pages/admin/AdminSeaStarStudio";
 import AdminStoryQuest from "@/pages/admin/AdminStoryQuest";
+import AdminSingAlong from "@/pages/admin/AdminSingAlong";
 import PenPals from "@/pages/PenPals";
 import Coloring from "@/pages/Coloring";
 import SeaStarStudio from "@/pages/SeaStarStudio";
@@ -154,6 +155,7 @@ function App() {
                 <Route path="coloring" element={<AdminColoring />} />
                 <Route path="sea-star-studio" element={<AdminSeaStarStudio />} />
                 <Route path="story-quest" element={<AdminStoryQuest />} />
+                <Route path="sing-along" element={<AdminSingAlong />} />
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
