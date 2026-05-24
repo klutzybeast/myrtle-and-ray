@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { api, extractErrMsg } from "../lib/api";
+import { characterFirstName } from "../lib/characterName";
 import { Loader2, Send, Printer, Sparkles, AlertCircle, ArrowLeft, Wand2 } from "lucide-react";
 import SEO from "../components/SEO";
 import { toast } from "sonner";
@@ -169,7 +170,7 @@ export default function SeaStarStudio() {
               </label>
               <label className="text-sm block mb-2">
                 <div className="font-semibold text-[#3a4a55] mb-1">Your letter</div>
-                <textarea value={letter} onChange={(e) => setLetter(e.target.value.slice(0, 400))} rows={5} placeholder={`Hi ${selected.name.split(" ")[0]}...`} className="inp resize-none" data-testid="studio-input-letter" />
+                <textarea value={letter} onChange={(e) => setLetter(e.target.value.slice(0, 400))} rows={5} placeholder={`Hi ${characterFirstName(selected.name)}...`} className="inp resize-none" data-testid="studio-input-letter" />
               </label>
               <div className="text-xs text-[#6b7280] mb-3 text-right">{400 - letter.length} characters left</div>
 

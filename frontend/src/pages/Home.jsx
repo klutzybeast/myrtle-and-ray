@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
+import { characterFirstName } from "../lib/characterName";
 import { useSite } from "../lib/site";
 import CharacterPortrait from "../components/CharacterPortrait";
 import ProductCard from "../components/ProductCard";
@@ -123,7 +124,7 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-7 lg:grid-cols-13 gap-6 justify-items-center">
             {chars.map((c) => (
-              <CharacterPortrait key={c.slug} slug={c.slug} name={c.name.split(" ")[0]} image={c.image_url} size={88} />
+              <CharacterPortrait key={c.slug} slug={c.slug} name={characterFirstName(c.name)} image={c.image_url} size={88} />
             ))}
           </div>
         </div>

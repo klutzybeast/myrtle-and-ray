@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { api, extractErrMsg } from "../lib/api";
+import { characterFirstName as firstName } from "../lib/characterName";
 import { Loader2, Palette, Download, Printer, Sparkles, AlertCircle, Wand2, ArrowLeft } from "lucide-react";
 import SEO from "../components/SEO";
 import { toast } from "sonner";
@@ -83,8 +84,8 @@ export default function Coloring() {
   const promptPlaceholder = selectedCharacters.length === 0
     ? "A sandcastle on the beach..."
     : selectedCharacters.length === 1
-      ? `${selectedCharacters[0].name.split(" ")[0]} doing...`
-      : `${selectedCharacters.map((c) => c.name.split(" ")[0]).join(" + ")} doing...`;
+      ? `${firstName(selectedCharacters[0].name)} doing...`
+      : `${selectedCharacters.map((c) => firstName(c.name)).join(" + ")} doing...`;
 
   const generate = async () => {
     const text = prompt.trim();
@@ -176,14 +177,14 @@ export default function Coloring() {
                     >
                       {c.image_url && <img src={c.image_url} alt="" className="w-6 h-6 rounded-full object-contain" />}
                       {picked && <span className="text-[#5a8a6f] text-base leading-none">✓</span>}
-                      {c.name.split(" ")[0]}
+                      {firstName(c.name)}
                     </button>
                   );
                 })}
               </div>
               {characterSlugs.length > 0 && (
                 <p className="text-xs text-[#5a8a6f] mt-1" data-testid="coloring-selected-count">
-                  {characterSlugs.length} Sea Star{characterSlugs.length === 1 ? "" : "s"} picked: {selectedCharacters.map((c) => c.name.split(" ")[0]).join(", ")}
+                  {characterSlugs.length} Sea Star{characterSlugs.length === 1 ? "" : "s"} picked: {selectedCharacters.map((c) => firstName(c.name)).join(", ")}
                 </p>
               )}
             </label>

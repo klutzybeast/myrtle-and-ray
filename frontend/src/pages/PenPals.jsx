@@ -162,7 +162,7 @@ export default function PenPals() {
                 </label>
                 <label className="text-sm block mb-2">
                   <div className="font-semibold text-[#3a4a55] mb-1">Your letter</div>
-                  <textarea value={letter} onChange={(e) => setLetter(e.target.value.slice(0, settings.max_letter_chars))} rows={5} placeholder={`Hi ${selected.name.split(" ")[0]}...`} className="inp resize-none" data-testid="penpals-input-letter" />
+                  <textarea value={letter} onChange={(e) => setLetter(e.target.value.slice(0, settings.max_letter_chars))} rows={5} placeholder={`Hi ${characterFirstName(selected.name)}...`} className="inp resize-none" data-testid="penpals-input-letter" />
                 </label>
                 <div className="flex justify-between text-xs text-[#6b7280] mb-3">
                   <span>{remaining} characters left</span>
@@ -175,7 +175,7 @@ export default function PenPals() {
                   </div>
                 )}
                 <button onClick={send} disabled={sending || !letter.trim() || lettersLeft <= 0} className="btn-primary w-full justify-center disabled:opacity-50" data-testid="penpals-send">
-                  {sending ? <><Loader2 className="w-4 h-4 animate-spin" /> Sending to {selected.name.split(" ")[0]}...</> : <><Send className="w-4 h-4" /> Send my letter</>}
+                  {sending ? <><Loader2 className="w-4 h-4 animate-spin" /> Sending to {characterFirstName(selected.name)}...</> : <><Send className="w-4 h-4" /> Send my letter</>}
                 </button>
                 {lettersLeft <= 0 && <p className="text-xs text-red-600 mt-2 text-center">You've used your letters for today — come back tomorrow!</p>}
               </>
