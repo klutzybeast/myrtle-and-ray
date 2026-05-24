@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../lib/api";
 import { toast } from "sonner";
 import { useAudio } from "../lib/audio";
-import { Puzzle, Search, Map as MapIcon, Award, Star, Palette, Music, Sticker, X, Hash, ArrowUpDown, FolderTree, Eye, EyeOff, Repeat, PenLine, ToggleLeft } from "lucide-react";
+import { Puzzle, Search, Map as MapIcon, Award, Star, Palette, Music, Sticker, X, Hash, ArrowUpDown, FolderTree, Eye, EyeOff, Repeat, PenLine, ToggleLeft, Spline, Brush, Moon, AlertTriangle, Zap, SpellCheck, Sigma, Volume2 } from "lucide-react";
 import SEO from "../components/SEO";
 
 import MemoryMatch from "./games/MemoryMatch";
@@ -22,6 +22,14 @@ import WhatsMissing from "./games/WhatsMissing";
 import PatternContinue from "./games/PatternContinue";
 import LetterTrace from "./games/LetterTrace";
 import TrueOrFalse from "./games/TrueOrFalse";
+import ConnectDots from "./games/ConnectDots";
+import ColorByNumber from "./games/ColorByNumber";
+import ShadowMatch from "./games/ShadowMatch";
+import OddOneOut from "./games/OddOneOut";
+import SimonSays from "./games/SimonSays";
+import WordUnscramble from "./games/WordUnscramble";
+import CountAndClick from "./games/CountAndClick";
+import AnimalSounds from "./games/AnimalSounds";
 
 const BADGE_LABELS = {
   memory_match: "Memory Master",
@@ -40,6 +48,14 @@ const BADGE_LABELS = {
   pattern_continue: "Pattern Pro",
   letter_trace: "Letter Master",
   true_or_false: "Trivia Whiz",
+  connect_dots: "Dot Connector",
+  color_by_number: "Paint Pro",
+  shadow_match: "Shadow Sleuth",
+  odd_one_out: "Odd-One Spotter",
+  simon_says: "Pattern Memorizer",
+  word_unscramble: "Word Wrangler",
+  count_and_click: "Counting Captain",
+  animal_sounds: "Sound Scholar",
   story_quest: "Story Quest Champion",
 };
 
@@ -60,6 +76,14 @@ const TILES = [
   { key: "pattern_continue", title: "Pattern Continue", subtitle: "What comes next?", icon: Repeat, color: "#8fbfe0", Comp: PatternContinue },
   { key: "letter_trace", title: "Letter Trace", subtitle: "Tap the dots in order.", icon: PenLine, color: "#b8a3d9", Comp: LetterTrace },
   { key: "true_or_false", title: "True or False?", subtitle: "Trivia round, quick fire!", icon: ToggleLeft, color: "#e89bab", Comp: TrueOrFalse },
+  { key: "connect_dots", title: "Connect the Dots", subtitle: "Tap 1→N to reveal a picture.", icon: Spline, color: "#7fcfc7", Comp: ConnectDots },
+  { key: "color_by_number", title: "Color by Number", subtitle: "Paint by the key to reveal art.", icon: Brush, color: "#f0a988", Comp: ColorByNumber },
+  { key: "shadow_match", title: "Shadow Match", subtitle: "Whose silhouette is this?", icon: Moon, color: "#b8a3d9", Comp: ShadowMatch },
+  { key: "odd_one_out", title: "Odd One Out", subtitle: "Spot what doesn't belong.", icon: AlertTriangle, color: "#f4d28a", Comp: OddOneOut },
+  { key: "simon_says", title: "Simon at the Cay", subtitle: "Watch the pattern. Repeat it.", icon: Zap, color: "#7cbf94", Comp: SimonSays },
+  { key: "word_unscramble", title: "Word Unscramble", subtitle: "Tap letters in order.", icon: SpellCheck, color: "#8fbfe0", Comp: WordUnscramble },
+  { key: "count_and_click", title: "Count & Click", subtitle: "Find them all in the scene.", icon: Sigma, color: "#e89bab", Comp: CountAndClick },
+  { key: "animal_sounds", title: "Sounds of the Sea", subtitle: "Match the animal to its sound.", icon: Volume2, color: "#7fcfc7", Comp: AnimalSounds },
 ];
 
 function readBadges() {
@@ -120,7 +144,7 @@ export default function Activities() {
         <header className="text-center mb-10">
           <Award className="w-10 h-10 text-[#f0a988] mx-auto mb-3" />
           <h1 className="font-accent text-5xl md:text-6xl font-bold">Activities & Games</h1>
-          <p className="text-[#4a5568] mt-2 max-w-2xl mx-auto">Eight little games to play with Myrtle, Ray, and the crew. Collect W.A.V.E. badges as you go!</p>
+          <p className="text-[#4a5568] mt-2 max-w-2xl mx-auto">Two dozen mini-games to play with Myrtle, Ray, and the crew. Collect W.A.V.E. badges as you go!</p>
         </header>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -177,7 +201,7 @@ export default function Activities() {
           <div className="flex items-start justify-between flex-wrap gap-3">
             <div>
               <h3 className="font-accent text-2xl font-bold">My Wave Badges</h3>
-              <p className="text-[#4a5568] mt-1">Every game you finish earns a badge. {badges.length}/{TILES.length} collected.</p>
+              <p className="text-[#4a5568] mt-1">Every game you finish earns a badge. {badges.length} of {TILES.length} collected.</p>
             </div>
             <Link to="/wave-badges" className="btn-secondary text-sm" data-testid="see-all-badges">See all badges →</Link>
           </div>

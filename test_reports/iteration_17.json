@@ -1,0 +1,41 @@
+{
+  "summary": "Iteration 17 — Verified 8 new mini-games (Batches 3 & 4): Connect the Dots, Color by Number, Shadow Match, Odd One Out, Simon Says, Word Unscramble, Count & Click, Sounds of the Sea/Animal Sounds. Backend pytest 13/13 PASS (/app/backend/tests/test_activities_batch3_4.py): GET /api/activities returns >=24 keys including all 8 new keys + 16 existing; each new game endpoint returns 10 levels with required shape (connect_dots: dots[]; color_by_number: palette+grid; shadow_match: rounds[]; odd_one_out: rounds[]; simon_says: pads + rounds/start_length; word_unscramble: rounds with word/scrambled; count_and_click: target+scene[]; animal_sounds: rounds with animal/prompt/choices/answer, answer ∈ choices); /api/activities/unknown → 404; regression endpoints memory_match/maze/hidden_objects still return 200 with matching key. Frontend (Playwright on /activities): all 24 activity-tile-{key} testids found and clickable; cookie banner dismissed with [data-testid=rcc-confirm-button]; modal opens for each of the 8 new tiles with rendered game UI (bodyLen 195-321, no 'Loading game…' stuck state); end-to-end gameplay verified for ConnectDots (tapped cd-dot-1..N through all 10 levels → toast 'Wave badge unlocked: Dot Connector!' fired, badge persisted to localStorage 'mr_badges') and OddOneOut (won all 4 rounds across levels → toast 'Wave badge unlocked: Odd-One Spotter!' fired, badge persisted); 'My Wave Badges' section updated to '2 of 24 collected' and renders [data-testid=badge-connect_dots] 'Dot Connector' + [data-testid=badge-odd_one_out] 'Odd-One Spotter' chips; 🌟 overlay appears on the earned tiles. Regression: Memory Match, Maze, Hidden Objects modals all open with content rendered (bodyLen 214/227/845).",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "/activities header", "issues": ["Subtitle reads 'Two dozen mini-games' (24) which now matches reality after Batches 3 & 4 — confirmed accurate."]},
+      {"screen": "Activities.jsx Captain-of-the-Cay banner", "issues": ["Line 216 still reads 'All 9 — Captain of the Cay!' when badges.length >= TILES.length + 1. With 24 tiles this label is stale ('9' should be 24) AND the condition `>= TILES.length + 1` (25) is unreachable since users can only earn TILES.length (24) badges from the grid. Either change copy to 'All 24 — Captain of the Cay!' and condition to `>= TILES.length`, or wire the +1 to the special story_quest badge so 25 IS achievable."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_activities_batch3_4.py",
+    "/app/test_reports/pytest/iter17_activities.xml"
+  ],
+  "action_items": [
+    "Fix Activities.jsx line 215-217: badge total label says 'All 9' but should say 'All 24' (or 'All 25' if the story_quest badge counts). Condition `badges.length >= TILES.length + 1` is unreachable from current UI since story_quest is not in TILES — confirm intended behavior and update copy + condition together."
+  ],
+  "critical_code_review_comments": [
+    "Activities.jsx line 216: hard-coded 'All 9 — Captain of the Cay!' copy is stale after expanding to 24 tiles. Either compute from TILES.length or update the literal. The accompanying condition `badges.length >= TILES.length + 1` references a 25th implicit badge (story_quest is in BADGE_LABELS but not in TILES) — make this explicit by checking for the story_quest badge by key instead of relying on a length comparison.",
+    "Activities.jsx readBadges() is called in useState initializer AND a second time inside writeBadge → setBadges flow. The second read avoids a stale closure but means localStorage is read twice on every badge unlock. Minor; consider just `setBadges([...badges, key])` after writeBadge.",
+    "Activities modal: useEffect on `active` triggers api.get even when re-opening the same game right after closing — there's no cache. Each open fires another GET /api/activities/{key}. For game data that never changes, a small in-memory cache (keyed by tile.key) would eliminate the flicker of 'Loading game…' on every reopen.",
+    "public_router.list_activities limits to 50 docs; with 24 today that's fine, but the limit is silent. Either remove the cap or make it explicit with .sort('order') so order is deterministic across batches.",
+    "public_router.get_activity does not include /api/activities/list of acceptable keys in the 404 detail — fine for an end-user surface, but adds debugging friction. Optional: log unknown keys server-side.",
+    "Game level rotation: useRotatingLevel (in useLevels.js) presumably uses day-of-year. If a test or QA wants to force a specific level (for screenshots / e2e), there is no override (e.g., ?level=3 query param). Consider adding a query param hook to support reliable e2e for the remaining 6 games we did not auto-play."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_activities_batch3_4.py (new — 13 tests, all passing)"
+  ],
+  "success_rate": {
+    "backend": "100% (13/13 pytest passed)",
+    "frontend": "100% — 24/24 tiles render; 8/8 new modals open with content; 2/2 end-to-end playthroughs (ConnectDots + OddOneOut) earned and persisted badges with toast + chip render; 3/3 existing-game regression OK."
+  },
+  "test_credentials": "Not needed (public endpoints).",
+  "seed_data_creation": "None. Tests are read-only against /api/activities/* seeded data.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All 8 new game endpoints + tiles + modals are verified. Backend has 24 activity_content rows. For game-level e2e selectors, ConnectDots uses [data-testid=cd-dot-{n}] and [data-testid=cd-next]; OddOneOut uses [data-testid=odd-option-{i}], [data-testid=odd-next], [data-testid=odd-feedback], [data-testid=game-odd-done]; WordUnscramble uses [data-testid=unscramble-letter-{i}], [data-testid=unscramble-next]. Level selection follows day-of-year rotation, so brute-force loops (click each option, advance on correct) are the most reliable e2e pattern. Only stale-copy bug is the 'All 9 — Captain of the Cay!' string in Activities.jsx — main agent should update to 24 (or 25 with story_quest) and make the condition explicit.",
+  "rca_of_the_issue": "N/A — feature works end-to-end. Only design issue is a stale '9' literal from before the batches were added."
+}
