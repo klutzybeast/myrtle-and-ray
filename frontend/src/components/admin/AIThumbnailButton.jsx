@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Wand2, Loader2, X, Check, Download } from "lucide-react";
+import { Wand2, Loader2, X, Check, Download, Folder, ImageIcon as ImgIcon } from "lucide-react";
 import { api } from "../../lib/api";
 import { toast } from "sonner";
 import { characterFirstName } from "../../lib/characterName";
@@ -23,15 +23,20 @@ export default function AIThumbnailButton({
   onChosen,
   label = "Generate with AI",
   buttonClassName = "btn-secondary text-xs",
-  size = "sm",
 }) {
   const [open, setOpen] = useState(false);
+  const [tab, setTab] = useState("generate"); // "generate" | "library"
   const [characters, setCharacters] = useState([]);
-  const [picked, setPicked] = useState([]); // slugs OR ["all"]
+  const [picked, setPicked] = useState([]);
   const [prompt, setPrompt] = useState(defaultPrompt);
   const [aspect, setAspect] = useState("square");
   const [busy, setBusy] = useState(false);
-  const [result, setResult] = useState(null); // {url, id, filename}
+  const [result, setResult] = useState(null);
+  // Library tab
+  const [library, setLibrary] = useState([]);
+  const [libLoading, setLibLoading] = useState(false);
+  const [libSearch, setLibSearch] = useState("");
+  const [libKindFilter, setLibKindFilter] = useState("all");
 
   useEffect(() => {
     if (!open) return;
@@ -39,6 +44,27 @@ export default function AIThumbnailButton({
     api.get("/characters").then(({ data }) => setCharacters((data || []).filter((c) => c.image_url || c.role))).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+
+  // Auto-load library when user opens that tab
+  useEffect(() => {
+    if (!open || tab !== "library") return;
+    setLibLoading(true);
+    const params = new URLSearchParams();
+    if (libKindFilter !== "all") params.set("kind", libKindFilter);
+    params.set("limit", "200");
+    api.get(`/admin/thumbnails?${params.toString()}`)
+      .then(({ data }) => setLibrary(data.thumbnails || []))
+      .catch(() => setLibrary([]))
+      .finally(() => setLibLoading(false));
+  }, [open, tab, libKindFilter]);
+
+  const filteredLibrary = library.filter((t) => {
+    if (!libSearch.trim()) return true;
+    const q = libSearch.toLowerCase();
+    return (t.title || "").toLowerCase().includes(q)
+        || (t.scene_prompt || "").toLowerCase().includes(q)
+        || (t.character_slugs || []).join(" ").toLowerCase().includes(q);
+  });
 
   const reset = () => { setPicked([]); setResult(null); setPrompt(defaultPrompt); };
 
@@ -183,7 +209,7 @@ export default function AIThumbnailButton({
             </button>
 
             {/* Result */}
-            {result && (
+            {tab === "generate" && result && (
               <div className="mt-4 bg-[#fffbf3] border-2 border-[#f4e4c6] rounded-2xl p-3" data-testid="ai-thumb-result">
                 <img src={`${process.env.REACT_APP_BACKEND_URL || ""}${result.url}`} alt="AI thumbnail" className="w-full rounded-xl object-contain max-h-80 bg-white" />
                 <div className="flex gap-2 mt-3 flex-wrap">

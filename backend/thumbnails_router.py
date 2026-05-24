@@ -297,4 +297,92 @@ def make_thumbnails_router(db, require_admin):
             headers={"Content-Disposition": f'attachment; filename="thumbnails-{stamp}.zip"'},
         )
 
+    @router.post("/backfill")
+    async def backfill_from_other_collections():
+        """Scan other collections for images that should appear in the
+        thumbnails library (sing-along covers, character portraits, coloring
+        gallery, product images, story-quest hero images) and insert one row
+        per image so they all show up under /admin/thumbnails.
+
+        Idempotent — keyed by the image URL.
+        """
+        inserted = 0
+        skipped = 0
+
+        async def _add(url: str, kind: str, title: str, scene_prompt: str,
+                       character_slugs: List[str], source: str):
+            nonlocal inserted, skipped
+            if not url:
+                return
+            existing = await db.thumbnails.find_one({"url": url}, {"_id": 1})
+            if existing:
+                skipped += 1
+                return
+            doc = {
+                "id": uuid.uuid4().hex,
+                "filename": url.rsplit("/", 1)[-1] or url,
+                "url": url,
+                "kind": kind,
+                "title": (title or "")[:160],
+                "scene_prompt": (scene_prompt or "")[:400],
+                "aspect": "square",
+                "character_slugs": [s for s in (character_slugs or []) if s][:4],
+                "size_bytes": 0,
+                "source": source,
+                "created_at": _now_iso(),
+            }
+            await db.thumbnails.insert_one(dict(doc))
+            inserted += 1
+
+        # Sing-along covers
+        async for s in db.sing_along_songs.find({"cover_image_url": {"$ne": ""}}, {"_id": 0, "title": 1, "cover_image_url": 1, "prompt": 1}):
+            await _add(s.get("cover_image_url", ""), "general",
+                       title=f"Cover: {s.get('title','')}",
+                       scene_prompt=s.get("prompt", ""),
+                       character_slugs=[], source="sing_along")
+
+        # Character portraits
+        async for c in db.characters.find({}, {"_id": 0, "slug": 1, "name": 1, "image_url": 1, "role": 1}):
+            await _add(c.get("image_url", ""), "character",
+                       title=c.get("name", ""),
+                       scene_prompt=c.get("role", ""),
+                       character_slugs=[c.get("slug", "")], source="character")
+
+        # Story-quest hero images
+        async for q in db.story_quests.find({"hero_image_url": {"$ne": ""}}, {"_id": 0, "title": 1, "hero_image_url": 1}):
+            await _add(q.get("hero_image_url", ""), "general",
+                       title=f"Quest: {q.get('title','')}",
+                       scene_prompt="Story Quest hero image",
+                       character_slugs=[], source="story_quest")
+
+        # Story-quest scene backgrounds
+        async for sc in db.story_quest_scenes.find({"background_image_url": {"$ne": ""}}, {"_id": 0, "background_image_url": 1, "narrator_slug": 1, "quest_id": 1, "title": 1}):
+            await _add(sc.get("background_image_url", ""), "general",
+                       title=sc.get("title", "Quest scene"),
+                       scene_prompt="Story Quest scene background",
+                       character_slugs=[sc.get("narrator_slug", "")] if sc.get("narrator_slug") else [],
+                       source="story_quest_scene")
+
+        # Product images
+        async for p in db.products.find({}, {"_id": 0, "name": 1, "primary_image": 1, "images": 1}):
+            urls = []
+            if p.get("primary_image"):
+                urls.append(p["primary_image"])
+            urls.extend(p.get("images") or [])
+            for url in urls[:3]:
+                await _add(url, "product",
+                           title=p.get("name", ""),
+                           scene_prompt="Product image",
+                           character_slugs=[], source="product")
+
+        # Coloring history (kept by the public coloring page)
+        async for col in db.coloring.find({"deleted": {"$ne": True}, "shared": True}, {"_id": 0, "image_url": 1, "prompt": 1, "character_slugs": 1, "character_slug": 1}):
+            slugs = col.get("character_slugs") or ([col["character_slug"]] if col.get("character_slug") else [])
+            await _add(col.get("image_url", ""), "general",
+                       title="Coloring page",
+                       scene_prompt=col.get("prompt", ""),
+                       character_slugs=slugs, source="coloring")
+
+        return {"ok": True, "inserted": inserted, "already_in_library": skipped}
+
     return router

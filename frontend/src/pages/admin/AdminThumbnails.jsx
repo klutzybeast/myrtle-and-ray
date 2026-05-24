@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../../lib/api";
 import { toast } from "sonner";
-import { Download, Trash2, Wand2, Search, Package } from "lucide-react";
+import { Download, Trash2, Wand2, Search, Package, RefreshCw } from "lucide-react";
 import AIThumbnailButton from "../../components/admin/AIThumbnailButton";
 import { characterFirstName } from "../../lib/characterName";
 
@@ -109,6 +109,22 @@ export default function AdminThumbnails() {
           <p className="text-sm text-[#5a6b76]">Every AI thumbnail ever generated, in one place. Filter, preview, download high-res PNG, or grab them all as a zip.</p>
         </div>
         <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={async () => {
+              if (!window.confirm("Scan sing-along covers, character portraits, coloring pages, story quest art, and product images and import them all into your library? Existing entries are skipped.")) return;
+              try {
+                const { data } = await api.post("/admin/thumbnails/backfill");
+                toast.success(`Imported ${data.inserted} new (skipped ${data.already_in_library} already present)`);
+                load();
+              } catch {
+                toast.error("Backfill failed");
+              }
+            }}
+            className="btn-secondary text-sm"
+            data-testid="thumb-backfill-btn"
+          >
+            <RefreshCw className="w-4 h-4" /> Import existing
+          </button>
           <AIThumbnailButton
             kind="general"
             buttonClassName="btn-primary"
