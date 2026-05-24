@@ -297,6 +297,33 @@ def make_thumbnails_router(db, require_admin):
             headers={"Content-Disposition": f'attachment; filename="thumbnails-{stamp}.zip"'},
         )
 
+    @router.get("/health")
+    async def health_check():
+        """Diagnostic — surfaces whether AI image generation will work right now.
+        Frontend uses this to show a banner explaining exactly what's wrong."""
+        import storage as _storage
+        key_present = bool((os.environ.get("EMERGENT_LLM_KEY") or "").strip())
+        storage_enabled = _storage.is_enabled()
+        total = await db.thumbnails.count_documents({})
+        # Try the cheapest possible storage round-trip to confirm it works.
+        storage_ok = False
+        if storage_enabled:
+            try:
+                test_key = "thumbnails/.health-check"
+                _storage.put_object(test_key, b"ok", "text/plain")
+                got = _storage.get_object(test_key)
+                storage_ok = bool(got)
+            except Exception as exc:
+                log.warning("storage health check failed: %s", exc)
+        return {
+            "ai_key_configured": key_present,
+            "storage_enabled": storage_enabled,
+            "storage_working": storage_ok,
+            "library_count": total,
+            "upload_dir": str(UPLOAD_ROOT),
+            "thumbs_dir_writable": os.access(str(UPLOAD_ROOT), os.W_OK),
+        }
+
     @router.post("/backfill")
     async def backfill_from_other_collections():
         """Scan other collections for images that should appear in the

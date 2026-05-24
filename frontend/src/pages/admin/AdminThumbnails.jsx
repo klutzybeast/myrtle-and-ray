@@ -23,10 +23,25 @@ export default function AdminThumbnails() {
   const [characters, setCharacters] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
+  const [health, setHealth] = useState(null);
 
   const load = async () => {
     setLoading(true);
     try {
+      // Auto-backfill on first empty load — guarantees the library
+      // surfaces every existing AI image and upload, not just newly
+      // generated ones. Safe + idempotent (skips already-present rows).
+      try {
+        const { data: pre } = await api.get("/admin/thumbnails?limit=1");
+        if (!pre.total || pre.total === 0) {
+          await api.post("/admin/thumbnails/backfill");
+        }
+      } catch {/* non-fatal */}
+      // Health check — surface clear banner if AI gen is broken upstream.
+      try {
+        const { data: h } = await api.get("/admin/thumbnails/health");
+        setHealth(h);
+      } catch {/* non-fatal */}
       const params = new URLSearchParams();
       if (filterKind !== "all") params.set("kind", filterKind);
       if (filterCharacter !== "all") params.set("character", filterCharacter);
@@ -133,6 +148,17 @@ export default function AdminThumbnails() {
           />
         </div>
       </header>
+
+      {health && (!health.ai_key_configured || (health.storage_enabled && !health.storage_working) || !health.thumbs_dir_writable) && (
+        <div className="bg-red-50 border-2 border-red-300 rounded-2xl p-3 text-sm" data-testid="thumb-health-banner">
+          <div className="font-bold text-red-800 mb-1">⚠️ AI thumbnail system is unhealthy</div>
+          <ul className="text-red-700 space-y-0.5 ml-5 list-disc">
+            {!health.ai_key_configured && <li><b>EMERGENT_LLM_KEY not set</b> — generation will fail. Add the key in Profile → Universal Key, or contact Emergent Support.</li>}
+            {health.storage_enabled && !health.storage_working && <li><b>Persistent storage is configured but failing</b> — images may not survive deploys. Contact Emergent Support.</li>}
+            {!health.thumbs_dir_writable && <li><b>Upload directory is not writable</b> ({health.upload_dir}) — generation cannot save files. Contact Emergent Support.</li>}
+          </ul>
+        </div>
+      )}
 
       <div className="flex flex-wrap gap-2 items-center bg-white border-2 border-[#f4e4c6] rounded-2xl p-3">
         <Search className="w-4 h-4 text-[#5a6b76]" />
