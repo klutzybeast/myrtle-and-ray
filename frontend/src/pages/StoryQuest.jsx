@@ -149,11 +149,11 @@ function QuestRunner({ slug }) {
   const [mappings, setMappings] = useState(null);
   const [characters, setCharacters] = useState([]);
   const [stage, setStage] = useState("splash"); // splash | scene | reaction | finale
+  const [muted, setMuted] = useState(false);
   const [idx, setIdx] = useState(0);
   const [scores, setScores] = useState(emptyScores);
   const [picks, setPicks] = useState([]); // [{scene_number, scene_title, scene_id, narrator_slug, narrator_name, wave_principle, matched_narrator}]
   const [lastChoice, setLastChoice] = useState(null);
-  const [muted, setMuted] = useState(true);
   const [narrationDone, setNarrationDone] = useState(false);
   const [playerName, setPlayerName] = useState(() => {
     try { return (localStorage.getItem(NAME_KEY) || "").slice(0, 24); } catch { return ""; }
