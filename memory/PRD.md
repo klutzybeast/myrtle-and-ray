@@ -1134,3 +1134,52 @@ grid navigation), Before & After (sequence reasoning), Balance the Scales
   MathPond + EmotionMatch playthroughs earned badges and persisted.
 - Regression: 4 existing tiles (connect_dots, color_by_number,
   odd_one_out, hidden_objects) still open + render.
+
+## What's been implemented (2026-05-24 — Printify storefront sync)
+Live Printify shop integration unblocked! Auto-sync every product from
+the connected Printify shop (`PRINTIFY_SHOP_ID=27540836`) and render
+them on `/shop`. 4 products live: 2 insulated bottles + 2 kids' tees.
+
+### Architecture
+- **Backend** `/app/backend/printify_router.py` (new):
+  - `POST /api/printify/sync` (admin) — pulls every product from
+    Printify with pagination (up to 10 pages × 50). Idempotent upsert
+    into MongoDB `printify_products`. Preserves admin overrides
+    (`featured`, `hidden`, `etsy_url`) across syncs.
+  - `GET /api/printify/products` (public) — returns normalized product
+    list with smart `buy_url` (Etsy URL if set, else pop-up store).
+    5-minute in-memory cache, invalidated on sync OR any admin PATCH.
+  - `GET /api/printify/admin/products` (admin) — full docs.
+  - `PATCH /api/printify/admin/products/{id}` (admin) — toggle
+    `featured`/`hidden` or set `etsy_url`. URL validated against
+    `http(s)://` to prevent `javascript:` href injection.
+  - Re-sync guards against transient empty Printify responses (won't
+    auto-hide everything if the API hiccups). Separate `auto_unlisted`
+    flag distinguishes admin-hidden vs Printify-removed products.
+
+- **Frontend**:
+  - `/app/frontend/src/pages/admin/AdminPrintify.jsx` (new) — sidebar
+    item "Printify Shop", "Sync from Printify" button with spinner,
+    per-product feature/hide toggles, inline Etsy URL editor with
+    on-blur save and validation.
+  - `/app/frontend/src/components/PrintifyCard.jsx` (new) —
+    external-link card with Featured ★ badge.
+  - `/app/frontend/src/pages/Shop.jsx` — adds a "Fresh from the
+    Printify shop" section ABOVE the curated `products` section; both
+    coexist. Printify section filters by category tag, sorts by
+    price/featured.
+
+### Verified (iteration_19.json)
+- Backend pytest 14/14 PASS — sync against real Printify API, public
+  list shape, admin patch, smart-fallback buy_url, hidden flag,
+  override preservation across re-sync.
+- Frontend: 4 cards render with real Printify images + prices; admin
+  panel sync/feature/hide toggles all functional; no regression on
+  /admin/sing-along, /admin/products, /admin/activities.
+- 4 safety fixes applied post-review: URL validator, transient-sync
+  guard, auto_unlisted vs hidden split, toast-on-failure bug.
+
+### Credentials needed
+None new — `PRINTIFY_API_KEY` and `PRINTIFY_SHOP_ID` were already in
+backend `.env`. Admin login unchanged.
+

@@ -51,10 +51,17 @@ export default function AdminPrintify() {
     }
   };
 
-  const saveEtsyUrl = (id) => {
+  const saveEtsyUrl = async (id) => {
     const url = (editing[id] || "").trim();
-    patch(id, { etsy_url: url });
-    toast.success(url ? "Etsy URL saved" : "Etsy URL cleared");
+    try {
+      await api.patch(`/printify/admin/products/${id}`, { etsy_url: url });
+      toast.success(url ? "Etsy URL saved" : "Etsy URL cleared");
+      setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, etsy_url: url } : p)));
+    } catch (e) {
+      toast.error(e?.response?.data?.detail || "Invalid URL — must start with http(s)://");
+      // Roll back the input to the last saved value
+      setEditing((prev) => ({ ...prev, [id]: products.find((p) => p.id === id)?.etsy_url || "" }));
+    }
   };
 
   return (

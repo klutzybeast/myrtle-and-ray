@@ -238,12 +238,13 @@ def make_printify_router(db, require_admin):
                 },
                 upsert=True,
             )
-        # Mark products no longer on Printify as hidden (don't delete; keep
-        # admin overrides in case they reappear).
-        if synced_ids:
+        # Mark products no longer on Printify as auto-unlisted — but ONLY
+        # if the sync returned at least one product. A transient empty
+        # response from Printify must not hide every product on the site.
+        if synced_ids and len(raw) > 0:
             await db.printify_products.update_many(
-                {"id": {"$nin": synced_ids}},
-                {"$set": {"hidden": True, "unlisted_at": int(time.time())}},
+                {"id": {"$nin": synced_ids}, "auto_unlisted": {"$ne": True}},
+                {"$set": {"auto_unlisted": True, "hidden": True, "unlisted_at": int(time.time())}},
             )
         _public_cache.invalidate()
         return {"ok": True, "synced": len(synced_ids), "shop_id": shop_id}
@@ -260,8 +261,15 @@ def make_printify_router(db, require_admin):
             patch["featured"] = bool(body.featured)
         if body.hidden is not None:
             patch["hidden"] = bool(body.hidden)
+            # If the admin un-hides a product, clear the auto-unlist flag
+            # so the next sync doesn't immediately re-hide it.
+            if body.hidden is False:
+                patch["auto_unlisted"] = False
         if body.etsy_url is not None:
-            patch["etsy_url"] = body.etsy_url.strip()
+            url = body.etsy_url.strip()
+            if url and not (url.startswith("http://") or url.startswith("https://")):
+                raise HTTPException(status_code=400, detail="etsy_url must start with http:// or https://")
+            patch["etsy_url"] = url
         if not patch:
             return {"ok": True, "updated": False}
         res = await db.printify_products.update_one({"id": product_id}, {"$set": patch})
