@@ -1,5 +1,1284 @@
 {
   "model_id": "eleven_v3",
+  "version": 2,
+  "quests": {
+    "first-day-of-camp": [
+      {
+        "scene_number": 1,
+        "title": "Welcome to Stingray Cay",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "4646d171712b7d32bf36ee02b34d60a6b64933325b716a964fd3a5fdc3d22eca",
+        "audio_filename": "4646d171712b7d32bf36ee02b34d60a6b64933325b716a964fd3a5fdc3d22eca.mp3"
+      },
+      {
+        "scene_number": 2,
+        "title": "Meeting the Crew",
+        "narrator_slug": "ray",
+        "voice_id": "6OzrBCQf8cjERkYgzSg8",
+        "cache_key": "5642e366b152cca73acbe57738dc87b86440ef68ba45365be4a9f26a3f779a04",
+        "audio_filename": "5642e366b152cca73acbe57738dc87b86440ef68ba45365be4a9f26a3f779a04.mp3"
+      },
+      {
+        "scene_number": 3,
+        "title": "At the Tide Pool",
+        "narrator_slug": "casey",
+        "voice_id": "Uq9DKccXXKZ6lc53ATJV",
+        "cache_key": "9ba54c6c7c65e39c5b0ad8b85dfabf5b56ad1812f11d5f489b4f0e47b8ffb4fc",
+        "audio_filename": "9ba54c6c7c65e39c5b0ad8b85dfabf5b56ad1812f11d5f489b4f0e47b8ffb4fc.mp3"
+      },
+      {
+        "scene_number": 4,
+        "title": "Sami's Missing Snorkel",
+        "narrator_slug": "myrtle",
+        "voice_id": "Z3R5wn05IrDiVCyEkUrK",
+        "cache_key": "bf28372819616ecf6edd428a0e28ad27f8adf20171c63390218eae0cd0068253",
+        "audio_filename": "bf28372819616ecf6edd428a0e28ad27f8adf20171c63390218eae0cd0068253.mp3"
+      },
+      {
+        "scene_number": 5,
+        "title": "Lunchtime",
+        "narrator_slug": "louie",
+        "voice_id": "nucVFUFVgPmKHjgXNbJ7",
+        "cache_key": "319ee7575640449ea6d67621c640378873bf670525e69ecc1941e32f575932e9",
+        "audio_filename": "319ee7575640449ea6d67621c640378873bf670525e69ecc1941e32f575932e9.mp3"
+      },
+      {
+        "scene_number": 6,
+        "title": "The Big Wave",
+        "narrator_slug": "ray",
+        "voice_id": "6OzrBCQf8cjERkYgzSg8",
+        "cache_key": "388630240ac182a158257e356da900da10182beeb68669ed9b2c96ef5d81fff4",
+        "audio_filename": "388630240ac182a158257e356da900da10182beeb68669ed9b2c96ef5d81fff4.mp3"
+      },
+      {
+        "scene_number": 7,
+        "title": "Lost on the Beach",
+        "narrator_slug": "myrtle",
+        "voice_id": "Z3R5wn05IrDiVCyEkUrK",
+        "cache_key": "a497b2217c4376bf70c414093d154a953adb8de3df7b78ba4a649f6098d57703",
+        "audio_filename": "a497b2217c4376bf70c414093d154a953adb8de3df7b78ba4a649f6098d57703.mp3"
+      },
+      {
+        "scene_number": 8,
+        "title": "The Treasure Hunt",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "6c348f60eaf35c141a018f9dcd394b22c6dc4a99ac7d68733f7248bb38b9c911",
+        "audio_filename": "6c348f60eaf35c141a018f9dcd394b22c6dc4a99ac7d68733f7248bb38b9c911.mp3"
+      },
+      {
+        "scene_number": 9,
+        "title": "Meeting the Crew",
+        "narrator_slug": "sally",
+        "voice_id": "K7W7zLWeGoxU9YqWoB7A",
+        "cache_key": "0e85644d27babb214e30ad80b2c0ce1713a9f9770b5a15b27cd744e399004579",
+        "audio_filename": "0e85644d27babb214e30ad80b2c0ce1713a9f9770b5a15b27cd744e399004579.mp3"
+      },
+      {
+        "scene_number": 10,
+        "title": "Saying Goodbye for the Day",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "6639b0035c4faa93589df0d7a659cc2cf40ee66c3654b03b0192761c2f3c33a1",
+        "audio_filename": "6639b0035c4faa93589df0d7a659cc2cf40ee66c3654b03b0192761c2f3c33a1.mp3"
+      },
+      {
+        "scene_number": 11,
+        "title": "The W.A.V.E. Promise",
+        "narrator_slug": "myrtle",
+        "voice_id": "Z3R5wn05IrDiVCyEkUrK",
+        "cache_key": "92347c48bfd55c1700893904d00854e6182c8b2daef358288d93fc1bd50b0c05",
+        "audio_filename": "92347c48bfd55c1700893904d00854e6182c8b2daef358288d93fc1bd50b0c05.mp3"
+      },
+      {
+        "scene_number": 12,
+        "title": "Your Sea Star Reveal",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "5f3326c9356985d8b206ddf222f690f2ac26b3c784179b08f0297a54a843f397",
+        "audio_filename": "5f3326c9356985d8b206ddf222f690f2ac26b3c784179b08f0297a54a843f397.mp3"
+      }
+    ],
+    "lost-sea-glass-treasure": [
+      {
+        "scene_number": 1,
+        "title": "Ray's Empty Pocket",
+        "narrator_slug": "ray",
+        "voice_id": "6OzrBCQf8cjERkYgzSg8",
+        "cache_key": "718c7ea3116eb15fbe7eec53dae9fbbccd194e6115bea22c623d2d5086e29a29",
+        "audio_filename": "718c7ea3116eb15fbe7eec53dae9fbbccd194e6115bea22c623d2d5086e29a29.mp3"
+      },
+      {
+        "scene_number": 2,
+        "title": "Ray's Empty Pocket",
+        "narrator_slug": "ray",
+        "voice_id": "6OzrBCQf8cjERkYgzSg8",
+        "cache_key": "718c7ea3116eb15fbe7eec53dae9fbbccd194e6115bea22c623d2d5086e29a29",
+        "audio_filename": "718c7ea3116eb15fbe7eec53dae9fbbccd194e6115bea22c623d2d5086e29a29.mp3"
+      },
+      {
+        "scene_number": 3,
+        "title": "Casey's Tide Pool Clue",
+        "narrator_slug": "casey",
+        "voice_id": "Uq9DKccXXKZ6lc53ATJV",
+        "cache_key": "320afe8cd7f907b6d3b1c1b00f4265bf2342a968c7621ff58d975afe8450c1dd",
+        "audio_filename": "320afe8cd7f907b6d3b1c1b00f4265bf2342a968c7621ff58d975afe8450c1dd.mp3"
+      },
+      {
+        "scene_number": 4,
+        "title": "Ms Bluegill's Map",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "1f6ef4b86dcff3362322cd655116af9be7a28cbe78554802844aeca2f0c2c02b",
+        "audio_filename": "1f6ef4b86dcff3362322cd655116af9be7a28cbe78554802844aeca2f0c2c02b.mp3"
+      },
+      {
+        "scene_number": 5,
+        "title": "Ray Wants to Give Up",
+        "narrator_slug": "ray",
+        "voice_id": "6OzrBCQf8cjERkYgzSg8",
+        "cache_key": "fab18485f33ed36a1075e11b3180205f878fc18b582dc9dc306127b773245283",
+        "audio_filename": "fab18485f33ed36a1075e11b3180205f878fc18b582dc9dc306127b773245283.mp3"
+      },
+      {
+        "scene_number": 6,
+        "title": "Louie's Tracking Beat",
+        "narrator_slug": "louie",
+        "voice_id": "nucVFUFVgPmKHjgXNbJ7",
+        "cache_key": "8b720432c302d38de8ce5e4eb1ed070516051654d8bb85ee37044db44fcc2d3c",
+        "audio_filename": "8b720432c302d38de8ce5e4eb1ed070516051654d8bb85ee37044db44fcc2d3c.mp3"
+      },
+      {
+        "scene_number": 7,
+        "title": "The Last Pouch",
+        "narrator_slug": "myrtle",
+        "voice_id": "Z3R5wn05IrDiVCyEkUrK",
+        "cache_key": "50d2f05dd4cb8da6dfbd913e4f8c17d92fe7183585430814e1ddb82f774109a3",
+        "audio_filename": "50d2f05dd4cb8da6dfbd913e4f8c17d92fe7183585430814e1ddb82f774109a3.mp3"
+      },
+      {
+        "scene_number": 8,
+        "title": "Treasure Found",
+        "narrator_slug": "ray",
+        "voice_id": "6OzrBCQf8cjERkYgzSg8",
+        "cache_key": "f26ed81a1ba87a168f6153743429bcd13040c6350cded144aa928213d0268ebf",
+        "audio_filename": "f26ed81a1ba87a168f6153743429bcd13040c6350cded144aa928213d0268ebf.mp3"
+      },
+      {
+        "scene_number": 10,
+        "title": "Ray's Empty Pocket",
+        "narrator_slug": "ray",
+        "voice_id": "6OzrBCQf8cjERkYgzSg8",
+        "cache_key": "718c7ea3116eb15fbe7eec53dae9fbbccd194e6115bea22c623d2d5086e29a29",
+        "audio_filename": "718c7ea3116eb15fbe7eec53dae9fbbccd194e6115bea22c623d2d5086e29a29.mp3"
+      },
+      {
+        "scene_number": 10,
+        "title": "Ray's Empty Pocket",
+        "narrator_slug": "ray",
+        "voice_id": "6OzrBCQf8cjERkYgzSg8",
+        "cache_key": "718c7ea3116eb15fbe7eec53dae9fbbccd194e6115bea22c623d2d5086e29a29",
+        "audio_filename": "718c7ea3116eb15fbe7eec53dae9fbbccd194e6115bea22c623d2d5086e29a29.mp3"
+      },
+      {
+        "scene_number": 11,
+        "title": "Ray's Empty Pocket",
+        "narrator_slug": "ray",
+        "voice_id": "6OzrBCQf8cjERkYgzSg8",
+        "cache_key": "718c7ea3116eb15fbe7eec53dae9fbbccd194e6115bea22c623d2d5086e29a29",
+        "audio_filename": "718c7ea3116eb15fbe7eec53dae9fbbccd194e6115bea22c623d2d5086e29a29.mp3"
+      },
+      {
+        "scene_number": 11,
+        "title": "Ray's Empty Pocket",
+        "narrator_slug": "ray",
+        "voice_id": "6OzrBCQf8cjERkYgzSg8",
+        "cache_key": "718c7ea3116eb15fbe7eec53dae9fbbccd194e6115bea22c623d2d5086e29a29",
+        "audio_filename": "718c7ea3116eb15fbe7eec53dae9fbbccd194e6115bea22c623d2d5086e29a29.mp3"
+      },
+      {
+        "scene_number": 11,
+        "title": "Ray's Empty Pocket",
+        "narrator_slug": "ray",
+        "voice_id": "6OzrBCQf8cjERkYgzSg8",
+        "cache_key": "718c7ea3116eb15fbe7eec53dae9fbbccd194e6115bea22c623d2d5086e29a29",
+        "audio_filename": "718c7ea3116eb15fbe7eec53dae9fbbccd194e6115bea22c623d2d5086e29a29.mp3"
+      },
+      {
+        "scene_number": 12,
+        "title": "Footprints in the Sand",
+        "narrator_slug": "myrtle",
+        "voice_id": "Z3R5wn05IrDiVCyEkUrK",
+        "cache_key": "53d1add269ba74b3c9f243a82e8ba32185db758c81a70c7ea517e712e53702b6",
+        "audio_filename": "53d1add269ba74b3c9f243a82e8ba32185db758c81a70c7ea517e712e53702b6.mp3"
+      },
+      {
+        "scene_number": 12,
+        "title": "Casey's Tide Pool Clue",
+        "narrator_slug": "casey",
+        "voice_id": "Uq9DKccXXKZ6lc53ATJV",
+        "cache_key": "320afe8cd7f907b6d3b1c1b00f4265bf2342a968c7621ff58d975afe8450c1dd",
+        "audio_filename": "320afe8cd7f907b6d3b1c1b00f4265bf2342a968c7621ff58d975afe8450c1dd.mp3"
+      },
+      {
+        "scene_number": 12,
+        "title": "Footprints in the Sand",
+        "narrator_slug": "myrtle",
+        "voice_id": "Z3R5wn05IrDiVCyEkUrK",
+        "cache_key": "53d1add269ba74b3c9f243a82e8ba32185db758c81a70c7ea517e712e53702b6",
+        "audio_filename": "53d1add269ba74b3c9f243a82e8ba32185db758c81a70c7ea517e712e53702b6.mp3"
+      },
+      {
+        "scene_number": 12,
+        "title": "Footprints in the Sand",
+        "narrator_slug": "myrtle",
+        "voice_id": "Z3R5wn05IrDiVCyEkUrK",
+        "cache_key": "53d1add269ba74b3c9f243a82e8ba32185db758c81a70c7ea517e712e53702b6",
+        "audio_filename": "53d1add269ba74b3c9f243a82e8ba32185db758c81a70c7ea517e712e53702b6.mp3"
+      }
+    ],
+    "storm-at-stingray-cay": [
+      {
+        "scene_number": 1,
+        "title": "Clouds Rolling In",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "a5de2338fd44f2da162bce40747a9f5ad26d6a386b319c3869d9304abdb93b0a",
+        "audio_filename": "a5de2338fd44f2da162bce40747a9f5ad26d6a386b319c3869d9304abdb93b0a.mp3"
+      },
+      {
+        "scene_number": 2,
+        "title": "Ray's Surfboard",
+        "narrator_slug": "ray",
+        "voice_id": "6OzrBCQf8cjERkYgzSg8",
+        "cache_key": "5f7119acb7467eb8b447f035aef2908728e30142a3e31d6bae792a5e03744690",
+        "audio_filename": "5f7119acb7467eb8b447f035aef2908728e30142a3e31d6bae792a5e03744690.mp3"
+      },
+      {
+        "scene_number": 3,
+        "title": "Myrtle's Slow Pace",
+        "narrator_slug": "myrtle",
+        "voice_id": "Z3R5wn05IrDiVCyEkUrK",
+        "cache_key": "dc235df69a9026fe2d2bbca2e2cc950f6bc2ea99fed337beda3e5336a16c534f",
+        "audio_filename": "dc235df69a9026fe2d2bbca2e2cc950f6bc2ea99fed337beda3e5336a16c534f.mp3"
+      },
+      {
+        "scene_number": 3,
+        "title": "Clouds Rolling In",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "a5de2338fd44f2da162bce40747a9f5ad26d6a386b319c3869d9304abdb93b0a",
+        "audio_filename": "a5de2338fd44f2da162bce40747a9f5ad26d6a386b319c3869d9304abdb93b0a.mp3"
+      },
+      {
+        "scene_number": 3,
+        "title": "Clouds Rolling In",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "a5de2338fd44f2da162bce40747a9f5ad26d6a386b319c3869d9304abdb93b0a",
+        "audio_filename": "a5de2338fd44f2da162bce40747a9f5ad26d6a386b319c3869d9304abdb93b0a.mp3"
+      },
+      {
+        "scene_number": 3,
+        "title": "Clouds Rolling In",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "a5de2338fd44f2da162bce40747a9f5ad26d6a386b319c3869d9304abdb93b0a",
+        "audio_filename": "a5de2338fd44f2da162bce40747a9f5ad26d6a386b319c3869d9304abdb93b0a.mp3"
+      },
+      {
+        "scene_number": 3,
+        "title": "Clouds Rolling In",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "a5de2338fd44f2da162bce40747a9f5ad26d6a386b319c3869d9304abdb93b0a",
+        "audio_filename": "a5de2338fd44f2da162bce40747a9f5ad26d6a386b319c3869d9304abdb93b0a.mp3"
+      },
+      {
+        "scene_number": 3,
+        "title": "Clouds Rolling In",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "a5de2338fd44f2da162bce40747a9f5ad26d6a386b319c3869d9304abdb93b0a",
+        "audio_filename": "a5de2338fd44f2da162bce40747a9f5ad26d6a386b319c3869d9304abdb93b0a.mp3"
+      },
+      {
+        "scene_number": 4,
+        "title": "Casey Spots Something",
+        "narrator_slug": "casey",
+        "voice_id": "Uq9DKccXXKZ6lc53ATJV",
+        "cache_key": "1a774752925530ba70b684367ad1eaee939c39a78ac6104a824fc07f6dc615ad",
+        "audio_filename": "1a774752925530ba70b684367ad1eaee939c39a78ac6104a824fc07f6dc615ad.mp3"
+      },
+      {
+        "scene_number": 5,
+        "title": "Inside the Lodge",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "912f23eeb4fe7a43352b64ccf8e9cea21792d53acafb654d4017022507ad9429",
+        "audio_filename": "912f23eeb4fe7a43352b64ccf8e9cea21792d53acafb654d4017022507ad9429.mp3"
+      },
+      {
+        "scene_number": 6,
+        "title": "Sally Cries",
+        "narrator_slug": "sally",
+        "voice_id": "K7W7zLWeGoxU9YqWoB7A",
+        "cache_key": "6c42d27b326039758742436f9a53d6cef218ae7a81494dbe2d94eec2de56c8b3",
+        "audio_filename": "6c42d27b326039758742436f9a53d6cef218ae7a81494dbe2d94eec2de56c8b3.mp3"
+      },
+      {
+        "scene_number": 7,
+        "title": "The Rain Lets Up",
+        "narrator_slug": "myrtle",
+        "voice_id": "Z3R5wn05IrDiVCyEkUrK",
+        "cache_key": "f72121d95dc98b3d80186f6b2a76c78e1cbd0578d852df5ae2f3973b655da019",
+        "audio_filename": "f72121d95dc98b3d80186f6b2a76c78e1cbd0578d852df5ae2f3973b655da019.mp3"
+      },
+      {
+        "scene_number": 8,
+        "title": "After the Storm",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "cce09f8e8dd34cd72a4808344b3d0d9b3f8b343dc21b3d2bff9b9fa33e59e936",
+        "audio_filename": "cce09f8e8dd34cd72a4808344b3d0d9b3f8b343dc21b3d2bff9b9fa33e59e936.mp3"
+      },
+      {
+        "scene_number": 11,
+        "title": "Ray's Surfboard",
+        "narrator_slug": "ray",
+        "voice_id": "6OzrBCQf8cjERkYgzSg8",
+        "cache_key": "5f7119acb7467eb8b447f035aef2908728e30142a3e31d6bae792a5e03744690",
+        "audio_filename": "5f7119acb7467eb8b447f035aef2908728e30142a3e31d6bae792a5e03744690.mp3"
+      },
+      {
+        "scene_number": 12,
+        "title": "Clouds Rolling In",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "a5de2338fd44f2da162bce40747a9f5ad26d6a386b319c3869d9304abdb93b0a",
+        "audio_filename": "a5de2338fd44f2da162bce40747a9f5ad26d6a386b319c3869d9304abdb93b0a.mp3"
+      },
+      {
+        "scene_number": 12,
+        "title": "Ray's Surfboard",
+        "narrator_slug": "ray",
+        "voice_id": "6OzrBCQf8cjERkYgzSg8",
+        "cache_key": "5f7119acb7467eb8b447f035aef2908728e30142a3e31d6bae792a5e03744690",
+        "audio_filename": "5f7119acb7467eb8b447f035aef2908728e30142a3e31d6bae792a5e03744690.mp3"
+      }
+    ],
+    "first-camp-talent-show": [
+      {
+        "scene_number": 1,
+        "title": "The Stage is Set",
+        "narrator_slug": "louie",
+        "voice_id": "nucVFUFVgPmKHjgXNbJ7",
+        "cache_key": "2b540d149f0a2bc2d02abf7a1f0a1348a88345ee49418d0eb5e809da09fb41b9",
+        "audio_filename": "2b540d149f0a2bc2d02abf7a1f0a1348a88345ee49418d0eb5e809da09fb41b9.mp3"
+      },
+      {
+        "scene_number": 2,
+        "title": "Sally Wants to Hide",
+        "narrator_slug": "sally",
+        "voice_id": "K7W7zLWeGoxU9YqWoB7A",
+        "cache_key": "46a9647b88e07eaa84be6abd217ff026fa84b4b0403abaae7e7277043ef5018b",
+        "audio_filename": "46a9647b88e07eaa84be6abd217ff026fa84b4b0403abaae7e7277043ef5018b.mp3"
+      },
+      {
+        "scene_number": 3,
+        "title": "Louie's New Beat",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "dfa83c62f82fa109caffd25cf1d701373df2eea7ae7c56ddc4f5a40de7e6e449",
+        "audio_filename": "dfa83c62f82fa109caffd25cf1d701373df2eea7ae7c56ddc4f5a40de7e6e449.mp3"
+      },
+      {
+        "scene_number": 4,
+        "title": "The Stage is Set",
+        "narrator_slug": "louie",
+        "voice_id": "nucVFUFVgPmKHjgXNbJ7",
+        "cache_key": "2b540d149f0a2bc2d02abf7a1f0a1348a88345ee49418d0eb5e809da09fb41b9",
+        "audio_filename": "2b540d149f0a2bc2d02abf7a1f0a1348a88345ee49418d0eb5e809da09fb41b9.mp3"
+      },
+      {
+        "scene_number": 4,
+        "title": "Ms Bluegill's Surprise",
+        "narrator_slug": "louie",
+        "voice_id": "nucVFUFVgPmKHjgXNbJ7",
+        "cache_key": "382be0cf53a6877c170572c1db7c90225645fd5e7d10514c99e4a32efc8c8973",
+        "audio_filename": "382be0cf53a6877c170572c1db7c90225645fd5e7d10514c99e4a32efc8c8973.mp3"
+      },
+      {
+        "scene_number": 4,
+        "title": "The Stage is Set",
+        "narrator_slug": "louie",
+        "voice_id": "nucVFUFVgPmKHjgXNbJ7",
+        "cache_key": "2b540d149f0a2bc2d02abf7a1f0a1348a88345ee49418d0eb5e809da09fb41b9",
+        "audio_filename": "2b540d149f0a2bc2d02abf7a1f0a1348a88345ee49418d0eb5e809da09fb41b9.mp3"
+      },
+      {
+        "scene_number": 4,
+        "title": "The Stage is Set",
+        "narrator_slug": "louie",
+        "voice_id": "nucVFUFVgPmKHjgXNbJ7",
+        "cache_key": "2b540d149f0a2bc2d02abf7a1f0a1348a88345ee49418d0eb5e809da09fb41b9",
+        "audio_filename": "2b540d149f0a2bc2d02abf7a1f0a1348a88345ee49418d0eb5e809da09fb41b9.mp3"
+      },
+      {
+        "scene_number": 4,
+        "title": "The Stage is Set",
+        "narrator_slug": "louie",
+        "voice_id": "nucVFUFVgPmKHjgXNbJ7",
+        "cache_key": "2b540d149f0a2bc2d02abf7a1f0a1348a88345ee49418d0eb5e809da09fb41b9",
+        "audio_filename": "2b540d149f0a2bc2d02abf7a1f0a1348a88345ee49418d0eb5e809da09fb41b9.mp3"
+      },
+      {
+        "scene_number": 4,
+        "title": "The Stage is Set",
+        "narrator_slug": "louie",
+        "voice_id": "nucVFUFVgPmKHjgXNbJ7",
+        "cache_key": "2b540d149f0a2bc2d02abf7a1f0a1348a88345ee49418d0eb5e809da09fb41b9",
+        "audio_filename": "2b540d149f0a2bc2d02abf7a1f0a1348a88345ee49418d0eb5e809da09fb41b9.mp3"
+      },
+      {
+        "scene_number": 4,
+        "title": "The Stage is Set",
+        "narrator_slug": "louie",
+        "voice_id": "nucVFUFVgPmKHjgXNbJ7",
+        "cache_key": "2b540d149f0a2bc2d02abf7a1f0a1348a88345ee49418d0eb5e809da09fb41b9",
+        "audio_filename": "2b540d149f0a2bc2d02abf7a1f0a1348a88345ee49418d0eb5e809da09fb41b9.mp3"
+      },
+      {
+        "scene_number": 5,
+        "title": "The First Mistake",
+        "narrator_slug": "myrtle",
+        "voice_id": "Z3R5wn05IrDiVCyEkUrK",
+        "cache_key": "0db0ba20d1f3cd300515db3ac740bacaa666097fbf3df64544c053efc91510ee",
+        "audio_filename": "0db0ba20d1f3cd300515db3ac740bacaa666097fbf3df64544c053efc91510ee.mp3"
+      },
+      {
+        "scene_number": 6,
+        "title": "Ollie's Big Cheer",
+        "narrator_slug": "ollie",
+        "voice_id": "q0IMILNRPxOgtBTS4taI",
+        "cache_key": "9ed3feeef2a152ad02f40957bfde4483271aac2cfb8630e538579886e463f90b",
+        "audio_filename": "9ed3feeef2a152ad02f40957bfde4483271aac2cfb8630e538579886e463f90b.mp3"
+      },
+      {
+        "scene_number": 7,
+        "title": "Showtime!",
+        "narrator_slug": "sally",
+        "voice_id": "K7W7zLWeGoxU9YqWoB7A",
+        "cache_key": "77f78121469c0a2c54d0fe8e62d5099be9e97738284b0acf587c7da9e63847ef",
+        "audio_filename": "77f78121469c0a2c54d0fe8e62d5099be9e97738284b0acf587c7da9e63847ef.mp3"
+      },
+      {
+        "scene_number": 8,
+        "title": "Bow Together",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "a9565ac6abb7946fef83eb78d5012babc0b8982510c6eaa631c1b050dbfaf76f",
+        "audio_filename": "a9565ac6abb7946fef83eb78d5012babc0b8982510c6eaa631c1b050dbfaf76f.mp3"
+      },
+      {
+        "scene_number": 11,
+        "title": "Sally Wants to Hide",
+        "narrator_slug": "sally",
+        "voice_id": "K7W7zLWeGoxU9YqWoB7A",
+        "cache_key": "46a9647b88e07eaa84be6abd217ff026fa84b4b0403abaae7e7277043ef5018b",
+        "audio_filename": "46a9647b88e07eaa84be6abd217ff026fa84b4b0403abaae7e7277043ef5018b.mp3"
+      },
+      {
+        "scene_number": 11,
+        "title": "Sally Wants to Hide",
+        "narrator_slug": "sally",
+        "voice_id": "K7W7zLWeGoxU9YqWoB7A",
+        "cache_key": "46a9647b88e07eaa84be6abd217ff026fa84b4b0403abaae7e7277043ef5018b",
+        "audio_filename": "46a9647b88e07eaa84be6abd217ff026fa84b4b0403abaae7e7277043ef5018b.mp3"
+      }
+    ],
+    "tide-pool-mystery": [
+      {
+        "scene_number": 1,
+        "title": "Something Blue",
+        "narrator_slug": "casey",
+        "voice_id": "Uq9DKccXXKZ6lc53ATJV",
+        "cache_key": "2d862b458f7cf00d547a2feae6e4a8449bdbff8a302b008a86d78cbfde4558da",
+        "audio_filename": "2d862b458f7cf00d547a2feae6e4a8449bdbff8a302b008a86d78cbfde4558da.mp3"
+      },
+      {
+        "scene_number": 2,
+        "title": "It's a... Hat?",
+        "narrator_slug": "myrtle",
+        "voice_id": "Z3R5wn05IrDiVCyEkUrK",
+        "cache_key": "32b711945a414780d96771f4dedf492415c3a0eccd504cb5321646b42cb5634f",
+        "audio_filename": "32b711945a414780d96771f4dedf492415c3a0eccd504cb5321646b42cb5634f.mp3"
+      },
+      {
+        "scene_number": 3,
+        "title": "It's a... Hat?",
+        "narrator_slug": "myrtle",
+        "voice_id": "Z3R5wn05IrDiVCyEkUrK",
+        "cache_key": "32b711945a414780d96771f4dedf492415c3a0eccd504cb5321646b42cb5634f",
+        "audio_filename": "32b711945a414780d96771f4dedf492415c3a0eccd504cb5321646b42cb5634f.mp3"
+      },
+      {
+        "scene_number": 3,
+        "title": "Who Lost the Hat?",
+        "narrator_slug": "casey",
+        "voice_id": "Uq9DKccXXKZ6lc53ATJV",
+        "cache_key": "0ac5cc7b3700dd6f04c2a84bc543d69e180dbe2c6c86b4c2741591894f784f65",
+        "audio_filename": "0ac5cc7b3700dd6f04c2a84bc543d69e180dbe2c6c86b4c2741591894f784f65.mp3"
+      },
+      {
+        "scene_number": 3,
+        "title": "It's a... Hat?",
+        "narrator_slug": "myrtle",
+        "voice_id": "Z3R5wn05IrDiVCyEkUrK",
+        "cache_key": "32b711945a414780d96771f4dedf492415c3a0eccd504cb5321646b42cb5634f",
+        "audio_filename": "32b711945a414780d96771f4dedf492415c3a0eccd504cb5321646b42cb5634f.mp3"
+      },
+      {
+        "scene_number": 4,
+        "title": "Ms Bluegill Has Records",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "94ff5031e48a90a34427c7480aaff9f0826b4547f99ee8722fa993262d89504f",
+        "audio_filename": "94ff5031e48a90a34427c7480aaff9f0826b4547f99ee8722fa993262d89504f.mp3"
+      },
+      {
+        "scene_number": 5,
+        "title": "Something Blue",
+        "narrator_slug": "casey",
+        "voice_id": "Uq9DKccXXKZ6lc53ATJV",
+        "cache_key": "2d862b458f7cf00d547a2feae6e4a8449bdbff8a302b008a86d78cbfde4558da",
+        "audio_filename": "2d862b458f7cf00d547a2feae6e4a8449bdbff8a302b008a86d78cbfde4558da.mp3"
+      },
+      {
+        "scene_number": 5,
+        "title": "A Sad Camper",
+        "narrator_slug": "casey",
+        "voice_id": "Uq9DKccXXKZ6lc53ATJV",
+        "cache_key": "c098d8a3bc1daaad10d29550c908017cf8febb2d7fc30dd9496faa4c74e449b6",
+        "audio_filename": "c098d8a3bc1daaad10d29550c908017cf8febb2d7fc30dd9496faa4c74e449b6.mp3"
+      },
+      {
+        "scene_number": 5,
+        "title": "Something Blue",
+        "narrator_slug": "casey",
+        "voice_id": "Uq9DKccXXKZ6lc53ATJV",
+        "cache_key": "2d862b458f7cf00d547a2feae6e4a8449bdbff8a302b008a86d78cbfde4558da",
+        "audio_filename": "2d862b458f7cf00d547a2feae6e4a8449bdbff8a302b008a86d78cbfde4558da.mp3"
+      },
+      {
+        "scene_number": 5,
+        "title": "Something Blue",
+        "narrator_slug": "casey",
+        "voice_id": "Uq9DKccXXKZ6lc53ATJV",
+        "cache_key": "2d862b458f7cf00d547a2feae6e4a8449bdbff8a302b008a86d78cbfde4558da",
+        "audio_filename": "2d862b458f7cf00d547a2feae6e4a8449bdbff8a302b008a86d78cbfde4558da.mp3"
+      },
+      {
+        "scene_number": 5,
+        "title": "Something Blue",
+        "narrator_slug": "casey",
+        "voice_id": "Uq9DKccXXKZ6lc53ATJV",
+        "cache_key": "2d862b458f7cf00d547a2feae6e4a8449bdbff8a302b008a86d78cbfde4558da",
+        "audio_filename": "2d862b458f7cf00d547a2feae6e4a8449bdbff8a302b008a86d78cbfde4558da.mp3"
+      },
+      {
+        "scene_number": 5,
+        "title": "Something Blue",
+        "narrator_slug": "casey",
+        "voice_id": "Uq9DKccXXKZ6lc53ATJV",
+        "cache_key": "2d862b458f7cf00d547a2feae6e4a8449bdbff8a302b008a86d78cbfde4558da",
+        "audio_filename": "2d862b458f7cf00d547a2feae6e4a8449bdbff8a302b008a86d78cbfde4558da.mp3"
+      },
+      {
+        "scene_number": 5,
+        "title": "Something Blue",
+        "narrator_slug": "casey",
+        "voice_id": "Uq9DKccXXKZ6lc53ATJV",
+        "cache_key": "2d862b458f7cf00d547a2feae6e4a8449bdbff8a302b008a86d78cbfde4558da",
+        "audio_filename": "2d862b458f7cf00d547a2feae6e4a8449bdbff8a302b008a86d78cbfde4558da.mp3"
+      },
+      {
+        "scene_number": 6,
+        "title": "Ray Wants Credit",
+        "narrator_slug": "ray",
+        "voice_id": "6OzrBCQf8cjERkYgzSg8",
+        "cache_key": "71fb027a00a96d5aa081f7b3f2e617ec1794805daea0e89b2500dbec2d11306f",
+        "audio_filename": "71fb027a00a96d5aa081f7b3f2e617ec1794805daea0e89b2500dbec2d11306f.mp3"
+      },
+      {
+        "scene_number": 7,
+        "title": "Tide Pool Promise",
+        "narrator_slug": "sally",
+        "voice_id": "K7W7zLWeGoxU9YqWoB7A",
+        "cache_key": "78a264275eb240b68b773b934ead74b4e4d95b609212441744c4e383402b09a3",
+        "audio_filename": "78a264275eb240b68b773b934ead74b4e4d95b609212441744c4e383402b09a3.mp3"
+      },
+      {
+        "scene_number": 8,
+        "title": "Curious Forever",
+        "narrator_slug": "casey",
+        "voice_id": "Uq9DKccXXKZ6lc53ATJV",
+        "cache_key": "fab5a60fd3337f12b89d106c7b53b989c87bcf2b08524e1b42d9fb79e95c196d",
+        "audio_filename": "fab5a60fd3337f12b89d106c7b53b989c87bcf2b08524e1b42d9fb79e95c196d.mp3"
+      }
+    ],
+    "race-to-the-lighthouse": [
+      {
+        "scene_number": 1,
+        "title": "On Your Marks",
+        "narrator_slug": "ray",
+        "voice_id": "6OzrBCQf8cjERkYgzSg8",
+        "cache_key": "6fb497c7fb5c1ce16ab80959c23b1097bb5e6da5657923be89a8111369f3f206",
+        "audio_filename": "6fb497c7fb5c1ce16ab80959c23b1097bb5e6da5657923be89a8111369f3f206.mp3"
+      },
+      {
+        "scene_number": 2,
+        "title": "Sami Slips",
+        "narrator_slug": "myrtle",
+        "voice_id": "Z3R5wn05IrDiVCyEkUrK",
+        "cache_key": "e189a8a0f3a376cd5b876f85f6d6c1c3a954b8ce372f03f72843844ce4bc8059",
+        "audio_filename": "e189a8a0f3a376cd5b876f85f6d6c1c3a954b8ce372f03f72843844ce4bc8059.mp3"
+      },
+      {
+        "scene_number": 3,
+        "title": "Ray's Choice",
+        "narrator_slug": "ray",
+        "voice_id": "6OzrBCQf8cjERkYgzSg8",
+        "cache_key": "bab302047e04d7259b045cb636e6a48c8edfec3ee2837af92cb3f494e6791dd1",
+        "audio_filename": "bab302047e04d7259b045cb636e6a48c8edfec3ee2837af92cb3f494e6791dd1.mp3"
+      },
+      {
+        "scene_number": 4,
+        "title": "Sami Slips",
+        "narrator_slug": "myrtle",
+        "voice_id": "Z3R5wn05IrDiVCyEkUrK",
+        "cache_key": "e189a8a0f3a376cd5b876f85f6d6c1c3a954b8ce372f03f72843844ce4bc8059",
+        "audio_filename": "e189a8a0f3a376cd5b876f85f6d6c1c3a954b8ce372f03f72843844ce4bc8059.mp3"
+      },
+      {
+        "scene_number": 4,
+        "title": "Casey's Crab Crossing",
+        "narrator_slug": "casey",
+        "voice_id": "Uq9DKccXXKZ6lc53ATJV",
+        "cache_key": "ada9dea4735c396d7b865d30032d73db907e22969f05f90da260701861a0163b",
+        "audio_filename": "ada9dea4735c396d7b865d30032d73db907e22969f05f90da260701861a0163b.mp3"
+      },
+      {
+        "scene_number": 4,
+        "title": "Sami Slips",
+        "narrator_slug": "myrtle",
+        "voice_id": "Z3R5wn05IrDiVCyEkUrK",
+        "cache_key": "e189a8a0f3a376cd5b876f85f6d6c1c3a954b8ce372f03f72843844ce4bc8059",
+        "audio_filename": "e189a8a0f3a376cd5b876f85f6d6c1c3a954b8ce372f03f72843844ce4bc8059.mp3"
+      },
+      {
+        "scene_number": 5,
+        "title": "Ollie's Cheer From Below",
+        "narrator_slug": "ollie",
+        "voice_id": "q0IMILNRPxOgtBTS4taI",
+        "cache_key": "3a9d3c32f6df47ea2040691fb0bca212feadf8ba4f120d26b95fb0545ae8d910",
+        "audio_filename": "3a9d3c32f6df47ea2040691fb0bca212feadf8ba4f120d26b95fb0545ae8d910.mp3"
+      },
+      {
+        "scene_number": 6,
+        "title": "On Your Marks",
+        "narrator_slug": "ray",
+        "voice_id": "6OzrBCQf8cjERkYgzSg8",
+        "cache_key": "6fb497c7fb5c1ce16ab80959c23b1097bb5e6da5657923be89a8111369f3f206",
+        "audio_filename": "6fb497c7fb5c1ce16ab80959c23b1097bb5e6da5657923be89a8111369f3f206.mp3"
+      },
+      {
+        "scene_number": 6,
+        "title": "Myrtle on the Stairs",
+        "narrator_slug": "myrtle",
+        "voice_id": "Z3R5wn05IrDiVCyEkUrK",
+        "cache_key": "302ae3914a0c42a95239e4f71d5b6fc48dd5373d6cada8c1d712f0138d57aa6a",
+        "audio_filename": "302ae3914a0c42a95239e4f71d5b6fc48dd5373d6cada8c1d712f0138d57aa6a.mp3"
+      },
+      {
+        "scene_number": 6,
+        "title": "On Your Marks",
+        "narrator_slug": "ray",
+        "voice_id": "6OzrBCQf8cjERkYgzSg8",
+        "cache_key": "6fb497c7fb5c1ce16ab80959c23b1097bb5e6da5657923be89a8111369f3f206",
+        "audio_filename": "6fb497c7fb5c1ce16ab80959c23b1097bb5e6da5657923be89a8111369f3f206.mp3"
+      },
+      {
+        "scene_number": 6,
+        "title": "On Your Marks",
+        "narrator_slug": "ray",
+        "voice_id": "6OzrBCQf8cjERkYgzSg8",
+        "cache_key": "6fb497c7fb5c1ce16ab80959c23b1097bb5e6da5657923be89a8111369f3f206",
+        "audio_filename": "6fb497c7fb5c1ce16ab80959c23b1097bb5e6da5657923be89a8111369f3f206.mp3"
+      },
+      {
+        "scene_number": 6,
+        "title": "On Your Marks",
+        "narrator_slug": "ray",
+        "voice_id": "6OzrBCQf8cjERkYgzSg8",
+        "cache_key": "6fb497c7fb5c1ce16ab80959c23b1097bb5e6da5657923be89a8111369f3f206",
+        "audio_filename": "6fb497c7fb5c1ce16ab80959c23b1097bb5e6da5657923be89a8111369f3f206.mp3"
+      },
+      {
+        "scene_number": 6,
+        "title": "On Your Marks",
+        "narrator_slug": "ray",
+        "voice_id": "6OzrBCQf8cjERkYgzSg8",
+        "cache_key": "6fb497c7fb5c1ce16ab80959c23b1097bb5e6da5657923be89a8111369f3f206",
+        "audio_filename": "6fb497c7fb5c1ce16ab80959c23b1097bb5e6da5657923be89a8111369f3f206.mp3"
+      },
+      {
+        "scene_number": 6,
+        "title": "On Your Marks",
+        "narrator_slug": "ray",
+        "voice_id": "6OzrBCQf8cjERkYgzSg8",
+        "cache_key": "6fb497c7fb5c1ce16ab80959c23b1097bb5e6da5657923be89a8111369f3f206",
+        "audio_filename": "6fb497c7fb5c1ce16ab80959c23b1097bb5e6da5657923be89a8111369f3f206.mp3"
+      },
+      {
+        "scene_number": 7,
+        "title": "The Top",
+        "narrator_slug": "ray",
+        "voice_id": "6OzrBCQf8cjERkYgzSg8",
+        "cache_key": "d1b68851026286f902a4ae15851c52978b538381f6ea21efa0679408551ae1b0",
+        "audio_filename": "d1b68851026286f902a4ae15851c52978b538381f6ea21efa0679408551ae1b0.mp3"
+      },
+      {
+        "scene_number": 8,
+        "title": "Race Won, Friends Kept",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "2f28faac795628f37cd614d2dbcb2d4266871ccbe9dd10d52b158aee001e261e",
+        "audio_filename": "2f28faac795628f37cd614d2dbcb2d4266871ccbe9dd10d52b158aee001e261e.mp3"
+      }
+    ],
+    "captain-for-a-day": [
+      {
+        "scene_number": 1,
+        "title": "The Captain's Hat",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "67204bad94ced3886516f8943472d57e3b085830a344156666adf8dd65a64141",
+        "audio_filename": "67204bad94ced3886516f8943472d57e3b085830a344156666adf8dd65a64141.mp3"
+      },
+      {
+        "scene_number": 2,
+        "title": "Plotting the Course",
+        "narrator_slug": "ray",
+        "voice_id": "6OzrBCQf8cjERkYgzSg8",
+        "cache_key": "d1a69629f46ad4eb47dac64e5720cd713b8ae8e4979879d2e090666b8786ef2f",
+        "audio_filename": "d1a69629f46ad4eb47dac64e5720cd713b8ae8e4979879d2e090666b8786ef2f.mp3"
+      },
+      {
+        "scene_number": 3,
+        "title": "Myrtle Pauses",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "2078ecffb2f482c519d7bd869521fdd37e857d9179c2dbc93a38f6e5a671520c",
+        "audio_filename": "2078ecffb2f482c519d7bd869521fdd37e857d9179c2dbc93a38f6e5a671520c.mp3"
+      },
+      {
+        "scene_number": 4,
+        "title": "Casey's Tide Pool Plan",
+        "narrator_slug": "myrtle",
+        "voice_id": "Z3R5wn05IrDiVCyEkUrK",
+        "cache_key": "a565af04106e5e4e121cac4a60ceba667d3cc02c9291d4ce379bc25532da9e3c",
+        "audio_filename": "a565af04106e5e4e121cac4a60ceba667d3cc02c9291d4ce379bc25532da9e3c.mp3"
+      },
+      {
+        "scene_number": 5,
+        "title": "Plotting the Course",
+        "narrator_slug": "ray",
+        "voice_id": "6OzrBCQf8cjERkYgzSg8",
+        "cache_key": "d1a69629f46ad4eb47dac64e5720cd713b8ae8e4979879d2e090666b8786ef2f",
+        "audio_filename": "d1a69629f46ad4eb47dac64e5720cd713b8ae8e4979879d2e090666b8786ef2f.mp3"
+      },
+      {
+        "scene_number": 5,
+        "title": "Sally's Picnic",
+        "narrator_slug": "casey",
+        "voice_id": "Uq9DKccXXKZ6lc53ATJV",
+        "cache_key": "ab6c537c46902e7ee42a42666f6c8864c81d9def2903766764f2a595c6322455",
+        "audio_filename": "ab6c537c46902e7ee42a42666f6c8864c81d9def2903766764f2a595c6322455.mp3"
+      },
+      {
+        "scene_number": 5,
+        "title": "Plotting the Course",
+        "narrator_slug": "ray",
+        "voice_id": "6OzrBCQf8cjERkYgzSg8",
+        "cache_key": "d1a69629f46ad4eb47dac64e5720cd713b8ae8e4979879d2e090666b8786ef2f",
+        "audio_filename": "d1a69629f46ad4eb47dac64e5720cd713b8ae8e4979879d2e090666b8786ef2f.mp3"
+      },
+      {
+        "scene_number": 6,
+        "title": "Ray's Big Surf",
+        "narrator_slug": "louie",
+        "voice_id": "nucVFUFVgPmKHjgXNbJ7",
+        "cache_key": "8338307598ab83516cfbece79192f3fd8480f45630a5d51ae793038ed85812cb",
+        "audio_filename": "8338307598ab83516cfbece79192f3fd8480f45630a5d51ae793038ed85812cb.mp3"
+      },
+      {
+        "scene_number": 7,
+        "title": "The Captain's Hat",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "67204bad94ced3886516f8943472d57e3b085830a344156666adf8dd65a64141",
+        "audio_filename": "67204bad94ced3886516f8943472d57e3b085830a344156666adf8dd65a64141.mp3"
+      },
+      {
+        "scene_number": 7,
+        "title": "Returning the Hat",
+        "narrator_slug": "sally",
+        "voice_id": "K7W7zLWeGoxU9YqWoB7A",
+        "cache_key": "98e9b1221961139294037a9b7b96b94cdc65183382e15f8ddad4c886f92afb9f",
+        "audio_filename": "98e9b1221961139294037a9b7b96b94cdc65183382e15f8ddad4c886f92afb9f.mp3"
+      },
+      {
+        "scene_number": 7,
+        "title": "The Captain's Hat",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "67204bad94ced3886516f8943472d57e3b085830a344156666adf8dd65a64141",
+        "audio_filename": "67204bad94ced3886516f8943472d57e3b085830a344156666adf8dd65a64141.mp3"
+      },
+      {
+        "scene_number": 7,
+        "title": "The Captain's Hat",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "67204bad94ced3886516f8943472d57e3b085830a344156666adf8dd65a64141",
+        "audio_filename": "67204bad94ced3886516f8943472d57e3b085830a344156666adf8dd65a64141.mp3"
+      },
+      {
+        "scene_number": 7,
+        "title": "The Captain's Hat",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "67204bad94ced3886516f8943472d57e3b085830a344156666adf8dd65a64141",
+        "audio_filename": "67204bad94ced3886516f8943472d57e3b085830a344156666adf8dd65a64141.mp3"
+      },
+      {
+        "scene_number": 7,
+        "title": "The Captain's Hat",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "67204bad94ced3886516f8943472d57e3b085830a344156666adf8dd65a64141",
+        "audio_filename": "67204bad94ced3886516f8943472d57e3b085830a344156666adf8dd65a64141.mp3"
+      },
+      {
+        "scene_number": 7,
+        "title": "The Captain's Hat",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "67204bad94ced3886516f8943472d57e3b085830a344156666adf8dd65a64141",
+        "audio_filename": "67204bad94ced3886516f8943472d57e3b085830a344156666adf8dd65a64141.mp3"
+      },
+      {
+        "scene_number": 8,
+        "title": "First Mate Forever",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "026f2bb300c0c66157d999b01ce73d98476765d085d58a9de052f18f3496d281",
+        "audio_filename": "026f2bb300c0c66157d999b01ce73d98476765d085d58a9de052f18f3496d281.mp3"
+      }
+    ],
+    "friendship-fix-it": [
+      {
+        "scene_number": 1,
+        "title": "Lunchtime Argument",
+        "narrator_slug": "myrtle",
+        "voice_id": "Z3R5wn05IrDiVCyEkUrK",
+        "cache_key": "44c5c0f44be6d9166a97219e5a5221810f8aa172ece261ad20429f0f0b0a1350",
+        "audio_filename": "44c5c0f44be6d9166a97219e5a5221810f8aa172ece261ad20429f0f0b0a1350.mp3"
+      },
+      {
+        "scene_number": 2,
+        "title": "Frankie's Story",
+        "narrator_slug": "frankie",
+        "voice_id": "85DL3i4Z7PIWbcOYSlQl",
+        "cache_key": "73efda0c7243a4dd3d716fd17157c1f49d70286eb3f3b03cc746b3c749e321c3",
+        "audio_filename": "73efda0c7243a4dd3d716fd17157c1f49d70286eb3f3b03cc746b3c749e321c3.mp3"
+      },
+      {
+        "scene_number": 3,
+        "title": "Billy's Side",
+        "narrator_slug": "billy",
+        "voice_id": "iiidtqDt9FBdT1vfBluA",
+        "cache_key": "728ec160bde97086dd879fd6378293c323331f617a4b34de423c2a40fda789c8",
+        "audio_filename": "728ec160bde97086dd879fd6378293c323331f617a4b34de423c2a40fda789c8.mp3"
+      },
+      {
+        "scene_number": 4,
+        "title": "Ms Bluegill Passes By",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "e7af2e2c8a58eded3a206579e7ce68ce4ce359e72b6b845ce897bddeb5c42516",
+        "audio_filename": "e7af2e2c8a58eded3a206579e7ce68ce4ce359e72b6b845ce897bddeb5c42516.mp3"
+      },
+      {
+        "scene_number": 5,
+        "title": "The Apology",
+        "narrator_slug": "myrtle",
+        "voice_id": "Z3R5wn05IrDiVCyEkUrK",
+        "cache_key": "59a78825d25f557b09c6f6eb7e75ed90deaf23ef728c77b55706bfc4bc7d602a",
+        "audio_filename": "59a78825d25f557b09c6f6eb7e75ed90deaf23ef728c77b55706bfc4bc7d602a.mp3"
+      },
+      {
+        "scene_number": 6,
+        "title": "Frankie's Story",
+        "narrator_slug": "frankie",
+        "voice_id": "85DL3i4Z7PIWbcOYSlQl",
+        "cache_key": "73efda0c7243a4dd3d716fd17157c1f49d70286eb3f3b03cc746b3c749e321c3",
+        "audio_filename": "73efda0c7243a4dd3d716fd17157c1f49d70286eb3f3b03cc746b3c749e321c3.mp3"
+      },
+      {
+        "scene_number": 6,
+        "title": "Ollie Comes Cheering",
+        "narrator_slug": "ollie",
+        "voice_id": "q0IMILNRPxOgtBTS4taI",
+        "cache_key": "6d25ab6f2b66c7a6cdc59a64f05e0de41ee2a14c74e6b5145b03d8ebd7ed9212",
+        "audio_filename": "6d25ab6f2b66c7a6cdc59a64f05e0de41ee2a14c74e6b5145b03d8ebd7ed9212.mp3"
+      },
+      {
+        "scene_number": 6,
+        "title": "Frankie's Story",
+        "narrator_slug": "frankie",
+        "voice_id": "85DL3i4Z7PIWbcOYSlQl",
+        "cache_key": "73efda0c7243a4dd3d716fd17157c1f49d70286eb3f3b03cc746b3c749e321c3",
+        "audio_filename": "73efda0c7243a4dd3d716fd17157c1f49d70286eb3f3b03cc746b3c749e321c3.mp3"
+      },
+      {
+        "scene_number": 7,
+        "title": "Drawings Traded",
+        "narrator_slug": "myrtle",
+        "voice_id": "Z3R5wn05IrDiVCyEkUrK",
+        "cache_key": "fce8adf3085626b7889f15ad6807d0611357e8854fb8f47ddda7c3def30612b5",
+        "audio_filename": "fce8adf3085626b7889f15ad6807d0611357e8854fb8f47ddda7c3def30612b5.mp3"
+      },
+      {
+        "scene_number": 8,
+        "title": "Lunchtime Argument",
+        "narrator_slug": "myrtle",
+        "voice_id": "Z3R5wn05IrDiVCyEkUrK",
+        "cache_key": "44c5c0f44be6d9166a97219e5a5221810f8aa172ece261ad20429f0f0b0a1350",
+        "audio_filename": "44c5c0f44be6d9166a97219e5a5221810f8aa172ece261ad20429f0f0b0a1350.mp3"
+      },
+      {
+        "scene_number": 8,
+        "title": "Mended",
+        "narrator_slug": "myrtle",
+        "voice_id": "Z3R5wn05IrDiVCyEkUrK",
+        "cache_key": "f26b0830c5eb9208053ae57acea6148649e7330670a05ec155cc66a0014524f8",
+        "audio_filename": "f26b0830c5eb9208053ae57acea6148649e7330670a05ec155cc66a0014524f8.mp3"
+      },
+      {
+        "scene_number": 8,
+        "title": "Lunchtime Argument",
+        "narrator_slug": "myrtle",
+        "voice_id": "Z3R5wn05IrDiVCyEkUrK",
+        "cache_key": "44c5c0f44be6d9166a97219e5a5221810f8aa172ece261ad20429f0f0b0a1350",
+        "audio_filename": "44c5c0f44be6d9166a97219e5a5221810f8aa172ece261ad20429f0f0b0a1350.mp3"
+      },
+      {
+        "scene_number": 8,
+        "title": "Lunchtime Argument",
+        "narrator_slug": "myrtle",
+        "voice_id": "Z3R5wn05IrDiVCyEkUrK",
+        "cache_key": "44c5c0f44be6d9166a97219e5a5221810f8aa172ece261ad20429f0f0b0a1350",
+        "audio_filename": "44c5c0f44be6d9166a97219e5a5221810f8aa172ece261ad20429f0f0b0a1350.mp3"
+      },
+      {
+        "scene_number": 8,
+        "title": "Lunchtime Argument",
+        "narrator_slug": "myrtle",
+        "voice_id": "Z3R5wn05IrDiVCyEkUrK",
+        "cache_key": "44c5c0f44be6d9166a97219e5a5221810f8aa172ece261ad20429f0f0b0a1350",
+        "audio_filename": "44c5c0f44be6d9166a97219e5a5221810f8aa172ece261ad20429f0f0b0a1350.mp3"
+      },
+      {
+        "scene_number": 8,
+        "title": "Lunchtime Argument",
+        "narrator_slug": "myrtle",
+        "voice_id": "Z3R5wn05IrDiVCyEkUrK",
+        "cache_key": "44c5c0f44be6d9166a97219e5a5221810f8aa172ece261ad20429f0f0b0a1350",
+        "audio_filename": "44c5c0f44be6d9166a97219e5a5221810f8aa172ece261ad20429f0f0b0a1350.mp3"
+      },
+      {
+        "scene_number": 8,
+        "title": "Lunchtime Argument",
+        "narrator_slug": "myrtle",
+        "voice_id": "Z3R5wn05IrDiVCyEkUrK",
+        "cache_key": "44c5c0f44be6d9166a97219e5a5221810f8aa172ece261ad20429f0f0b0a1350",
+        "audio_filename": "44c5c0f44be6d9166a97219e5a5221810f8aa172ece261ad20429f0f0b0a1350.mp3"
+      }
+    ],
+    "surprise-birthday-at-camp": [
+      {
+        "scene_number": 1,
+        "title": "Top-Secret Mission",
+        "narrator_slug": "ollie",
+        "voice_id": "q0IMILNRPxOgtBTS4taI",
+        "cache_key": "2eb1a008d4ad5974f2117c8191dbfb813f8622159b3e2fc8545106664f90a3d9",
+        "audio_filename": "2eb1a008d4ad5974f2117c8191dbfb813f8622159b3e2fc8545106664f90a3d9.mp3"
+      },
+      {
+        "scene_number": 2,
+        "title": "Myrtle's Cake Plan",
+        "narrator_slug": "myrtle",
+        "voice_id": "Z3R5wn05IrDiVCyEkUrK",
+        "cache_key": "122bdc8015689966bcdd0f3a357b06cebdc6e6ab2a0fc65ca9ea0b4064844c9c",
+        "audio_filename": "122bdc8015689966bcdd0f3a357b06cebdc6e6ab2a0fc65ca9ea0b4064844c9c.mp3"
+      },
+      {
+        "scene_number": 3,
+        "title": "Louie's Drum Reveal",
+        "narrator_slug": "louie",
+        "voice_id": "nucVFUFVgPmKHjgXNbJ7",
+        "cache_key": "b2c192017500bd5d1d416b8400917e36bfa42d12be2f8ed07e4d5d8a2711503e",
+        "audio_filename": "b2c192017500bd5d1d416b8400917e36bfa42d12be2f8ed07e4d5d8a2711503e.mp3"
+      },
+      {
+        "scene_number": 4,
+        "title": "Casey's Almost Caught",
+        "narrator_slug": "casey",
+        "voice_id": "Uq9DKccXXKZ6lc53ATJV",
+        "cache_key": "b6f34de47c0263d98a822955d2e4e8ad8a30ea7e3155573c50efddd90d906f34",
+        "audio_filename": "b6f34de47c0263d98a822955d2e4e8ad8a30ea7e3155573c50efddd90d906f34.mp3"
+      },
+      {
+        "scene_number": 5,
+        "title": "Ms Bluegill's Touch",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "bb41ef742b060445fa771738b6c4e46d63439bb25a66ab1f290e0d92cf3fec3e",
+        "audio_filename": "bb41ef742b060445fa771738b6c4e46d63439bb25a66ab1f290e0d92cf3fec3e.mp3"
+      },
+      {
+        "scene_number": 6,
+        "title": "Sally's Worry",
+        "narrator_slug": "sally",
+        "voice_id": "K7W7zLWeGoxU9YqWoB7A",
+        "cache_key": "c017d9ad6a5d4ac562dbd985da294e62b569977f38aa7c7e806b092263f3d4f2",
+        "audio_filename": "c017d9ad6a5d4ac562dbd985da294e62b569977f38aa7c7e806b092263f3d4f2.mp3"
+      },
+      {
+        "scene_number": 7,
+        "title": "Myrtle's Cake Plan",
+        "narrator_slug": "myrtle",
+        "voice_id": "Z3R5wn05IrDiVCyEkUrK",
+        "cache_key": "122bdc8015689966bcdd0f3a357b06cebdc6e6ab2a0fc65ca9ea0b4064844c9c",
+        "audio_filename": "122bdc8015689966bcdd0f3a357b06cebdc6e6ab2a0fc65ca9ea0b4064844c9c.mp3"
+      },
+      {
+        "scene_number": 7,
+        "title": "Surprise!",
+        "narrator_slug": "ollie",
+        "voice_id": "q0IMILNRPxOgtBTS4taI",
+        "cache_key": "7298e02d80993ded2b1c45234b0edc54d6c3d4b37d9726bd01c1c16c99f9ad6c",
+        "audio_filename": "7298e02d80993ded2b1c45234b0edc54d6c3d4b37d9726bd01c1c16c99f9ad6c.mp3"
+      },
+      {
+        "scene_number": 7,
+        "title": "Myrtle's Cake Plan",
+        "narrator_slug": "myrtle",
+        "voice_id": "Z3R5wn05IrDiVCyEkUrK",
+        "cache_key": "122bdc8015689966bcdd0f3a357b06cebdc6e6ab2a0fc65ca9ea0b4064844c9c",
+        "audio_filename": "122bdc8015689966bcdd0f3a357b06cebdc6e6ab2a0fc65ca9ea0b4064844c9c.mp3"
+      },
+      {
+        "scene_number": 8,
+        "title": "Quietly Loud",
+        "narrator_slug": "ollie",
+        "voice_id": "q0IMILNRPxOgtBTS4taI",
+        "cache_key": "6e7ca32dd0a8d16b4f8c3e1712d748b08f199597524c2098c36e0ed90f498837",
+        "audio_filename": "6e7ca32dd0a8d16b4f8c3e1712d748b08f199597524c2098c36e0ed90f498837.mp3"
+      },
+      {
+        "scene_number": 9,
+        "title": "Top-Secret Mission",
+        "narrator_slug": "ollie",
+        "voice_id": "q0IMILNRPxOgtBTS4taI",
+        "cache_key": "2eb1a008d4ad5974f2117c8191dbfb813f8622159b3e2fc8545106664f90a3d9",
+        "audio_filename": "2eb1a008d4ad5974f2117c8191dbfb813f8622159b3e2fc8545106664f90a3d9.mp3"
+      },
+      {
+        "scene_number": 9,
+        "title": "Top-Secret Mission",
+        "narrator_slug": "ollie",
+        "voice_id": "q0IMILNRPxOgtBTS4taI",
+        "cache_key": "2eb1a008d4ad5974f2117c8191dbfb813f8622159b3e2fc8545106664f90a3d9",
+        "audio_filename": "2eb1a008d4ad5974f2117c8191dbfb813f8622159b3e2fc8545106664f90a3d9.mp3"
+      },
+      {
+        "scene_number": 9,
+        "title": "Top-Secret Mission",
+        "narrator_slug": "ollie",
+        "voice_id": "q0IMILNRPxOgtBTS4taI",
+        "cache_key": "2eb1a008d4ad5974f2117c8191dbfb813f8622159b3e2fc8545106664f90a3d9",
+        "audio_filename": "2eb1a008d4ad5974f2117c8191dbfb813f8622159b3e2fc8545106664f90a3d9.mp3"
+      },
+      {
+        "scene_number": 9,
+        "title": "Top-Secret Mission",
+        "narrator_slug": "ollie",
+        "voice_id": "q0IMILNRPxOgtBTS4taI",
+        "cache_key": "2eb1a008d4ad5974f2117c8191dbfb813f8622159b3e2fc8545106664f90a3d9",
+        "audio_filename": "2eb1a008d4ad5974f2117c8191dbfb813f8622159b3e2fc8545106664f90a3d9.mp3"
+      },
+      {
+        "scene_number": 9,
+        "title": "Top-Secret Mission",
+        "narrator_slug": "ollie",
+        "voice_id": "q0IMILNRPxOgtBTS4taI",
+        "cache_key": "2eb1a008d4ad5974f2117c8191dbfb813f8622159b3e2fc8545106664f90a3d9",
+        "audio_filename": "2eb1a008d4ad5974f2117c8191dbfb813f8622159b3e2fc8545106664f90a3d9.mp3"
+      },
+      {
+        "scene_number": 9,
+        "title": "Top-Secret Mission",
+        "narrator_slug": "ollie",
+        "voice_id": "q0IMILNRPxOgtBTS4taI",
+        "cache_key": "2eb1a008d4ad5974f2117c8191dbfb813f8622159b3e2fc8545106664f90a3d9",
+        "audio_filename": "2eb1a008d4ad5974f2117c8191dbfb813f8622159b3e2fc8545106664f90a3d9.mp3"
+      }
+    ],
+    "beach-cleanup-heroes": [
+      {
+        "scene_number": 1,
+        "title": "The Morning Mess",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "3f74fb23b1803a8998d747a3b258e736febb3c8c22a8221e3e18f86eba0c4664",
+        "audio_filename": "3f74fb23b1803a8998d747a3b258e736febb3c8c22a8221e3e18f86eba0c4664.mp3"
+      },
+      {
+        "scene_number": 2,
+        "title": "Casey's Find",
+        "narrator_slug": "casey",
+        "voice_id": "Uq9DKccXXKZ6lc53ATJV",
+        "cache_key": "395565b8aa0fdfeb692052f5a54aab6434327ee8ff0e04b3fca3e6d88a88b0e8",
+        "audio_filename": "395565b8aa0fdfeb692052f5a54aab6434327ee8ff0e04b3fca3e6d88a88b0e8.mp3"
+      },
+      {
+        "scene_number": 3,
+        "title": "Ray's Speed",
+        "narrator_slug": "ray",
+        "voice_id": "6OzrBCQf8cjERkYgzSg8",
+        "cache_key": "e1b2ef9daa395334ee1722b359768bd7610f31c64dfced65fc03a0faa13db06d",
+        "audio_filename": "e1b2ef9daa395334ee1722b359768bd7610f31c64dfced65fc03a0faa13db06d.mp3"
+      },
+      {
+        "scene_number": 4,
+        "title": "Sally Stops",
+        "narrator_slug": "myrtle",
+        "voice_id": "Z3R5wn05IrDiVCyEkUrK",
+        "cache_key": "cfe5869fe4e9745d05dbbaa443f73edc3c32386e73fa5b2eecfd569d2d7b9906",
+        "audio_filename": "cfe5869fe4e9745d05dbbaa443f73edc3c32386e73fa5b2eecfd569d2d7b9906.mp3"
+      },
+      {
+        "scene_number": 5,
+        "title": "Ollie's Cheer",
+        "narrator_slug": "ollie",
+        "voice_id": "q0IMILNRPxOgtBTS4taI",
+        "cache_key": "9acbd1860e20cc12ee92b17bb813612cc927ca964c546a08aaaabdfd0bfe9176",
+        "audio_filename": "9acbd1860e20cc12ee92b17bb813612cc927ca964c546a08aaaabdfd0bfe9176.mp3"
+      },
+      {
+        "scene_number": 6,
+        "title": "Louie's Beat",
+        "narrator_slug": "louie",
+        "voice_id": "nucVFUFVgPmKHjgXNbJ7",
+        "cache_key": "a068f583bed8e93435bf851321abc2eee8eb22f048e55d3f736132f4f4c4057d",
+        "audio_filename": "a068f583bed8e93435bf851321abc2eee8eb22f048e55d3f736132f4f4c4057d.mp3"
+      },
+      {
+        "scene_number": 7,
+        "title": "The Bag Count",
+        "narrator_slug": "sally",
+        "voice_id": "K7W7zLWeGoxU9YqWoB7A",
+        "cache_key": "47dc9b706b2eb2d33e303391441e0a36356e99544536cc0773865e638b593383",
+        "audio_filename": "47dc9b706b2eb2d33e303391441e0a36356e99544536cc0773865e638b593383.mp3"
+      },
+      {
+        "scene_number": 8,
+        "title": "Casey's Find",
+        "narrator_slug": "casey",
+        "voice_id": "Uq9DKccXXKZ6lc53ATJV",
+        "cache_key": "395565b8aa0fdfeb692052f5a54aab6434327ee8ff0e04b3fca3e6d88a88b0e8",
+        "audio_filename": "395565b8aa0fdfeb692052f5a54aab6434327ee8ff0e04b3fca3e6d88a88b0e8.mp3"
+      },
+      {
+        "scene_number": 8,
+        "title": "Heroes of the Cay",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "deb60982cb40d3825ea4c5c3afbefb4eb4a2b3bfd218679ad4715a12366f3c69",
+        "audio_filename": "deb60982cb40d3825ea4c5c3afbefb4eb4a2b3bfd218679ad4715a12366f3c69.mp3"
+      },
+      {
+        "scene_number": 8,
+        "title": "Casey's Find",
+        "narrator_slug": "casey",
+        "voice_id": "Uq9DKccXXKZ6lc53ATJV",
+        "cache_key": "395565b8aa0fdfeb692052f5a54aab6434327ee8ff0e04b3fca3e6d88a88b0e8",
+        "audio_filename": "395565b8aa0fdfeb692052f5a54aab6434327ee8ff0e04b3fca3e6d88a88b0e8.mp3"
+      },
+      {
+        "scene_number": 10,
+        "title": "The Morning Mess",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "3f74fb23b1803a8998d747a3b258e736febb3c8c22a8221e3e18f86eba0c4664",
+        "audio_filename": "3f74fb23b1803a8998d747a3b258e736febb3c8c22a8221e3e18f86eba0c4664.mp3"
+      },
+      {
+        "scene_number": 10,
+        "title": "The Morning Mess",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "3f74fb23b1803a8998d747a3b258e736febb3c8c22a8221e3e18f86eba0c4664",
+        "audio_filename": "3f74fb23b1803a8998d747a3b258e736febb3c8c22a8221e3e18f86eba0c4664.mp3"
+      },
+      {
+        "scene_number": 10,
+        "title": "The Morning Mess",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "3f74fb23b1803a8998d747a3b258e736febb3c8c22a8221e3e18f86eba0c4664",
+        "audio_filename": "3f74fb23b1803a8998d747a3b258e736febb3c8c22a8221e3e18f86eba0c4664.mp3"
+      },
+      {
+        "scene_number": 10,
+        "title": "The Morning Mess",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "3f74fb23b1803a8998d747a3b258e736febb3c8c22a8221e3e18f86eba0c4664",
+        "audio_filename": "3f74fb23b1803a8998d747a3b258e736febb3c8c22a8221e3e18f86eba0c4664.mp3"
+      },
+      {
+        "scene_number": 10,
+        "title": "The Morning Mess",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "3f74fb23b1803a8998d747a3b258e736febb3c8c22a8221e3e18f86eba0c4664",
+        "audio_filename": "3f74fb23b1803a8998d747a3b258e736febb3c8c22a8221e3e18f86eba0c4664.mp3"
+      },
+      {
+        "scene_number": 10,
+        "title": "The Morning Mess",
+        "narrator_slug": "ms-bluegill",
+        "voice_id": "6qL48o1LBmtR94hIYAQh",
+        "cache_key": "3f74fb23b1803a8998d747a3b258e736febb3c8c22a8221e3e18f86eba0c4664",
+        "audio_filename": "3f74fb23b1803a8998d747a3b258e736febb3c8c22a8221e3e18f86eba0c4664.mp3"
+      }
+    ]
+  },
   "scenes": [
     {
       "scene_number": 1,
@@ -67,11 +1346,11 @@
     },
     {
       "scene_number": 9,
-      "title": "Stories at Sunset",
+      "title": "Meeting the Crew",
       "narrator_slug": "sally",
       "voice_id": "K7W7zLWeGoxU9YqWoB7A",
-      "cache_key": "61ac0cb212fab4c51f789fff77d7f98cc88905bfaead09a8482573ee6382f852",
-      "audio_filename": "61ac0cb212fab4c51f789fff77d7f98cc88905bfaead09a8482573ee6382f852.mp3"
+      "cache_key": "0e85644d27babb214e30ad80b2c0ce1713a9f9770b5a15b27cd744e399004579",
+      "audio_filename": "0e85644d27babb214e30ad80b2c0ce1713a9f9770b5a15b27cd744e399004579.mp3"
     },
     {
       "scene_number": 10,

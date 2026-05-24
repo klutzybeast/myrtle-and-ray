@@ -523,9 +523,9 @@ def make_story_quest_router(db, require_admin):
 
     @admin.post("/backfill-from-assets")
     async def admin_backfill_story_quest_assets():
-        """Self-healing endpoint: backfill story-quest scene audio from the
-        committed manifest.json + MP3s in seed_assets/story_quest/. Use this
-        on production if the startup seed didn't populate audio_narration_url."""
+        """Backfill story-quest scene audio from the committed manifest.json
+        + MP3s in seed_assets/story_quest/. Also dedupes scenes that share
+        a (quest_id, scene_number) — a legacy migration artifact."""
         import json
         import shutil
         from pathlib import Path
@@ -538,55 +538,76 @@ def make_story_quest_router(db, require_admin):
         except Exception:
             _storage = None
 
-        results = {"manifest_loaded": False, "patched": 0, "details": [], "asset_dir": str(asset_dir), "asset_exists": asset_dir.exists()}
+        results = {"manifest_loaded": False, "patched": 0, "deduped": 0, "details": [], "asset_dir": str(asset_dir), "asset_exists": asset_dir.exists()}
+
+        # 1) Dedupe (quest_id, scene_number) groups — keep the one with audio
+        # if any, else the most-recently-updated.
+        dupe_pipeline = [
+            {"$group": {"_id": {"quest_id": "$quest_id", "scene_number": "$scene_number"}, "ids": {"$push": "$id"}, "count": {"$sum": 1}}},
+            {"$match": {"count": {"$gt": 1}}},
+        ]
+        async for group in db.story_quest_scenes.aggregate(dupe_pipeline):
+            ids = group["ids"]
+            docs = await db.story_quest_scenes.find(
+                {"id": {"$in": ids}}, {"_id": 0, "id": 1, "audio_narration_url": 1, "updated_at": 1}
+            ).to_list(20)
+            keep_id = next((d["id"] for d in docs if (d.get("audio_narration_url") or "").strip()), None) or docs[0]["id"]
+            delete_ids = [d["id"] for d in docs if d["id"] != keep_id]
+            if delete_ids:
+                r = await db.story_quest_scenes.delete_many({"id": {"$in": delete_ids}})
+                results["deduped"] += r.deleted_count
+
+        # 2) Apply manifest to backfill audio.
         manifest_path = asset_dir / "manifest.json"
         if not manifest_path.exists():
             raise HTTPException(status_code=500, detail=f"manifest not found at {manifest_path}")
-
         try:
             manifest = json.loads(manifest_path.read_text())
         except Exception as exc:
             raise HTTPException(status_code=500, detail=f"manifest parse failed: {exc}")
         results["manifest_loaded"] = True
 
-        # Resolve quest_id for first-day-of-camp (where the scripted scenes live)
-        first_quest = await db.story_quests.find_one({"slug": "first-day-of-camp"}, {"_id": 0, "id": 1})
-        if not first_quest:
-            raise HTTPException(status_code=500, detail="first-day-of-camp quest not found")
-        quest_id = first_quest["id"]
+        per_quest: dict = manifest.get("quests") or {}
+        if not per_quest and manifest.get("scenes"):
+            per_quest = {"first-day-of-camp": manifest["scenes"]}
 
-        for entry in manifest.get("scenes", []):
-            n = int(entry["scene_number"])
-            cache_key = entry["cache_key"]
-            mp3 = asset_dir / entry["audio_filename"]
-            if not mp3.exists():
-                results["details"].append({"scene": n, "status": "no-mp3"})
+        quest_id_by_slug: dict = {}
+        async for q in db.story_quests.find({}, {"_id": 0, "id": 1, "slug": 1}):
+            quest_id_by_slug[q["slug"]] = q["id"]
+
+        for quest_slug, entries in per_quest.items():
+            quest_id = quest_id_by_slug.get(quest_slug)
+            if not quest_id:
+                results["details"].append({"quest": quest_slug, "status": "quest-not-in-db"})
                 continue
-            data = mp3.read_bytes()
-            # Copy MP3 to uploads/voice/
-            target = upload_voice_dir / f"{cache_key}.mp3"
-            if not target.exists() or target.stat().st_size != len(data):
-                try:
-                    shutil.copyfile(mp3, target)
-                except Exception as exc:
-                    logger.warning("backfill story: copy scene %s failed: %s", n, exc)
-            # Push to persistent storage
-            if _storage is not None and _storage.is_enabled():
-                try:
-                    _storage.put_object(f"voice/{cache_key}.mp3", data, "audio/mpeg")
-                except Exception as exc:
-                    logger.warning("backfill story: storage put scene %s failed: %s", n, exc)
-            # Patch the scene's audio_narration_url
-            audio_url = f"/api/uploads/voice/{cache_key}.mp3"
-            r = await db.story_quest_scenes.update_one(
-                {"scene_number": n, "quest_id": quest_id},
-                {"$set": {"audio_narration_url": audio_url, "narrator_slug": entry.get("narrator_slug", ""), "updated_at": _now_iso()}}
-            )
-            if r.modified_count or r.matched_count:
-                results["patched"] += 1
-                results["details"].append({"scene": n, "status": "patched", "audio_url": audio_url})
-            else:
-                results["details"].append({"scene": n, "status": "scene-not-found"})
+            for entry in entries:
+                n = int(entry["scene_number"])
+                cache_key = entry["cache_key"]
+                mp3 = asset_dir / entry["audio_filename"]
+                if not mp3.exists():
+                    results["details"].append({"quest": quest_slug, "scene": n, "status": "no-mp3"})
+                    continue
+                data = mp3.read_bytes()
+                target = upload_voice_dir / f"{cache_key}.mp3"
+                if not target.exists() or target.stat().st_size != len(data):
+                    try:
+                        shutil.copyfile(mp3, target)
+                    except Exception as exc:
+                        logger.warning("backfill story: copy %s/%s failed: %s", quest_slug, n, exc)
+                if _storage is not None and _storage.is_enabled():
+                    try:
+                        _storage.put_object(f"voice/{cache_key}.mp3", data, "audio/mpeg")
+                    except Exception as exc:
+                        logger.warning("backfill story: storage put %s/%s failed: %s", quest_slug, n, exc)
+                audio_url = f"/api/uploads/voice/{cache_key}.mp3"
+                r = await db.story_quest_scenes.update_one(
+                    {"scene_number": n, "quest_id": quest_id},
+                    {"$set": {"audio_narration_url": audio_url, "narrator_slug": entry.get("narrator_slug", ""), "updated_at": _now_iso()}}
+                )
+                if r.matched_count:
+                    results["patched"] += 1
+                else:
+                    results["details"].append({"quest": quest_slug, "scene": n, "status": "scene-not-found"})
         return results
 
     @admin.get("/scenes")
