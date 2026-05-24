@@ -116,6 +116,18 @@ export default function AdminStoryQuest() {
     }
   };
 
+  const backfillAudioFromAssets = async () => {
+    if (!window.confirm("Restore scene narration audio from committed seed assets? Used to fix Story Quest scenes missing audio on production.")) return;
+    try {
+      toast.loading("Restoring scene audio…", { id: "sq-backfill" });
+      const { data } = await api.post("/admin/story-quest/backfill-from-assets", {}, { timeout: 120000 });
+      toast.success(`Restored audio on ${data.patched} scenes`, { id: "sq-backfill" });
+      refresh();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Backfill failed", { id: "sq-backfill" });
+    }
+  };
+
   if (loading) return <div className="text-[#6b7280]">Loading…</div>;
 
   return (
@@ -126,6 +138,7 @@ export default function AdminStoryQuest() {
           <p className="text-sm text-[#6b7280] mt-1">{scenes.length} scene{scenes.length === 1 ? "" : "s"} · {analytics?.total ?? 0} completions ({analytics?.today ?? 0} today)</p>
         </div>
         <button onClick={() => setEditing(blankScene(scenes.length + 1))} className="btn-primary inline-flex" data-testid="story-quest-new-scene"><Plus className="w-4 h-4" /> New scene</button>
+        <button onClick={backfillAudioFromAssets} className="btn-ghost inline-flex text-xs ml-2" data-testid="story-quest-backfill"><Wand2 className="w-4 h-4" /> Restore scene audio</button>
       </header>
 
       {/* Quest gallery covers */}

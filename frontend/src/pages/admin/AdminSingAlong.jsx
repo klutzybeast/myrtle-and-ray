@@ -112,6 +112,18 @@ export default function AdminSingAlong() {
     setGenerating(false);
   };
 
+  const backfillFromAssets = async () => {
+    if (!window.confirm("Backfill audio + LRC from committed seed_assets? Used to fix songs missing audio on production after deploy.")) return;
+    try {
+      toast.loading("Backfilling from seed assets…", { id: "backfill" });
+      const { data } = await api.post("/admin/sing-along/backfill-from-assets", {}, { timeout: 120000 });
+      toast.success(`Backfilled ${data.patched}/${data.scanned} songs`, { id: "backfill" });
+      refresh();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Backfill failed", { id: "backfill" });
+    }
+  };
+
   if (loading) return <div className="text-[#6b7280]">Loading…</div>;
 
   return (
@@ -121,12 +133,15 @@ export default function AdminSingAlong() {
           <h1 className="font-accent text-3xl font-bold flex items-center gap-2"><Music2 className="w-7 h-7 text-[#f0a988]" /> Sing-Along</h1>
           <p className="text-sm text-[#6b7280] mt-1">{songs.length} song{songs.length === 1 ? "" : "s"} · {songs.filter((s) => s.audio_url).length} with audio</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <button onClick={() => setShowGenerate(true)} className="btn-primary inline-flex" data-testid="sing-along-generate-open">
             <Wand2 className="w-4 h-4" /> Generate from prompt
           </button>
           <button onClick={() => setEditing(blankSong(songs.length + 1))} className="btn-secondary inline-flex" data-testid="sing-along-new-song">
             <Plus className="w-4 h-4" /> Add manually
+          </button>
+          <button onClick={backfillFromAssets} className="btn-ghost inline-flex text-xs" data-testid="sing-along-backfill">
+            <Sparkles className="w-4 h-4" /> Restore audio from seed
           </button>
         </div>
       </header>

@@ -2263,9 +2263,14 @@ async def _seed_sing_along(db) -> None:
     import json
     import shutil
     from pathlib import Path
-    asset_dir = Path("/app/backend/seed_assets/sing_along")
+    # Resolve relative to this file so the path is correct on any deployment
+    # layout (production may run from a different working directory).
+    asset_dir = Path(os.path.dirname(__file__)) / "seed_assets" / "sing_along"
     upload_dir = Path(os.environ.get("UPLOAD_DIR", "/app/backend/uploads")) / "sing_along"
     upload_dir.mkdir(parents=True, exist_ok=True)
+    logger.info("sing-along seed: asset_dir=%s (exists=%s, count=%s)",
+                asset_dir, asset_dir.exists(),
+                len(list(asset_dir.glob("*.mp3"))) if asset_dir.exists() else 0)
 
     # Lazy import storage helper.
     try:

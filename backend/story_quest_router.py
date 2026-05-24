@@ -497,8 +497,6 @@ def make_story_quest_router(db, require_admin):
 
     @admin.post("/quests/{quest_id}/generate-cover")
     async def admin_generate_quest_cover(quest_id: str):
-        """Generate hero cover art for this quest. Uses the quest's
-        character_focus + blurb so the cover features the actual Sea Stars."""
         from cover_art_service import generate_cover
         quest = await db.story_quests.find_one({"id": quest_id}, {"_id": 0})
         if not quest:
@@ -522,6 +520,74 @@ def make_story_quest_router(db, require_admin):
             {"$set": {"hero_image_url": result["url"], "updated_at": _now_iso()}},
         )
         return result
+
+    @admin.post("/backfill-from-assets")
+    async def admin_backfill_story_quest_assets():
+        """Self-healing endpoint: backfill story-quest scene audio from the
+        committed manifest.json + MP3s in seed_assets/story_quest/. Use this
+        on production if the startup seed didn't populate audio_narration_url."""
+        import json
+        import shutil
+        from pathlib import Path
+        backend_dir = Path(__file__).resolve().parent
+        asset_dir = backend_dir / "seed_assets" / "story_quest"
+        upload_voice_dir = Path(os.environ.get("UPLOAD_DIR", str(backend_dir / "uploads"))) / "voice"
+        upload_voice_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            import storage as _storage
+        except Exception:
+            _storage = None
+
+        results = {"manifest_loaded": False, "patched": 0, "details": [], "asset_dir": str(asset_dir), "asset_exists": asset_dir.exists()}
+        manifest_path = asset_dir / "manifest.json"
+        if not manifest_path.exists():
+            raise HTTPException(status_code=500, detail=f"manifest not found at {manifest_path}")
+
+        try:
+            manifest = json.loads(manifest_path.read_text())
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=f"manifest parse failed: {exc}")
+        results["manifest_loaded"] = True
+
+        # Resolve quest_id for first-day-of-camp (where the scripted scenes live)
+        first_quest = await db.story_quests.find_one({"slug": "first-day-of-camp"}, {"_id": 0, "id": 1})
+        if not first_quest:
+            raise HTTPException(status_code=500, detail="first-day-of-camp quest not found")
+        quest_id = first_quest["id"]
+
+        for entry in manifest.get("scenes", []):
+            n = int(entry["scene_number"])
+            cache_key = entry["cache_key"]
+            mp3 = asset_dir / entry["audio_filename"]
+            if not mp3.exists():
+                results["details"].append({"scene": n, "status": "no-mp3"})
+                continue
+            data = mp3.read_bytes()
+            # Copy MP3 to uploads/voice/
+            target = upload_voice_dir / f"{cache_key}.mp3"
+            if not target.exists() or target.stat().st_size != len(data):
+                try:
+                    shutil.copyfile(mp3, target)
+                except Exception as exc:
+                    logger.warning("backfill story: copy scene %s failed: %s", n, exc)
+            # Push to persistent storage
+            if _storage is not None and _storage.is_enabled():
+                try:
+                    _storage.put_object(f"voice/{cache_key}.mp3", data, "audio/mpeg")
+                except Exception as exc:
+                    logger.warning("backfill story: storage put scene %s failed: %s", n, exc)
+            # Patch the scene's audio_narration_url
+            audio_url = f"/api/uploads/voice/{cache_key}.mp3"
+            r = await db.story_quest_scenes.update_one(
+                {"scene_number": n, "quest_id": quest_id},
+                {"$set": {"audio_narration_url": audio_url, "narrator_slug": entry.get("narrator_slug", ""), "updated_at": _now_iso()}}
+            )
+            if r.modified_count or r.matched_count:
+                results["patched"] += 1
+                results["details"].append({"scene": n, "status": "patched", "audio_url": audio_url})
+            else:
+                results["details"].append({"scene": n, "status": "scene-not-found"})
+        return results
 
     @admin.get("/scenes")
     async def list_scenes():

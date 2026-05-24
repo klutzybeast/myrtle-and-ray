@@ -200,6 +200,74 @@ def make_sing_along_router(db, require_admin):
             )
         return {"success": True}
 
+    @admin.post("/backfill-from-assets")
+    async def admin_backfill_from_assets():
+        """Self-healing endpoint: scan seed_assets/sing_along/ for committed
+        MP3+JSON pairs and backfill audio_url/lyrics_lrc/duration on any
+        song whose values are missing. Useful on production if the startup
+        seed didn't run or the path was wrong."""
+        import json
+        import shutil
+        from pathlib import Path
+        # Resolve asset path relative to this router file's sibling
+        backend_dir = Path(__file__).resolve().parent
+        asset_dir = backend_dir / "seed_assets" / "sing_along"
+        upload_dir = Path(os.environ.get("UPLOAD_DIR", str(backend_dir / "uploads"))) / "sing_along"
+        upload_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            import storage as _storage
+        except Exception:
+            _storage = None
+
+        results = {"scanned": 0, "patched": 0, "details": [], "asset_dir": str(asset_dir), "asset_exists": asset_dir.exists()}
+        if not asset_dir.exists():
+            raise HTTPException(status_code=500, detail=f"asset dir not found: {asset_dir}")
+
+        async for song in db.sing_along_songs.find({}, {"_id": 0}):
+            results["scanned"] += 1
+            slug = (song.get("slug") or "").strip()
+            if not slug:
+                continue
+            mp3 = asset_dir / f"{slug}.mp3"
+            meta_path = asset_dir / f"{slug}.json"
+            if not mp3.exists():
+                results["details"].append({"slug": slug, "status": "no-mp3"})
+                continue
+            patch = {}
+            # Copy MP3 to local uploads if missing
+            target = upload_dir / f"{slug}.mp3"
+            if not target.exists() or target.stat().st_size != mp3.stat().st_size:
+                try:
+                    shutil.copyfile(mp3, target)
+                except Exception as exc:
+                    log.warning("backfill: copy %s failed: %s", slug, exc)
+            # Push to persistent storage
+            if _storage is not None and _storage.is_enabled():
+                try:
+                    _storage.put_object(f"sing_along/{slug}.mp3", mp3.read_bytes(), "audio/mpeg")
+                except Exception as exc:
+                    log.warning("backfill: storage put %s failed: %s", slug, exc)
+            # Patch DB
+            if not (song.get("audio_url") or "").strip():
+                patch["audio_url"] = f"/api/uploads/sing_along/{slug}.mp3"
+            if meta_path.exists():
+                try:
+                    meta = json.loads(meta_path.read_text())
+                    if not (song.get("lyrics_lrc") or "").strip() and meta.get("lyrics_lrc"):
+                        patch["lyrics_lrc"] = meta["lyrics_lrc"]
+                    if not song.get("duration_seconds") and meta.get("duration_seconds"):
+                        patch["duration_seconds"] = int(meta["duration_seconds"])
+                except Exception as exc:
+                    log.warning("backfill: meta read %s failed: %s", slug, exc)
+            if patch:
+                patch["updated_at"] = _now_iso()
+                await db.sing_along_songs.update_one({"id": song["id"]}, {"$set": patch})
+                results["patched"] += 1
+                results["details"].append({"slug": slug, "status": "patched", "fields": list(patch.keys())})
+            else:
+                results["details"].append({"slug": slug, "status": "ok"})
+        return results
+
     @admin.post("/generate")
     async def admin_generate(body: GenerateSongBody):
         """Generate a brand-new song from a prompt+lyrics using ElevenLabs Music,
@@ -299,8 +367,6 @@ def make_sing_along_router(db, require_admin):
 
     @admin.post("/songs/{song_id}/regenerate-alignment")
     async def admin_regenerate_alignment(song_id: str):
-        """Re-run forced alignment on an existing song's MP3 (for songs whose
-        lyrics were edited, or for cleaning up imported audio)."""
         api_key = (os.environ.get("ELEVENLABS_API_KEY") or "").strip()
         if not api_key:
             raise HTTPException(status_code=500, detail="ELEVENLABS_API_KEY missing")
