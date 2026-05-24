@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { api } from "../../lib/api";
 import { Sparkles, Plus, Trash2, Edit2, X, Save, BarChart3, GripVertical, ArrowUp, ArrowDown, Loader2, Wand2 } from "lucide-react";
 import { toast } from "sonner";
@@ -138,6 +139,9 @@ export default function AdminStoryQuest() {
           <p className="text-sm text-[#6b7280] mt-1">{scenes.length} scene{scenes.length === 1 ? "" : "s"} · {analytics?.total ?? 0} completions ({analytics?.today ?? 0} today)</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Link to="/admin/story-quest/generate" className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#eef9fb] border-2 border-[#7fcfc7] text-[#236f6b] font-bold hover:bg-[#dff4f0]" data-testid="story-quest-generate-link">
+            <Sparkles className="w-4 h-4" /> Generate full quest
+          </Link>
           <button onClick={backfillAudioFromAssets} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#fff4d6] border-2 border-[#f0a988] text-[#a36b29] font-bold hover:bg-[#ffe9b8]" data-testid="story-quest-backfill">
             <Wand2 className="w-4 h-4" /> Restore scene audio
           </button>

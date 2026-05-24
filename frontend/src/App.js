@@ -55,6 +55,7 @@ import AdminPenPals from "@/pages/admin/AdminPenPals";
 import AdminColoring from "@/pages/admin/AdminColoring";
 import AdminSeaStarStudio from "@/pages/admin/AdminSeaStarStudio";
 import AdminStoryQuest from "@/pages/admin/AdminStoryQuest";
+import AdminStoryQuestGenerate from "@/pages/admin/AdminStoryQuestGenerate";
 import AdminSingAlong from "@/pages/admin/AdminSingAlong";
 import AdminPrintify from "@/pages/admin/AdminPrintify";
 import AdminEtsy from "@/pages/admin/AdminEtsy";
@@ -158,6 +159,7 @@ function App() {
                 <Route path="coloring" element={<AdminColoring />} />
                 <Route path="sea-star-studio" element={<AdminSeaStarStudio />} />
                 <Route path="story-quest" element={<AdminStoryQuest />} />
+                <Route path="story-quest/generate" element={<AdminStoryQuestGenerate />} />
                 <Route path="sing-along" element={<AdminSingAlong />} />
                 <Route path="printify" element={<AdminPrintify />} />
                 <Route path="etsy" element={<AdminEtsy />} />

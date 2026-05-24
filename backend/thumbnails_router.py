@@ -410,6 +410,57 @@ def make_thumbnails_router(db, require_admin):
                        scene_prompt=col.get("prompt", ""),
                        character_slugs=slugs, source="coloring")
 
+        # Media library (admin manual uploads — pre-mirror)
+        async for m in db.media.find(
+            {"mime": {"$regex": "^image/"}},
+            {"_id": 0, "url": 1, "filename": 1, "tags": 1},
+        ):
+            await _add(m.get("url", ""), "general",
+                       title=m.get("filename", "Upload"),
+                       scene_prompt=", ".join(m.get("tags") or []),
+                       character_slugs=[], source="media")
+
+        # Custom pages — hero image + OG image
+        async for cp in db.custom_pages.find({}, {"_id": 0, "title": 1, "hero_image_url": 1, "og_image_url": 1, "slug": 1}):
+            for field, role in (("hero_image_url", "Hero"), ("og_image_url", "OG")):
+                u = cp.get(field) or ""
+                if u:
+                    await _add(u, "custom_page",
+                               title=f"{role}: {cp.get('title') or cp.get('slug','')}",
+                               scene_prompt=f"Custom page {role.lower()} image",
+                               character_slugs=[], source="custom_page")
+
+        # Downloads (PDFs/coloring sheets thumbnails)
+        async for d in db.downloads.find(
+            {"thumbnail_url": {"$nin": [None, ""]}},
+            {"_id": 0, "title": 1, "thumbnail_url": 1, "category_slug": 1},
+        ):
+            await _add(d.get("thumbnail_url", ""), "download",
+                       title=d.get("title", "Download"),
+                       scene_prompt=d.get("category_slug", "") or "Download thumbnail",
+                       character_slugs=[], source="download")
+
+        # Download category banners
+        async for dc in db.download_categories.find(
+            {"image_url": {"$nin": [None, ""]}},
+            {"_id": 0, "title": 1, "image_url": 1, "slug": 1},
+        ):
+            await _add(dc.get("image_url", ""), "download_category",
+                       title=dc.get("title") or dc.get("slug", "Category"),
+                       scene_prompt="Download category banner",
+                       character_slugs=[], source="download_category")
+
+        # Activity tile art (admin-generated per-activity hero images)
+        async for ac in db.activity_content.find(
+            {"data.tile_image_url": {"$nin": [None, ""]}},
+            {"_id": 0, "key": 1, "title": 1, "data": 1},
+        ):
+            url = (ac.get("data") or {}).get("tile_image_url", "")
+            await _add(url, "activity",
+                       title=ac.get("title") or ac.get("key", "Activity"),
+                       scene_prompt="Activity tile art",
+                       character_slugs=[], source="activity")
+
         return {"ok": True, "inserted": inserted, "already_in_library": skipped}
 
     return router

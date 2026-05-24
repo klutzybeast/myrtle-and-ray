@@ -1,0 +1,36 @@
+{
+  "summary": "Backend-only testing of (1) /api/admin/thumbnails/backfill multi-source ingest + idempotency, (2) /api/admin/story-quest/generate-full end-to-end LLM script-generation pipeline, (3) /api/admin/story-quest/generate-status/{job_id} polling, (4) /api/admin/story-quest/generate-jobs list, (5) auth gating on all 3 new admin endpoints, (6) regression of existing /api/admin/story-quest/quests + /scenes. 16/16 pytest cases pass. LLM-only (no images, no audio) job completed in ~35-55s end-to-end. Generated quest has the correct structure: 6 scenes, scene #1 is_intro=true with [] choices, scene #6 is_finale=true with [] choices, scenes 2-5 each have exactly 3 choices with 3 DISTINCT wave_principle values from {welcome_curiosity, act_with_kindness, value_teamwork, encourage_others}, quest status='draft', active=false when publish=false. Backfill ingests rows from 10+ collections and is fully idempotent (2nd call returns inserted=0). Auth gate returns 401 on every new admin endpoint when called unauthenticated.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "GET /api/admin/story-quest/scenes", "issue": "Endpoint accepts no filter parameters and returns ALL scenes (currently 96+ rows). The admin UI will need to filter client-side, and the response will balloon as more quests are added. Recommend adding optional ?quest_id= and ?limit= query params."},
+      {"endpoint": "GET /api/admin/thumbnails", "issue": "Some pre-existing rows have source=None (rows created before the source-tag field was added to the backfill writer). Cosmetic only — backfill itself tags every new row correctly. Optional one-shot migration script could backfill source values onto legacy rows."}
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_quest_generator_and_thumbnails.py",
+    "/app/test_reports/pytest/iter21_quest_generator.xml"
+  ],
+  "action_items": [
+    "OPTIONAL: Add ?quest_id= filter param to GET /api/admin/story-quest/scenes so the admin UI can scope to one quest as the library grows. Not blocking — UI can filter client-side.",
+    "OPTIONAL: One-shot migration to set source on legacy thumbnails rows (about 9 rows where source==None in current DB).",
+    "If frontend testing is requested next iteration, the new /admin/story-quest/generate page should be exercised: title + premise input, character multi-select, scene-count slider (6-24), the three feature toggles (backgrounds/narration/publish), and the live job-progress poller showing step+progress%."
+  ],
+  "critical_code_review_comments": [
+    "story_quest_generator.py L334: when body.character_slugs is empty, cast is loaded from db.characters.find({}) capped at 40 — fine. But valid_slugs is then used to validate narrator_slug; if the LLM picks a slug NOT in DB it gets remapped to next(iter(valid_slugs)) which is non-deterministic (dict iteration order). Consider a stable fallback like 'myrtle'.",
+    "story_quest_generator.py L177-178: is_intro is forced true on idx==1 and is_finale on idx==len. If the LLM ever produces a single-scene response, scene #1 would be BOTH intro and finale simultaneously, producing a quest with zero choices and a fake-finale. The scene_count >= 6 Pydantic guard prevents this in normal API use, but worth a defensive `if len(raw_scenes) >= 2` guard for robustness.",
+    "thumbnails_router.py L394-403: product images iterate via `urls.extend(p.get('images') or [])` then take urls[:3] — if primary_image is duplicated in images[], we will skip-insert (idempotency saves us) but it's wasted work. Minor.",
+    "thumbnails_router.py: backfill is unbounded — scans every row in 10 collections on every call. Currently fine (DB is small), but as media library grows this should accept a since-timestamp or be moved to a scheduled job.",
+    "Potential intermittent flake: the public preview URL occasionally returns ReadTimeouts on idle endpoints (observed 3 times across runs). Backend logs show no corresponding error — suggests cold ingress / sleeping pod on first hit. Tests now use 30s timeouts; no fix needed in app code."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_quest_generator_and_thumbnails.py (new — 16 pytest cases)"
+  ],
+  "success_rate": {"backend": "100% (16/16)", "frontend": "n/a (backend only)"},
+  "test_credentials": "Admin community@rollingriver.com / Camp1993! (works via POST /api/auth/login -> access_token -> Bearer header).",
+  "seed_data_creation": "Test created 1 quest titled TEST_Quest_<random> via the generator pipeline. Cleanup script removed it (and 3 stale TEST_ quests from earlier runs) + their scenes + their job rows from MongoDB at end of run. DB tidy.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Test file /app/backend/tests/test_quest_generator_and_thumbnails.py is reusable as regression for future iterations. Key gotchas: (1) the preview URL occasionally has cold-start ReadTimeouts — keep timeouts >= 30s on every request; (2) the /admin/story-quest/scenes endpoint returns ALL scenes globally (no quest_id filter), so filter client-side; (3) LLM-only quest generation reliably completes in 35-55s; full image+audio path was NOT exercised this run as instructed. The generator router and the existing story_quest_router both share the same /admin/story-quest prefix — FastAPI mounts them side-by-side without collision. Backfill must be called after admin login (401 without)."
+}
