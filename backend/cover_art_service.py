@@ -29,22 +29,26 @@ UPLOAD_ROOT = Path(os.environ.get("UPLOAD_DIR", "/app/backend/uploads"))
 COVERS_DIR = UPLOAD_ROOT / "covers"
 CHAR_DIR = UPLOAD_ROOT / "characters"
 
-# Detailed visual recipes the model can lean on when the portrait image alone
-# isn't enough. These mirror the brief's exact phrasing (species + role + props).
+# Lightweight character identity hints. The VISUAL look (color, outfit, props)
+# is determined ENTIRELY by the reference portrait image we pass to Nano Banana —
+# do NOT describe colors or outfits in text here, because text descriptions will
+# override the reference image and produce wrong colors (e.g. yellow Sally
+# instead of pink). Only mention the species + role so the model knows the
+# character's vibe and what they typically do.
 CHARACTER_VISUALS = {
-    "ray": "Ray the Manta Ray — friendly young manta ray, dark navy-blue top with white belly, wide stingray wings, big bright eyes, surfboard nearby.",
-    "myrtle": "Myrtle the Turtle — green sea turtle in a tan adventurer's vest, kind smile, friendly outdoor pose (no books or text props).",
-    "ms-bluegill": "Ms Bluegill — adult bluegill fish in a coral-orange counselor visor or sun hat, smiling warmly (no clipboard or text props).",
-    "ollie": "Ollie the Octopus — purple octopus painter with all eight arms holding craft supplies (paintbrushes, scissors, glue stick).",
-    "sally": "Sally the Seahorse — yellow seahorse painter with a curly tail steadying a tiny easel, beret on her head.",
-    "jessie": "Jessie the Jellyfish — translucent pink jellyfish with soft flowing tentacles, calm meditative pose, gentle glow.",
-    "casey": "Casey the Crab — bright red crab engineer holding a sand bucket and shovel, building a sand castle.",
-    "dani": "Dani the Dolphin — light gray bottlenose dolphin in mid-flip dive pose, wearing tiny swim goggles.",
-    "sami": "Sami the Shark — friendly blue shark in a goalie jersey with a soccer ball, big toothy smile (kind, not scary).",
-    "izzy": "Izzy the Iguana — green iguana rock climber on a tropical cliff, climbing harness around shoulders.",
-    "louie": "Louie the Lobster — bright red lobster drummer holding drumsticks behind a small drum kit on the sand.",
-    "billy": "Billy the Beluga — small white beluga whale weaving through coral, exploring (no maps or text props).",
-    "frankie": "Frankie the Flamingo — pink flamingo ballet instructor balanced on one leg in tutu, graceful pose.",
+    "ray":         "Ray the Manta Ray — friendly young manta ray, star of the Surfing Squad.",
+    "myrtle":      "Myrtle the Turtle — kind sea turtle, Nature Scout.",
+    "ms-bluegill": "Ms Bluegill — adult bluegill fish, Camp Director, warm and welcoming.",
+    "ollie":       "Ollie the Octopus — eight-armed Arts and Crafts King.",
+    "sally":       "Sally the Seahorse — Master Painter, gentle and creative.",
+    "jessie":      "Jessie the Jellyfish — Calm Leader, peaceful meditative pose.",
+    "casey":       "Casey the Crab — Sand Castle Engineer, energetic.",
+    "dani":        "Dani the Dolphin — High-Dive Captain, joyful.",
+    "sami":        "Sami the Shark — friendly Goal Keeper on the sports field.",
+    "izzy":        "Izzy the Iguana — adventurous Rock Climber.",
+    "louie":       "Louie the Lobster — silly Camp Band Drummer.",
+    "billy":       "Billy the Beluga — focused Maze Navigator.",
+    "frankie":     "Frankie the Flamingo — graceful Ballet Instructor on one leg.",
 }
 
 
@@ -67,9 +71,15 @@ def _system_prompt() -> str:
         "You are the official illustrator for 'Myrtle and Ray and the First Day of Camp'. "
         "You draw friendly, cheerful, beach-summer-camp illustrations in a soft picture-book "
         "watercolor style with warm sunshine, turquoise water, sandy beach, palm fronds, and "
-        "playful waves. The 'Sea Stars' are anthropomorphic ocean animal characters; YOU MUST "
-        "use the supplied reference portraits to keep each character's species, color palette, "
-        "outfit, and personality consistent across every image. Never invent new characters. "
+        "playful waves. The 'Sea Stars' are anthropomorphic ocean animal characters. "
+        "CRITICAL: The reference portrait images attached to this message define each "
+        "character's EXACT appearance — species, body color, fin/limb colors, outfit, "
+        "accessories, scarf/hat color, eye color, and all markings. You MUST match the "
+        "reference portraits EXACTLY. Do not change Sally's pink color, do not change "
+        "Myrtle's blue scarf, do not change Ray's blue color, do not change any character's "
+        "outfit or color scheme. If a character in the portrait has a scarf, keep it. If "
+        "they have no surfboard, do not add one. Treat the portraits as ground truth. "
+        "Never invent new characters. "
         "ABSOLUTELY NO TEXT IN THE IMAGE: do not draw any letters, words, captions, titles, "
         "labels on objects (no book titles, no signs, no banners), watermarks, signatures, or "
         "logos. If a prop would normally have text on it (book cover, sign, flag, t-shirt), "
@@ -97,15 +107,20 @@ def _build_prompt(character_slugs: List[str], characters_by_slug: dict,
 
     return (
         f"Illustrate {surface} for the work titled \"{title}\".\n\n"
-        f"REQUIRED CHARACTERS (use the attached reference portraits exactly — same species, colors, outfit):\n"
+        f"REQUIRED CHARACTERS — each character below has an attached reference portrait "
+        f"that defines their EXACT colors, outfit, scarf/hat/accessory, and look. Match those "
+        f"portraits PIXEL-FAITHFULLY (same species, same color palette, same outfit). DO NOT "
+        f"recolor them or change their accessories:\n"
         f"{visual_block}\n\n"
         f"SCENE: {scene_prompt}\n\n"
         f"STYLE: Warm, friendly, picture-book watercolor with bold outlines. Stingray Cay beach summer camp setting "
         f"(turquoise water, sandy shore, palm trees, gentle waves). Soft sun, no text or words anywhere.\n\n"
-        f"COMPOSITION: {composition} The characters fill at least 60% of the frame and are clearly recognizable.\n\n"
+        f"COMPOSITION: {composition} The characters fill at least 60% of the frame and are clearly recognizable, "
+        f"with the SAME colors and outfits as the reference portraits.\n\n"
         f"DO NOT include: any text, letters, words, alphabet characters, watermarks, signatures, logos, "
         f"UI elements, or human characters. Even if a prop normally has text on it (book covers, signs, "
-        f"flags, t-shirts), leave it BLANK — pure visual scene only."
+        f"flags, t-shirts), leave it BLANK — pure visual scene only. DO NOT recolor the characters or "
+        f"change their outfits from the reference portraits."
     )
 
 
