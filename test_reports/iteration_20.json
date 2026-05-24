@@ -1,0 +1,27 @@
+{
+  "summary": "FINAL pre-deploy regression of all 32 mini-games on /activities. (1) All 32 activity-tile-{key} render. (2) All 32 modals open and show real game content — no blank/empty/'No levels yet' state on any of them. (3) Data-integrity verified programmatically via /api/activities/{key} for the 11 games called out in the request: count_and_click target appears >=1x in scene for every level, shadow_match target is in the 4-option list for every round, odd_one_out odd_index is a valid items index for every round, hidden_objects every find appears in scene_emoji_grid, map_directions ALL 10 levels (including 'Tide pool maze' [4,2]->[0,2]) have steps that land exactly on goal, math_pond answer (a±b) is in choices for every round, color_mixer a & b are both in the round's colors array for every round, word_unscramble scrambled is a permutation of word for every round, time_teller answer is in choices for every round, scales_balance rounds have left/right weights, tap_target levels have target+trap+duration. (4) End-to-end badge flow validated by playing odd_one_out to completion: Done state rendered, toast 'Wave badge unlocked: Odd-One Spotter!' fired, badge persisted in localStorage, 'My Wave Badges' counter incremented 0->1, badge chip rendered, star (🌟) marker appeared on the completed tile. App is ready to ship.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "MINOR / naming-only discrepancy between the review_request features list and the actual TILES array — request lists keys like 'draw_to_match, sort_to_bins, sticker_collect, find_treasures, color_my_world, mini_quiz, drag_sort_bins' which do NOT exist; actual tile keys are 'spot_difference, drag_sort, sticker_beach, hidden_objects, coloring, quiz, drag_sort' respectively. All 32 actual tile keys ARE present and functional (32/32 rendered, 32/32 opened, badge collected 1/32), so this is not a shipping blocker — just flag to align the user-facing key naming with what the main agent reported.",
+    "Activities.jsx L239-241: 'Captain of the Cay' chip uses condition `badges.length >= TILES.length + 1` (i.e., 33), but BADGE_LABELS only lists 32 game keys + 1 'story_quest' bonus. The +1 implies story_quest is meant to count toward the total, but story_quest is NOT in the TILES grid on /activities — it lives elsewhere. Users who complete all 32 in-grid games will see counter '32 of 32 collected' but the Captain crown will never appear unless they also earn the story_quest badge from another route. Recommend either (a) document this on the badges section, or (b) change the condition to `>= TILES.length` so collecting all 32 grid games is sufficient. Low priority but will confuse users who 100% the grid.",
+    "HiddenObjects.jsx renders an emoji grid (scene_emoji_grid) inside a colored gradient — the request brief asked for 'real beach/coral imagery (NOT colored squares)'. Current implementation is emojis-on-gradient, which is acceptable (not colored squares) but is not photo/illustration imagery either. Confirmed visually that targets are clearly visible and tappable, so functionally fine; flagging only because the brief explicitly called this out."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (frontend only)", "frontend": "100% (32/32 tiles render, 32/32 modals open with content, 11/11 data-integrity checks pass, badge end-to-end verified on odd_one_out)"},
+  "test_credentials": "None required — /activities is public.",
+  "seed_data_creation": "None — used live seeded activity data via /api/activities/{key}.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All 32 games on /activities are working end-to-end as of this run. Data integrity was validated by hitting /api/activities/{key} and checking each level's invariants in code (see the inline python in this iteration). Cookie banner is dismissed by clicking the button with text 'Accept all' (data-testid 'rcc-confirm-button' was NOT present on this run — text-selector worked). Tiles past row 4 require scroll_into_view_if_needed. Modal closes via [data-testid='activity-close']. Badge flow uses localStorage key 'mr_badges' and Sonner toast — both verified.",
+  "rca of the issue": "No issues. The previously-reported 'Tide pool maze' bug (steps ending at col 3 instead of col 2) is verifiably FIXED — simulated the step sequence ['N','E','N','W','W','N','E','N'] from start [4,2] in code and it lands exactly on goal [0,2]. The map_directions API now returns this corrected level, confirming the REPLACE_LEVELS_FOR change survived the seed redeploy."
+}

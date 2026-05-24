@@ -1693,7 +1693,7 @@ async def seed_database(db) -> None:
             {"name": "Detour", "cols": 5, "rows": 4, "start": [3, 0], "goal": [0, 4], "steps": ["E", "N", "E", "N", "E", "N", "E", "E"], "hint": "Step E, step N, repeat."},
             {"name": "Lighthouse", "cols": 5, "rows": 5, "start": [4, 0], "goal": [0, 4], "steps": ["N", "N", "E", "E", "N", "N", "E", "E"], "hint": "Climb to the top corner."},
             {"name": "Back to camp", "cols": 5, "rows": 5, "start": [0, 4], "goal": [4, 0], "steps": ["S", "W", "S", "W", "S", "W", "S", "W"], "hint": "Drop and head back."},
-            {"name": "Tide pool maze", "cols": 5, "rows": 5, "start": [4, 2], "goal": [0, 2], "steps": ["N", "E", "N", "W", "W", "N", "E", "E", "N"], "hint": "Wiggle up the middle."},
+            {"name": "Tide pool maze", "cols": 5, "rows": 5, "start": [4, 2], "goal": [0, 2], "steps": ["N", "E", "N", "W", "W", "N", "E", "N"], "hint": "Wiggle up the middle."},
             {"name": "Around the cove", "cols": 6, "rows": 5, "start": [4, 0], "goal": [4, 5], "steps": ["N", "N", "E", "E", "E", "E", "E", "S", "S"], "hint": "Up, across, down."},
             {"name": "Captain's compass", "cols": 6, "rows": 6, "start": [5, 0], "goal": [0, 5], "steps": ["N", "E", "N", "E", "N", "E", "N", "E", "N", "E"], "hint": "Diagonal climb!"},
         ]}},
@@ -1869,7 +1869,7 @@ async def seed_database(db) -> None:
     # Activities whose `levels` should be hard-replaced (not unioned) on
     # every restart. Use this for procedurally-generated content that was
     # buggy in earlier revisions and needs to be regenerated cleanly.
-    REPLACE_LEVELS_FOR = {"hidden_objects"}
+    REPLACE_LEVELS_FOR = {"hidden_objects", "map_directions"}
 
     for a in activity_seeds:
         existing = await db.activity_content.find_one({"key": a["key"]})
