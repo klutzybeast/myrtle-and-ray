@@ -1062,3 +1062,47 @@ Casey, Dani, Sami, Izzy, Louie, Billy, Frankie.
   with treasure chest, no text.
 - All 8/8 sing-along admin tests passing.
 - 20 sing-along songs intact: 100% audio_url + lyrics_lrc.
+
+
+## What's been implemented (2026-05-24 — Activities Batches 3 & 4)
+Activities catalog expanded from 16 to **24 mini-games** by adding two
+batches of new mechanics, each with 10 seeded levels (80 new levels):
+
+**Batch 3 (4 new games):**
+- **Connect the Dots** (`connect_dots`) — tap dots 1→N to reveal a picture
+  (sailboat, turtle, star, sailboat, palm tree, whale, etc.)
+- **Color by Number** (`color_by_number`) — pick a palette color, paint
+  matching numbered cells in a 6–9-col grid to reveal art
+- **Shadow Match** (`shadow_match`) — silhouette quiz, tap the matching
+  colorful emoji from 4 options
+- **Odd One Out** (`odd_one_out`) — pick the item that doesn't belong from
+  a group of 4, with kid-friendly explanations
+
+**Batch 4 (4 new games):**
+- **Simon at the Cay** (`simon_says`) — watch a colored-pad sequence and
+  repeat it; difficulty scales from 2-pad to 4-pad and start-length 2→5
+- **Word Unscramble** (`word_unscramble`) — tap letters in correct order
+  to spell themed words (BEACH, MYRTLE, OCEAN…)
+- **Count & Click** (`count_and_click`) — find every target emoji in a
+  busy scene (turtles, fish, crabs, jellies, dolphins…)
+- **Sounds of the Sea** (`animal_sounds`) — match animal to sound /
+  habitat / food / movement; 10 rounds per level
+
+### Files added
+- `/app/frontend/src/pages/games/{ConnectDots,ColorByNumber,ShadowMatch,OddOneOut,SimonSays,WordUnscramble,CountAndClick,AnimalSounds}.jsx`
+- All 8 wired into `/app/frontend/src/pages/Activities.jsx` (TILES,
+  BADGE_LABELS, imports) with new lucide icons
+- 8 new `activity_content` seed blocks in `/app/backend/seed.py`
+  (idempotent — name-keyed union with existing levels)
+
+### Fixed
+- "Captain of the Cay" banner copy was hard-coded to "All 9" and used an
+  unreachable condition (`>= TILES.length + 1`). Now reads "All {TILES.length}
+  — Captain of the Cay!" and unlocks at `>= TILES.length`.
+
+### Verified (iteration_17.json)
+- Backend pytest 13/13 PASS — all 8 new endpoints return 10 levels with
+  correct shape; 16 existing endpoints regression-clean.
+- Playwright: 24/24 tiles render; 8/8 new modals open with game UI;
+  end-to-end playthroughs of ConnectDots + OddOneOut earned badges and
+  persisted to localStorage.
