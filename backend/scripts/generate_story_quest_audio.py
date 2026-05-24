@@ -101,6 +101,31 @@ def main() -> int:
 
     print(f"\nDone. Total characters synthesized this run: {total_chars}")
     print(f"Assets folder: {asset_dir}")
+
+    # Refresh manifest so the seed can find each scene's MP3 even if env vars drift.
+    import json as _json
+    manifest = {"model_id": MODEL_ID, "scenes": []}
+    for sc in STORY_QUEST_SCENES:
+        n = sc["scene_number"]
+        narrator = STORY_QUEST_NARRATORS.get(n, "ms-bluegill")
+        voice_id = voice_by_slug.get(narrator)
+        if not voice_id:
+            continue
+        text = phoneticize_for_tts(sc["narrative"])
+        key = cache_key(voice_id, text)
+        if not (asset_dir / f"{key}.mp3").exists():
+            continue
+        manifest["scenes"].append({
+            "scene_number": n,
+            "title": sc["title"],
+            "narrator_slug": narrator,
+            "voice_id": voice_id,
+            "cache_key": key,
+            "audio_filename": f"{key}.mp3",
+        })
+    manifest_path = asset_dir / "manifest.json"
+    manifest_path.write_text(_json.dumps(manifest, indent=2))
+    print(f"Wrote manifest with {len(manifest['scenes'])} entries -> {manifest_path}")
     return 0
 
 

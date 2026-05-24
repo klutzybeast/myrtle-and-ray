@@ -1,0 +1,101 @@
+{
+  "model_id": "eleven_v3",
+  "scenes": [
+    {
+      "scene_number": 1,
+      "title": "Welcome to Stingray Cay",
+      "narrator_slug": "ms-bluegill",
+      "voice_id": "6qL48o1LBmtR94hIYAQh",
+      "cache_key": "4646d171712b7d32bf36ee02b34d60a6b64933325b716a964fd3a5fdc3d22eca",
+      "audio_filename": "4646d171712b7d32bf36ee02b34d60a6b64933325b716a964fd3a5fdc3d22eca.mp3"
+    },
+    {
+      "scene_number": 2,
+      "title": "Meeting the Crew",
+      "narrator_slug": "ray",
+      "voice_id": "6OzrBCQf8cjERkYgzSg8",
+      "cache_key": "5642e366b152cca73acbe57738dc87b86440ef68ba45365be4a9f26a3f779a04",
+      "audio_filename": "5642e366b152cca73acbe57738dc87b86440ef68ba45365be4a9f26a3f779a04.mp3"
+    },
+    {
+      "scene_number": 3,
+      "title": "At the Tide Pool",
+      "narrator_slug": "casey",
+      "voice_id": "Uq9DKccXXKZ6lc53ATJV",
+      "cache_key": "9ba54c6c7c65e39c5b0ad8b85dfabf5b56ad1812f11d5f489b4f0e47b8ffb4fc",
+      "audio_filename": "9ba54c6c7c65e39c5b0ad8b85dfabf5b56ad1812f11d5f489b4f0e47b8ffb4fc.mp3"
+    },
+    {
+      "scene_number": 4,
+      "title": "Sami's Missing Snorkel",
+      "narrator_slug": "myrtle",
+      "voice_id": "Z3R5wn05IrDiVCyEkUrK",
+      "cache_key": "bf28372819616ecf6edd428a0e28ad27f8adf20171c63390218eae0cd0068253",
+      "audio_filename": "bf28372819616ecf6edd428a0e28ad27f8adf20171c63390218eae0cd0068253.mp3"
+    },
+    {
+      "scene_number": 5,
+      "title": "Lunchtime",
+      "narrator_slug": "louie",
+      "voice_id": "nucVFUFVgPmKHjgXNbJ7",
+      "cache_key": "319ee7575640449ea6d67621c640378873bf670525e69ecc1941e32f575932e9",
+      "audio_filename": "319ee7575640449ea6d67621c640378873bf670525e69ecc1941e32f575932e9.mp3"
+    },
+    {
+      "scene_number": 6,
+      "title": "The Big Wave",
+      "narrator_slug": "ray",
+      "voice_id": "6OzrBCQf8cjERkYgzSg8",
+      "cache_key": "388630240ac182a158257e356da900da10182beeb68669ed9b2c96ef5d81fff4",
+      "audio_filename": "388630240ac182a158257e356da900da10182beeb68669ed9b2c96ef5d81fff4.mp3"
+    },
+    {
+      "scene_number": 7,
+      "title": "Lost on the Beach",
+      "narrator_slug": "myrtle",
+      "voice_id": "Z3R5wn05IrDiVCyEkUrK",
+      "cache_key": "a497b2217c4376bf70c414093d154a953adb8de3df7b78ba4a649f6098d57703",
+      "audio_filename": "a497b2217c4376bf70c414093d154a953adb8de3df7b78ba4a649f6098d57703.mp3"
+    },
+    {
+      "scene_number": 8,
+      "title": "The Treasure Hunt",
+      "narrator_slug": "ms-bluegill",
+      "voice_id": "6qL48o1LBmtR94hIYAQh",
+      "cache_key": "6c348f60eaf35c141a018f9dcd394b22c6dc4a99ac7d68733f7248bb38b9c911",
+      "audio_filename": "6c348f60eaf35c141a018f9dcd394b22c6dc4a99ac7d68733f7248bb38b9c911.mp3"
+    },
+    {
+      "scene_number": 9,
+      "title": "Stories at Sunset",
+      "narrator_slug": "sally",
+      "voice_id": "K7W7zLWeGoxU9YqWoB7A",
+      "cache_key": "61ac0cb212fab4c51f789fff77d7f98cc88905bfaead09a8482573ee6382f852",
+      "audio_filename": "61ac0cb212fab4c51f789fff77d7f98cc88905bfaead09a8482573ee6382f852.mp3"
+    },
+    {
+      "scene_number": 10,
+      "title": "Saying Goodbye for the Day",
+      "narrator_slug": "ms-bluegill",
+      "voice_id": "6qL48o1LBmtR94hIYAQh",
+      "cache_key": "6639b0035c4faa93589df0d7a659cc2cf40ee66c3654b03b0192761c2f3c33a1",
+      "audio_filename": "6639b0035c4faa93589df0d7a659cc2cf40ee66c3654b03b0192761c2f3c33a1.mp3"
+    },
+    {
+      "scene_number": 11,
+      "title": "The W.A.V.E. Promise",
+      "narrator_slug": "myrtle",
+      "voice_id": "Z3R5wn05IrDiVCyEkUrK",
+      "cache_key": "92347c48bfd55c1700893904d00854e6182c8b2daef358288d93fc1bd50b0c05",
+      "audio_filename": "92347c48bfd55c1700893904d00854e6182c8b2daef358288d93fc1bd50b0c05.mp3"
+    },
+    {
+      "scene_number": 12,
+      "title": "Your Sea Star Reveal",
+      "narrator_slug": "ms-bluegill",
+      "voice_id": "6qL48o1LBmtR94hIYAQh",
+      "cache_key": "5f3326c9356985d8b206ddf222f690f2ac26b3c784179b08f0297a54a843f397",
+      "audio_filename": "5f3326c9356985d8b206ddf222f690f2ac26b3c784179b08f0297a54a843f397.mp3"
+    }
+  ]
+}
