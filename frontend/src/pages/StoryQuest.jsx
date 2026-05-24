@@ -149,6 +149,7 @@ function QuestRunner({ slug }) {
   const [mappings, setMappings] = useState(null);
   const [characters, setCharacters] = useState([]);
   const [stage, setStage] = useState("splash"); // splash | scene | reaction | finale
+  const [resumeStage, setResumeStage] = useState(null); // when not null, splash shows "Continue" buttons that resume mid-quest
   const [muted, setMuted] = useState(false);
   const [idx, setIdx] = useState(0);
   const [scores, setScores] = useState(emptyScores);
@@ -176,13 +177,20 @@ function QuestRunner({ slug }) {
         setQuest(q.data);
         if ((s.data || []).length === 0) setQuestError("This quest has no scenes yet — check back soon!");
       }
-      // Resume progress if any
+      // Resume progress if any. We always START on the splash so the user's
+      // first click ("Start with narration") supplies the gesture browsers
+      // require to autoplay audio. The saved state is kept in component
+      // state so a single click resumes mid-quest with sound flowing.
       const prev = loadProgress();
       if (prev && prev.idx >= 0 && prev.scores) {
         setIdx(prev.idx);
         setScores(prev.scores);
         if (Array.isArray(prev.picks)) setPicks(prev.picks);
-        setStage(prev.stage || "scene");
+        // NOTE: deliberately NOT calling setStage(prev.stage) — we keep the
+        // splash so the user clicks "Start with narration" again. The click
+        // re-enables autoplay AND advances them straight to their saved
+        // scene/reaction/finale (start() preserves idx, scores, picks).
+        if (prev.stage && prev.stage !== "splash") setResumeStage(prev.stage);
       }
     }).catch(() => { setQuestError("Could not load this quest."); });
     return () => {
@@ -235,12 +243,18 @@ function QuestRunner({ slug }) {
   const totalScenes = scenes.length;
 
   const start = (withSound = false) => {
-    setIdx(0);
-    setScores(emptyScores());
-    setPicks([]);
-    setLastChoice(null);
+    // If we're resuming a saved session, do NOT reset idx/scores/picks —
+    // keep them so the user lands back where they left off, with audio
+    // unlocked because this click is the user gesture.
+    if (!resumeStage) {
+      setIdx(0);
+      setScores(emptyScores());
+      setPicks([]);
+      setLastChoice(null);
+    }
     setMuted(!withSound);
-    setStage("scene");
+    setStage(resumeStage || "scene");
+    setResumeStage(null);
   };
 
   const reset = () => {
@@ -324,7 +338,7 @@ function QuestRunner({ slug }) {
   }
 
   if (stage === "splash") {
-    return <Splash quest={quest} totalScenes={totalScenes} onStart={start} playerName={playerName} onNameChange={setPlayerName} />;
+    return <Splash quest={quest} totalScenes={totalScenes} onStart={start} playerName={playerName} onNameChange={setPlayerName} resuming={!!resumeStage} resumeSceneNum={resumeStage ? idx + 1 : 0} />;
   }
 
   if (stage === "finale") {
@@ -443,7 +457,7 @@ function QuestRunner({ slug }) {
   );
 }
 
-function Splash({ quest, totalScenes, onStart, playerName, onNameChange }) {
+function Splash({ quest, totalScenes, onStart, playerName, onNameChange, resuming = false, resumeSceneNum = 0 }) {
   const title = quest?.title || "Story Quest";
   const blurb = quest?.blurb || "Adventure through Stingray Cay one scene at a time.";
   return (
@@ -457,7 +471,11 @@ function Splash({ quest, totalScenes, onStart, playerName, onNameChange }) {
         </div>
         <Sparkles className="w-12 h-12 text-[#f0a988] mx-auto mb-3" />
         <h1 className="font-accent text-5xl md:text-6xl font-bold mb-3">{title}</h1>
-        <p className="text-lg text-[#4a5568] mb-2">{blurb}</p>
+        {resuming ? (
+          <p className="text-lg text-[#4a5568] mb-2">Welcome back! You left off at scene {resumeSceneNum} of {totalScenes}.</p>
+        ) : (
+          <p className="text-lg text-[#4a5568] mb-2">{blurb}</p>
+        )}
         <p className="text-sm text-[#6b7280] mb-6">Every choice celebrates a W.A.V.E. value — and at the end you'll discover your Sea Star.</p>
 
         <div className="bg-white rounded-[28px] p-6 mb-6 grid grid-cols-2 md:grid-cols-4 gap-3 text-left">
@@ -488,24 +506,24 @@ function Splash({ quest, totalScenes, onStart, playerName, onNameChange }) {
           />
         </div>
 
-        <p className="text-sm text-[#3a4a55] font-semibold mb-3">Every scene is narrated by a different Sea Star — pick how you want to play:</p>
+        <p className="text-sm text-[#3a4a55] font-semibold mb-3">{resuming ? "Pick how you want to keep playing:" : "Every scene is narrated by a different Sea Star — pick how you want to play:"}</p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center items-stretch">
           <button
             onClick={() => onStart(true)}
             className="btn-primary text-lg justify-center"
             data-testid="quest-start"
           >
-            <Volume2 className="w-5 h-5" /> Start with narration
+            <Volume2 className="w-5 h-5" /> {resuming ? "Continue with narration" : "Start with narration"}
           </button>
           <button
             onClick={() => onStart(false)}
             className="btn-secondary text-base justify-center"
             data-testid="quest-start-silent"
           >
-            <VolumeX className="w-5 h-5" /> Quiet mode
+            <VolumeX className="w-5 h-5" /> {resuming ? "Continue silently" : "Quiet mode"}
           </button>
         </div>
-        <p className="text-[11px] text-[#6b7280] mt-3">You can switch sound on or off any time with the speaker button.</p>
+        <p className="text-[11px] text-[#6b7280] mt-3">{resuming ? "Pick up right where you left off — your progress is saved." : "You can switch sound on or off any time with the speaker button."}</p>
       </div>
     </main>
   );
