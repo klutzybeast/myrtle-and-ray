@@ -1022,3 +1022,43 @@ Casey, Dani, Sami, Izzy, Louie, Billy, Frankie.
 - Daily Streak Tracker, Camp Counselor Leaderboard (P3).
 - Refactor StoryQuest.jsx (~1000 lines) into Splash/Recap/Postcard
   sub-components (P3).
+
+
+## What's been implemented (2026-02-24 — AI cover art with the actual Sea Stars)
+### Generate cover art (Nano Banana, character-anchored)
+- New `/app/backend/cover_art_service.py` — wraps Gemini Nano Banana
+  (gemini-3.1-flash-image-preview) with character portraits passed as
+  reference images via `UserMessage.file_contents=[ImageContent(b64)]`,
+  so generated covers ALWAYS feature the actual Sea Stars — not
+  generic beach art. Strong "no text in image" system prompt.
+- Saves PNG to `/app/backend/uploads/covers/{sing_along|story_quest}/<slug>-<hash>.png`
+  with a unique hash suffix so browser cache picks up the regenerated
+  image. Also pushed to persistent Object Storage.
+
+### New endpoints
+- `POST /api/admin/sing-along/songs/{id}/generate-cover` — composes
+  cover from song's character_focus + theme; patches `cover_image_url`.
+- `POST /api/admin/story-quest/quests/{id}/generate-cover` — same for
+  quest hero images using `character_focus + blurb`.
+
+### Admin UI
+- `AdminSingAlong.jsx` — orange image icon on every song row.
+- `AdminStoryQuest.jsx` — "Generate cover art" pill under each quest
+  uploader.
+- Owner can still delete (X) and re-upload a custom cover anytime.
+
+### Bug fix
+- `sing_along_router.admin_patch` was using `body.model_dump()` which
+  included Pydantic defaults; PATCH `{theme:"x"}` clobbered slug, title,
+  audio_url, lyrics_lrc to empty strings. Fixed to
+  `model_dump(exclude_unset=True)`. Restored two affected seed songs
+  (`catch-the-wave`, `stingray-key-camp-song`) and re-ran forced
+  alignment.
+
+### Verified
+- Cover art smoke test: Myrtle's Kindness Song → green sea turtle in
+  adventurer's vest on a sunny beach (picture-book watercolor).
+- Lost Sea Glass Treasure quest → blue/white manta ray (Ray) on beach
+  with treasure chest, no text.
+- All 8/8 sing-along admin tests passing.
+- 20 sing-along songs intact: 100% audio_url + lyrics_lrc.

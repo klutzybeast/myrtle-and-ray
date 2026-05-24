@@ -176,7 +176,7 @@ def make_sing_along_router(db, require_admin):
 
     @admin.patch("/songs/{song_id}")
     async def admin_patch(song_id: str, body: SongBody):
-        patch = {k: v for k, v in body.model_dump().items() if v is not None}
+        patch = {k: v for k, v in body.model_dump(exclude_unset=True).items() if v is not None}
         if not patch:
             raise HTTPException(status_code=400, detail="No fields to update.")
         patch["updated_at"] = _now_iso()
@@ -338,6 +338,36 @@ def make_sing_along_router(db, require_admin):
             {"$set": {"lyrics_lrc": lyrics_lrc, "updated_at": _now_iso()}},
         )
         return {"success": True, "lyrics_lrc": lyrics_lrc}
+
+    @admin.post("/songs/{song_id}/generate-cover")
+    async def admin_generate_cover(song_id: str):
+        """Generate beach-themed cover art for this song using Nano Banana,
+        keyed off the song's character_focus (uses character portraits as
+        reference images so the cover ALWAYS features the actual Sea Stars)."""
+        from cover_art_service import generate_cover
+        song = await db.sing_along_songs.find_one({"id": song_id}, {"_id": 0})
+        if not song:
+            raise HTTPException(status_code=404, detail="Song not found.")
+        focus = (song.get("character_focus") or "").strip()
+        # Resolve character slug list. "all" or empty → key crew of 3
+        if focus == "all" or not focus:
+            slugs = ["ray", "myrtle", "ollie"]
+        else:
+            slugs = [focus]
+        result = await generate_cover(
+            db,
+            character_slugs=slugs,
+            scene_prompt=(song.get("theme") or song.get("music_prompt") or "").strip()
+                or f"a fun beach summer-camp scene matching the song '{song.get('title','')}'",
+            title=song.get("title") or song.get("slug") or "Sing-Along",
+            kind="sing_along",
+            slug=song.get("slug") or song_id,
+        )
+        await db.sing_along_songs.update_one(
+            {"id": song_id},
+            {"$set": {"cover_image_url": result["url"], "updated_at": _now_iso()}},
+        )
+        return result
 
     router.include_router(admin)
     return router

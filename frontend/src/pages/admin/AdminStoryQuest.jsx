@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { api } from "../../lib/api";
-import { Sparkles, Plus, Trash2, Edit2, X, Save, BarChart3, GripVertical, ArrowUp, ArrowDown, Loader2 } from "lucide-react";
+import { Sparkles, Plus, Trash2, Edit2, X, Save, BarChart3, GripVertical, ArrowUp, ArrowDown, Loader2, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { ImageUploader } from "./ImageUploader";
 
@@ -105,6 +105,17 @@ export default function AdminStoryQuest() {
     }
   };
 
+  const generateQuestCover = async (q) => {
+    try {
+      toast.loading("Drawing cover with the Sea Stars…", { id: `qcov-${q.id}` });
+      const { data } = await api.post(`/admin/story-quest/quests/${q.id}/generate-cover`, {}, { timeout: 120000 });
+      toast.success("Cover generated!", { id: `qcov-${q.id}` });
+      setQuests((qs) => qs.map((x) => (x.id === q.id ? { ...x, hero_image_url: data.url } : x)));
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Cover generation failed", { id: `qcov-${q.id}` });
+    }
+  };
+
   if (loading) return <div className="text-[#6b7280]">Loading…</div>;
 
   return (
@@ -140,6 +151,14 @@ export default function AdminStoryQuest() {
                   label=""
                   testid={`quest-cover-upload-${q.slug}`}
                 />
+                <button
+                  onClick={() => generateQuestCover(q)}
+                  className="mt-2 w-full inline-flex items-center justify-center gap-1 px-3 py-1.5 text-xs font-bold rounded-full bg-[#fff8ec] text-[#a36b29] hover:bg-[#fef3e2] border border-[#f4e4c6]"
+                  title="Generate beach cover featuring this quest's Sea Star"
+                  data-testid={`quest-gencover-${q.slug}`}
+                >
+                  <Wand2 className="w-3.5 h-3.5" /> Generate cover art
+                </button>
               </div>
             ))}
           </div>

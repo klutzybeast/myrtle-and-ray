@@ -495,6 +495,34 @@ def make_story_quest_router(db, require_admin):
             raise HTTPException(status_code=404, detail="Quest not found.")
         return await db.story_quests.find_one({"id": quest_id}, {"_id": 0})
 
+    @admin.post("/quests/{quest_id}/generate-cover")
+    async def admin_generate_quest_cover(quest_id: str):
+        """Generate hero cover art for this quest. Uses the quest's
+        character_focus + blurb so the cover features the actual Sea Stars."""
+        from cover_art_service import generate_cover
+        quest = await db.story_quests.find_one({"id": quest_id}, {"_id": 0})
+        if not quest:
+            raise HTTPException(status_code=404, detail="Quest not found.")
+        focus = (quest.get("character_focus") or "").strip()
+        if focus == "all" or not focus:
+            slugs = ["ray", "myrtle", "ms-bluegill"]
+        else:
+            slugs = [focus]
+        result = await generate_cover(
+            db,
+            character_slugs=slugs,
+            scene_prompt=(quest.get("blurb") or "").strip()
+                or f"a beach summer-camp scene for the adventure '{quest.get('title','')}'",
+            title=quest.get("title") or quest.get("slug") or "Story Quest",
+            kind="story_quest",
+            slug=quest.get("slug") or quest_id,
+        )
+        await db.story_quests.update_one(
+            {"id": quest_id},
+            {"$set": {"hero_image_url": result["url"], "updated_at": _now_iso()}},
+        )
+        return result
+
     @admin.get("/scenes")
     async def list_scenes():
         cur = db.story_quest_scenes.find({}, {"_id": 0}).sort("scene_number", 1)

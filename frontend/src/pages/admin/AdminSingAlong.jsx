@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { api } from "../../lib/api";
 import { toast } from "sonner";
 import {
-  Music2, Plus, Trash2, Edit2, X, Save, ArrowUp, ArrowDown, Loader2, Sparkles, Wand2,
+  Music2, Plus, Trash2, Edit2, X, Save, ArrowUp, ArrowDown, Loader2, Sparkles, Wand2, Image as ImageIcon,
 } from "lucide-react";
 import { ImageUploader } from "./ImageUploader";
 
@@ -87,6 +87,17 @@ export default function AdminSingAlong() {
     }
   };
 
+  const generateCover = async (s) => {
+    try {
+      toast.loading("Drawing cover with the Sea Stars…", { id: `cov-${s.id}` });
+      await api.post(`/admin/sing-along/songs/${s.id}/generate-cover`, {}, { timeout: 120000 });
+      toast.success("Cover generated!", { id: `cov-${s.id}` });
+      refresh();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Cover generation failed", { id: `cov-${s.id}` });
+    }
+  };
+
   const handleGenerate = async (form) => {
     setGenerating(true);
     try {
@@ -148,6 +159,9 @@ export default function AdminSingAlong() {
             <div className="flex flex-col gap-1.5">
               <button onClick={() => toggleActive(s)} className="p-2 rounded-full hover:bg-[#eef9fb]" title={s.active ? "Disable" : "Enable"} data-testid={`song-toggle-${s.slug}`}>
                 <span className={`inline-block w-3 h-3 rounded-full ${s.active ? "bg-[#5a8a6f]" : "bg-[#cbd5e1]"}`} />
+              </button>
+              <button onClick={() => generateCover(s)} className="p-2 rounded-full hover:bg-[#fff8ec] text-[#f0a988]" title="Generate cover art with the Sea Stars" data-testid={`song-gencover-${s.slug}`}>
+                <ImageIcon className="w-4 h-4" />
               </button>
               {s.audio_url && (
                 <button onClick={() => regenAlignment(s)} className="p-2 rounded-full hover:bg-[#fff8ec] text-[#a36b29]" title="Re-align lyrics" data-testid={`song-realign-${s.slug}`}>
