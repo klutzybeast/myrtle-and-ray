@@ -406,6 +406,9 @@ async def seed_database(db) -> None:
         })
 
     # --- Activity content with rotating levels (new schema) ---
+    # Idempotent: every level is keyed by a 'name' string; the seed unions
+    # the canonical set into existing data, so re-running adds new levels
+    # without duplicating ones already in the DB.
     activity_seeds = [
         {"key": "rhyme_time", "title": "Rhyme Time", "data": {"levels": [
             {"name": "Sea Star starters", "prompts": [
@@ -422,6 +425,46 @@ async def seed_database(db) -> None:
                 {"line": "Billy swam in loops and zooms, then said hello with happy...", "choices": ["booms", "fish"], "answer": "booms"},
                 {"line": "Frankie strut in pink and tall, the kindest flamingo of them...", "choices": ["all", "few"], "answer": "all"},
                 {"line": "Izzy climbed the palm so high, then waved her arms up at the...", "choices": ["sky", "tree"], "answer": "sky"},
+            ]},
+            {"name": "Ocean rhymes", "prompts": [
+                {"line": "A starfish glittered on the floor, then danced its way right to the...", "choices": ["shore", "sea"], "answer": "shore"},
+                {"line": "Bubbles popped up one, two, three, all dancing in the bright blue...", "choices": ["sea", "tide"], "answer": "sea"},
+                {"line": "Dani flipped high in the air, with happy waves and salty...", "choices": ["hair", "fin"], "answer": "hair"},
+            ]},
+            {"name": "W.A.V.E. words", "prompts": [
+                {"line": "When a new friend wants to play, the kindest thing to do is...", "choices": ["welcome", "ignore"], "answer": "welcome"},
+                {"line": "Sami was scared but tried his best — that's a value of being...", "choices": ["brave", "loud"], "answer": "brave"},
+                {"line": "Lifting up a friend who's blue means you really know how to...", "choices": ["encourage", "argue"], "answer": "encourage"},
+            ]},
+            {"name": "Camp counselor capers", "prompts": [
+                {"line": "Ms Bluegill blew her tiny whistle, the campers gathered, ready to...", "choices": ["whistle", "fight"], "answer": "whistle"},
+                {"line": "Louie kept the beat on his snare, music filling the salty...", "choices": ["air", "sand"], "answer": "air"},
+                {"line": "Sally smiled, then taught the class to paint a picture made of...", "choices": ["glass", "stick"], "answer": "glass"},
+            ]},
+            {"name": "Big feelings", "prompts": [
+                {"line": "When my heart is racing fast, I take a breath that makes it...", "choices": ["last", "stop"], "answer": "last"},
+                {"line": "A worried friend may need a hug — a gentle squeeze, a caring...", "choices": ["tug", "frown"], "answer": "tug"},
+                {"line": "Even big kids cry sometimes — that's a feeling we all know in...", "choices": ["mind", "yard"], "answer": "mind"},
+            ]},
+            {"name": "Counting rhymes", "prompts": [
+                {"line": "One little crab said, \"Let's begin,\" two little crabs would jump right...", "choices": ["in", "out"], "answer": "in"},
+                {"line": "Three Sea Stars splashed in the bay, four little dolphins came out to...", "choices": ["play", "stay"], "answer": "play"},
+                {"line": "Five sweet turtles sang a tune, six bright shells were under the...", "choices": ["moon", "boat"], "answer": "moon"},
+            ]},
+            {"name": "Storm at the cay", "prompts": [
+                {"line": "Clouds rolled in and the wind blew strong, the Sea Stars sang a brave little...", "choices": ["song", "frog"], "answer": "song"},
+                {"line": "Thunder boomed and rain came down, friends held hands on safe high...", "choices": ["ground", "town"], "answer": "ground"},
+                {"line": "Soon the sun came peeking through, every camper smiled and said...", "choices": ["thank you", "achoo"], "answer": "thank you"},
+            ]},
+            {"name": "Friendship rhymes", "prompts": [
+                {"line": "A buddy who listens is gold to find, a Sea Star friend is truly...", "choices": ["kind", "blind"], "answer": "kind"},
+                {"line": "If you fall and scrape your knee, a friend will say, \"It's safe with...", "choices": ["me", "we"], "answer": "me"},
+                {"line": "Sharing snacks and sharing fun makes camp the best for...", "choices": ["everyone", "no one"], "answer": "everyone"},
+            ]},
+            {"name": "Quiet-time rhymes", "prompts": [
+                {"line": "Cuddle up tight and turn off the light, sweet salty dreams in the soft moonlit...", "choices": ["night", "bright"], "answer": "night"},
+                {"line": "A book in your lap, a flashlight beam, perfect for a quiet camp...", "choices": ["dream", "team"], "answer": "dream"},
+                {"line": "Listening hard you might just hear, the ocean's lullaby gentle and...", "choices": ["clear", "near"], "answer": "clear"},
             ]},
         ]}},
         {"key": "quiz", "title": "Which Sea Star Are You?", "data": {"levels": [
@@ -459,44 +502,173 @@ async def seed_database(db) -> None:
                     {"label": "Glow in the dark", "char": "jessie"},
                 ]},
             ]},
+            {"name": "Kindness round", "questions": [
+                {"q": "A friend looks sad. You first...", "options": [
+                    {"label": "Sit beside them quietly", "char": "jessie"},
+                    {"label": "Make them laugh", "char": "louie"},
+                    {"label": "Offer your snack", "char": "myrtle"},
+                    {"label": "Invite them to a game", "char": "ray"},
+                ]},
+                {"q": "Your favorite way to say hello is...", "options": [
+                    {"label": "A bright smile and a wave", "char": "frankie"},
+                    {"label": "A big bear hug", "char": "casey"},
+                    {"label": "An eight-arm fist bump", "char": "ollie"},
+                    {"label": "A calm 'how are you?'", "char": "ms-bluegill"},
+                ]},
+                {"q": "Someone falls during a race. You...", "options": [
+                    {"label": "Run back to help them up", "char": "myrtle"},
+                    {"label": "Cheer them on from the line", "char": "sami"},
+                    {"label": "Race with them at their pace", "char": "ray"},
+                    {"label": "Bring a bandage and a joke", "char": "louie"},
+                ]},
+            ]},
+            {"name": "Creative round", "questions": [
+                {"q": "Your favorite art project is...", "options": [
+                    {"label": "Painting bright murals", "char": "sally"},
+                    {"label": "Sand-castle sculptures", "char": "casey"},
+                    {"label": "Drum-and-shell music", "char": "louie"},
+                    {"label": "Octopus-arm crafting", "char": "ollie"},
+                ]},
+                {"q": "If you could decorate the cabin you'd add...", "options": [
+                    {"label": "Glow-in-the-dark stars", "char": "jessie"},
+                    {"label": "Surfboard wall hangings", "char": "ray"},
+                    {"label": "A reading nook with books", "char": "myrtle"},
+                    {"label": "A tiny indoor pond", "char": "billy"},
+                ]},
+            ]},
+            {"name": "Camp explorer round", "questions": [
+                {"q": "Pick a path through camp...", "options": [
+                    {"label": "Tall palm-tree climb", "char": "izzy"},
+                    {"label": "Deep coral dive", "char": "billy"},
+                    {"label": "Sandy beach run", "char": "ray"},
+                    {"label": "Quiet tide-pool watch", "char": "casey"},
+                ]},
+                {"q": "Pick a camp job...", "options": [
+                    {"label": "Counselor with the schedule", "char": "ms-bluegill"},
+                    {"label": "Snack-table comedian", "char": "louie"},
+                    {"label": "Quiet-time leader", "char": "jessie"},
+                    {"label": "Cabin cheerleader", "char": "frankie"},
+                ]},
+            ]},
+            {"name": "Big-feeling round", "questions": [
+                {"q": "When you feel nervous you...", "options": [
+                    {"label": "Take deep belly breaths", "char": "jessie"},
+                    {"label": "Squeeze a friend's hand", "char": "myrtle"},
+                    {"label": "Make a silly face in the mirror", "char": "louie"},
+                    {"label": "Picture your bravest hero", "char": "ray"},
+                ]},
+                {"q": "Picking a Sea Star to celebrate today...", "options": [
+                    {"label": "I tried something new", "char": "ray"},
+                    {"label": "I was a gentle helper", "char": "myrtle"},
+                    {"label": "I made art that I love", "char": "sally"},
+                    {"label": "I cheered someone on", "char": "frankie"},
+                ]},
+            ]},
+            {"name": "Sleepy-time round", "questions": [
+                {"q": "Pick a bedtime read...", "options": [
+                    {"label": "An adventure tale", "char": "ray"},
+                    {"label": "A gentle picture book", "char": "myrtle"},
+                    {"label": "A silly joke book", "char": "louie"},
+                    {"label": "A starry poem", "char": "jessie"},
+                ]},
+                {"q": "Your favorite cuddle buddy is...", "options": [
+                    {"label": "A soft sea turtle plush", "char": "myrtle"},
+                    {"label": "A glowy jellyfish lamp", "char": "jessie"},
+                    {"label": "A drum-set pillow", "char": "louie"},
+                    {"label": "A flamingo blanket", "char": "frankie"},
+                ]},
+            ]},
         ]}},
         {"key": "word_search", "title": "Stingray Cay Word Search", "data": {"levels": [
             {"name": "Beach", "words": ["WAVE", "SAND", "SHELL", "SUN", "SURF", "CRAB", "REEF", "TIDE"]},
             {"name": "W.A.V.E.", "words": ["WELCOME", "ACT", "VALUE", "ENCOURAGE", "KIND", "BRAVE", "TEAM", "SHINE"]},
             {"name": "Camp crew", "words": ["MYRTLE", "RAY", "OLLIE", "SALLY", "JESSIE", "CASEY", "BILLY", "FRANKIE"]},
+            {"name": "Ocean animals", "words": ["TURTLE", "DOLPHIN", "OCTOPUS", "CRAB", "SHARK", "WHALE", "STAR", "SEAL"]},
+            {"name": "Camp gear", "words": ["TENT", "PADDLE", "WHISTLE", "CANTEEN", "LANTERN", "MAP", "ROPE", "FLAG"]},
+            {"name": "Weather words", "words": ["SUNNY", "BREEZE", "STORM", "RAIN", "CLOUD", "WIND", "WARM", "WAVE"]},
+            {"name": "Feelings", "words": ["HAPPY", "BRAVE", "CALM", "PROUD", "SHY", "EXCITED", "KIND", "SILLY"]},
+            {"name": "Tide pool", "words": ["CORAL", "ANEMONE", "URCHIN", "MUSSEL", "KELP", "PRAWN", "FROND", "SNAIL"]},
+            {"name": "Camp foods", "words": ["SMORE", "JUICE", "FRUIT", "GRANOLA", "BERRY", "TACO", "CRACKER", "CHEESE"]},
+            {"name": "Adventures", "words": ["DIVE", "CLIMB", "PADDLE", "EXPLORE", "BUILD", "PAINT", "RACE", "CAMP"]},
+            {"name": "Music & dance", "words": ["DRUM", "SHAKE", "BEAT", "SING", "TUNE", "STOMP", "CLAP", "DANCE"]},
+            {"name": "Nature finds", "words": ["FEATHER", "LEAF", "ROCK", "BARK", "PETAL", "MOSS", "DEW", "ACORN"]},
+            {"name": "Bedtime words", "words": ["MOON", "STAR", "DREAM", "QUIET", "BLANKET", "PILLOW", "HUSH", "REST"]},
+            {"name": "W.A.V.E. helpers", "words": ["LISTEN", "SHARE", "HELP", "CHEER", "INVITE", "INCLUDE", "TRY", "SMILE"]},
         ]}},
         {"key": "memory_match", "title": "Memory Match", "data": {"levels": [
             {"name": "Easy", "pairs": 6},
             {"name": "Medium", "pairs": 10},
             {"name": "Hard", "pairs": 13},
+            {"name": "Champion", "pairs": 15},
+            {"name": "Speedy", "pairs": 8},
+            {"name": "Crew of two", "pairs": 4},
+            {"name": "Mega Wave", "pairs": 18},
+            {"name": "Beach-bound 12", "pairs": 12},
+            {"name": "Lazy Sunday", "pairs": 5},
+            {"name": "Treasure hunt", "pairs": 9},
         ]}},
         {"key": "spot_difference", "title": "Spot the Difference", "data": {"levels": [
             {"name": "Beach day", "scene_key": "beach"},
             {"name": "Camp scene", "scene_key": "camp"},
+            {"name": "Tide pool", "scene_key": "tide-pool"},
+            {"name": "Sunset cove", "scene_key": "sunset"},
+            {"name": "Lighthouse", "scene_key": "lighthouse"},
+            {"name": "Coral garden", "scene_key": "coral"},
         ]}},
-        {"key": "coloring", "title": "Color the Cay", "data": {"palette": ["#40E0D0", "#FF9B71", "#87CEEB", "#3CB371", "#FFB347", "#9B72CB"], "levels": [
+        {"key": "coloring", "title": "Color the Cay", "data": {"palette": ["#40E0D0", "#FF9B71", "#87CEEB", "#3CB371", "#FFB347", "#9B72CB", "#FF6B9D", "#FFD93D"], "levels": [
             {"name": "Big Wave", "scene_key": "wave"},
             {"name": "Stingray Cay", "scene_key": "camp"},
+            {"name": "Myrtle the Turtle", "scene_key": "myrtle"},
+            {"name": "Ray the Manta Ray", "scene_key": "ray"},
+            {"name": "Coral Reef", "scene_key": "reef"},
+            {"name": "Sunset Beach", "scene_key": "sunset"},
+            {"name": "Sandcastle Showdown", "scene_key": "sandcastle"},
+            {"name": "Lighthouse at Dawn", "scene_key": "lighthouse"},
         ]}},
         {"key": "maze", "title": "Maze with Billy the Beluga", "data": {"levels": [
             {"name": "Easy", "width": 8, "height": 8},
             {"name": "Medium", "width": 12, "height": 12},
             {"name": "Hard", "width": 16, "height": 16},
             {"name": "Captain", "width": 20, "height": 20},
+            {"name": "Tiny tide-pool", "width": 6, "height": 6},
+            {"name": "Coral maze", "width": 14, "height": 14},
+            {"name": "Lighthouse climb", "width": 18, "height": 18},
+            {"name": "Open ocean", "width": 24, "height": 24},
         ]}},
         {"key": "sticker_beach", "title": "Sticker Beach", "data": {"levels": [
             {"name": "Sunny beach", "scene_image": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&h=700&fit=crop"},
             {"name": "Sunset cove", "scene_image": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=1200&h=700&fit=crop"},
             {"name": "Coral reef", "scene_image": "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?w=1200&h=700&fit=crop"},
+            {"name": "Palm island", "scene_image": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&h=700&fit=crop&sat=-30"},
+            {"name": "Tide pool", "scene_image": "https://images.unsplash.com/photo-1573472635404-b8e807aa4811?w=1200&h=700&fit=crop"},
+            {"name": "Lighthouse hill", "scene_image": "https://images.unsplash.com/photo-1502209524164-acea936639a2?w=1200&h=700&fit=crop"},
+            {"name": "Starlit shore", "scene_image": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=1200&h=700&fit=crop"},
+            {"name": "Rainbow reef", "scene_image": "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=1200&h=700&fit=crop"},
         ]}},
     ]
     for a in activity_seeds:
         existing = await db.activity_content.find_one({"key": a["key"]})
+        seed_data = a["data"]
         if existing:
-            # Migrate: if no levels yet, add the seeded levels in-place
-            if "levels" not in (existing.get("data") or {}):
-                merged = {**(existing.get("data") or {}), **a["data"]}
-                await db.activity_content.update_one({"key": a["key"]}, {"$set": {"data": merged, "updated_at": _now_iso()}})
+            cur_data = existing.get("data") or {}
+            existing_levels = cur_data.get("levels") or []
+            existing_names = {lvl.get("name") for lvl in existing_levels if isinstance(lvl, dict) and lvl.get("name")}
+            # Append any new canonical level not already present, preserving
+            # existing ones (which may include admin tweaks).
+            new_levels = list(existing_levels)
+            for lvl in seed_data.get("levels", []):
+                if lvl.get("name") not in existing_names:
+                    new_levels.append(lvl)
+                    existing_names.add(lvl.get("name"))
+            merged = {**cur_data, "levels": new_levels}
+            # Carry forward 'palette' if seed defines one and DB doesn't.
+            for top_key in ("palette",):
+                if top_key in seed_data and top_key not in cur_data:
+                    merged[top_key] = seed_data[top_key]
+            await db.activity_content.update_one(
+                {"key": a["key"]},
+                {"$set": {"data": merged, "title": a["title"], "updated_at": _now_iso()}}
+            )
             continue
         await db.activity_content.insert_one({
             "id": a["key"],
