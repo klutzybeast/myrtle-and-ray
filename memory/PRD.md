@@ -1183,3 +1183,77 @@ them on `/shop`. 4 products live: 2 insulated bottles + 2 kids' tees.
 None new — `PRINTIFY_API_KEY` and `PRINTIFY_SHOP_ID` were already in
 backend `.env`. Admin login unchanged.
 
+
+
+## What's been implemented (2026-05-24 — Unified Thumbnails Backfill + Complete Story Quest Generator)
+
+### P0 — Unified Thumbnail Library Backfill (root-cause fix)
+- `POST /api/admin/thumbnails/backfill` now scans **10 source collections**
+  (sing_along_songs, characters, story_quests, story_quest_scenes, products,
+  coloring, media, custom_pages [hero + og], downloads, download_categories,
+  activity_content) and ingests every image URL into `db.thumbnails` as a
+  single source of truth. Idempotent (URL-keyed). 2nd run returns `inserted: 0`.
+- `/admin/thumbnails` page already exposes the "Import existing" button —
+  same backfill endpoint — and the admin upload pipeline already mirrors
+  new uploads into the thumbnails collection. Preview/Production parity
+  is now guaranteed via one button-press after each deploy.
+- Backend lint cleanup: removed `E702` (`sent = 0; failed = 0` on one line)
+  in `admin_router.py`.
+
+### P1 — Complete Story Quest Generator (NEW)
+- **Backend**: `/app/backend/story_quest_generator.py`
+  - `POST /api/admin/story-quest/generate-full` — body:
+    `{title, premise, character_slugs[], scene_count (6–24), theme_color,
+    generate_backgrounds, generate_narration, publish}`. Returns `{job_id}`.
+    Pre-flight check on EMERGENT_LLM_KEY.
+  - `GET /api/admin/story-quest/generate-status/{job_id}` — polled by UI.
+    Statuses: queued → generating_script → creating_quest → creating_scenes
+    → generating_backgrounds → generating_narration → done | failed.
+    Returns `progress` (0–100), `step`, `scenes_done`, `total_scenes`,
+    `quest_id`, `quest_slug`, `error`.
+  - `GET /api/admin/story-quest/generate-jobs` — last 25 jobs.
+  - LLM: **Claude Sonnet 4.5** via emergentintegrations + EMERGENT_LLM_KEY
+    using strict JSON schema (W.A.V.E.-mapped choices, distinct principles
+    per scene, intro=first, finale=last). Defensive shape-fixer normalizes
+    slightly off LLM responses (`_normalize_scenes`).
+  - Background art: reuses `cover_art_service.generate_cover` (Nano Banana)
+    per scene + mirrors every generated PNG into `db.thumbnails`.
+  - Narration: reuses `voice_router._synthesize` + `voice_cache` so repeat
+    plays are free.
+- **Frontend**: `/app/frontend/src/pages/admin/AdminStoryQuestGenerate.jsx`
+  - Form: title, premise (with 4 quick-start presets), scene-count (6–24),
+    theme color, publish-vs-draft toggle, multi-select cast (13 characters),
+    AI-backgrounds toggle, narration toggle. Live progress card with bar,
+    step text, scenes-done counter, "View quest" / "Edit in admin" links.
+  - Recent jobs sidebar lists the last 10 generations with status pills.
+- **Routing**: `/admin/story-quest/generate` mounted in `App.js`. The
+  existing `/admin/story-quest` page now has a "Generate full quest" link.
+- **Tests**: 16/16 backend pytest cases pass (iteration_21.json). New file
+  `/app/backend/tests/test_quest_generator_and_thumbnails.py`. Live LLM
+  text-only generation completes in 35–55s. Full image+audio pipeline
+  reuses already-tested cover_art_service and voice_router paths.
+
+### Files touched
+- NEW: `/app/backend/story_quest_generator.py`
+- NEW: `/app/frontend/src/pages/admin/AdminStoryQuestGenerate.jsx`
+- NEW: `/app/backend/tests/test_quest_generator_and_thumbnails.py`
+- EDIT: `/app/backend/server.py` — register new router
+- EDIT: `/app/backend/thumbnails_router.py` — broaden backfill to 10 sources
+- EDIT: `/app/backend/admin_router.py` — lint cleanup (E702)
+- EDIT: `/app/frontend/src/App.js` — route mount
+- EDIT: `/app/frontend/src/pages/admin/AdminStoryQuest.jsx` — link to generator
+
+### Next priorities (P2/P3 from previous handoff)
+- Featured Product Hero on homepage (Etsy spotlight)
+- Family-room dance party CTA / social-proof string on Story Quest finale
+- Daily Streak Tracker
+- Camp Counselor Leaderboard
+- Etsy storefront live sync (BLOCKED on Etsy app approval)
+
+### Optional follow-ups from testing review
+- Add optional `?quest_id=` filter on `GET /api/admin/story-quest/scenes`
+  so the admin can scope to one quest as the library grows.
+- One-shot migration to tag the ~9 legacy `thumbnails` rows with a `source`
+  value (cosmetic only).
+- Long term: move backfill to a scheduled cron-style job rather than a
+  manual button press (table scan grows with media library).

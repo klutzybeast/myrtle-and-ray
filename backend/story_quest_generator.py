@@ -172,10 +172,13 @@ async def _call_llm(body: GenerateBody, cast: list) -> dict:
 def _normalize_scenes(raw_scenes: list, valid_slugs: set) -> list:
     """Defensive shape-fixer so a slightly off LLM response still works."""
     out = []
+    total = len(raw_scenes)
     for idx, s in enumerate(raw_scenes, start=1):
         scene_number = int(s.get("scene_number") or idx)
-        is_intro = idx == 1 or bool(s.get("is_intro"))
-        is_finale = idx == len(raw_scenes) or bool(s.get("is_finale"))
+        # Only mark intro/finale by position when there are >=2 scenes; otherwise
+        # a single-scene response would be both at once.
+        is_intro = (total >= 2 and idx == 1) or bool(s.get("is_intro"))
+        is_finale = (total >= 2 and idx == total) or bool(s.get("is_finale"))
         choices_raw = s.get("choices") if (not is_intro and not is_finale) else []
         choices = []
         for ci, c in enumerate(choices_raw or []):
@@ -192,8 +195,9 @@ def _normalize_scenes(raw_scenes: list, valid_slugs: set) -> list:
                 "character_reaction": (c.get("character_reaction") or "").strip()[:240],
             })
         narrator = (s.get("narrator_slug") or "").strip().lower()
-        if narrator not in valid_slugs and valid_slugs:
-            narrator = next(iter(valid_slugs))
+        if narrator not in valid_slugs:
+            # Stable fallback — prefer myrtle, then any known slug, then empty.
+            narrator = "myrtle" if "myrtle" in valid_slugs else (sorted(valid_slugs)[0] if valid_slugs else "")
         out.append({
             "scene_number": scene_number,
             "title": (s.get("title") or f"Scene {scene_number}").strip()[:160],
