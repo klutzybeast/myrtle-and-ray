@@ -960,3 +960,65 @@ Casey, Dani, Sami, Izzy, Louie, Billy, Frankie.
   numbering (14 rows, duplicated 9/11/12). Wiped and re-seeded
   cleanly. 17/17 backend pytest passing again.
 
+
+
+## What's been implemented (2026-02-24 — +10 songs + Admin Sing-Along + uploaders)
+### 10 NEW upbeat ElevenLabs Music songs (total = 20)
+- Brand-new sing-alongs: Splash Splash Splash, Stomp Clap Cay, I Am a Sea
+  Star, Sandcastle Stomp, High Five the Sky, Shake the Shells, Race the
+  Tide, Dance the Cay, Sea Star Power, Campfire Clap-Along.
+- All 20 songs verified: `audio_url` populated, `lyrics_lrc` populated
+  (forced-alignment via ElevenLabs).
+- MP3s saved under both `/app/backend/seed_assets/sing_along/` (for prod
+  seed) and `/app/backend/uploads/sing_along/` (preview).
+
+### Admin Sing-Along page (new)
+- `/app/frontend/src/pages/admin/AdminSingAlong.jsx` — full CRUD list with
+  drag-handle reorder (arrow up/down), active-toggle dot, slug+duration
+  display, Aligned badge, re-align button, edit modal (incl. cover
+  ImageUploader, lyrics, music_prompt, LRC), delete confirm.
+- "Generate from prompt" modal — title + slug + theme + character_focus
+  + duration + cover uploader + 3 quick-pick style presets (Upbeat kids
+  pop / Beachy acoustic / Marching parade) + lyrics textarea. Submits to
+  the new endpoint and inserts a fully-aligned song.
+- Sidebar nav: added `Sing-Along` (Music2 icon) to `AdminLayout.jsx`.
+- Route: `/admin/sing-along` added to `App.js`.
+
+### Admin Story Quest — cover uploaders
+- AdminStoryQuest now lists all 10 quests with an `ImageUploader` for
+  each `hero_image_url` (used on the public quest gallery card).
+- Scene editor: `background_image_url` text input replaced with the
+  same `ImageUploader` (uploads through `/admin/media/upload`).
+
+### Backend
+- `sing_along_router.py`:
+  - `POST /api/admin/sing-along/generate` — composes audio via
+    ElevenLabs Music, saves MP3 to uploads + seed_assets + Object
+    Storage, runs forced-alignment to build LRC, inserts the song.
+  - `POST /api/admin/sing-along/songs/{id}/regenerate-alignment` —
+    re-runs forced alignment on an existing song's MP3.
+- `story_quest_router.py`:
+  - `GET /api/admin/story-quest/quests` — list with scene counts.
+  - `PATCH /api/admin/story-quest/quests/{id}` — update title/blurb/
+    `hero_image_url`/theme_color/character_focus/position/status/active.
+
+### Testing
+- /app/backend/tests/test_sing_along_admin.py — 8/8 pytest passing
+  (public list, admin list/patch/create/delete, regen-alignment status,
+  story-quest quests list + patch).
+- Frontend smoke: admin login → /admin/sing-along renders 20 rows with
+  "Aligned" badges + Generate-from-prompt modal opens with all fields,
+  preset chips populate prompt, edit modal shows cover uploader.
+- /admin/story-quest "Quest covers" section renders 10 ImageUploaders,
+  scene editor uses ImageUploader for background image.
+- Public /sing-along renders all 20 cards; karaoke highlighting works
+  on the new songs (verified Splash Splash Splash).
+
+### Pending
+- Printify Etsy storefront UI + product endpoints — awaiting product
+  list from owner.
+- Family room dance-party CTA / social-proof string on Finale (P2).
+- Admin auto-saving star toggle, campus-tour glow map (P3).
+- Daily Streak Tracker, Camp Counselor Leaderboard (P3).
+- Refactor StoryQuest.jsx (~1000 lines) into Splash/Recap/Postcard
+  sub-components (P3).
