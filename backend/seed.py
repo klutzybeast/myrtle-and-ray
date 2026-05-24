@@ -1563,23 +1563,32 @@ async def _seed_story_quest(db) -> None:
             upsert=True,
         )
 
-    # 0) Upsert the quest catalog (idempotent — preserves admin edits to status)
+    # 0) Upsert the quest catalog (idempotent — preserves admin edits to status,
+    # cover image, scene structure, etc.)
     quest_id_by_slug: dict = {}
     for q in STORY_QUESTS_CATALOG:
-        existing_q = await db.story_quests.find_one({"slug": q["slug"]}, {"_id": 0, "id": 1, "status": 1})
+        existing_q = await db.story_quests.find_one(
+            {"slug": q["slug"]},
+            {"_id": 0, "id": 1, "status": 1, "hero_image_url": 1, "title": 1, "blurb": 1, "theme_color": 1, "character_focus": 1, "position": 1},
+        )
         if existing_q:
             quest_id_by_slug[q["slug"]] = existing_q["id"]
-            # Only patch metadata, never overwrite an admin-set status if it
-            # was promoted from 'coming-soon' to 'ready'.
-            patch = {
-                "title": q["title"],
-                "blurb": q["blurb"],
-                "hero_image_url": q.get("hero_image_url") or existing_q.get("hero_image_url", ""),
-                "theme_color": q.get("theme_color", "#7fcfc7"),
-                "character_focus": q.get("character_focus", "all"),
-                "position": q.get("position", 99),
-                "updated_at": _now_iso(),
-            }
+            # Only insert missing fields — NEVER clobber admin edits to title,
+            # blurb, hero_image_url, etc. The seed only ensures the row exists
+            # and has reasonable defaults; once admin edits a field it sticks.
+            patch = {"updated_at": _now_iso()}
+            if not (existing_q.get("title") or "").strip():
+                patch["title"] = q["title"]
+            if not (existing_q.get("blurb") or "").strip():
+                patch["blurb"] = q["blurb"]
+            if not (existing_q.get("hero_image_url") or "").strip():
+                patch["hero_image_url"] = q.get("hero_image_url", "")
+            if not (existing_q.get("theme_color") or "").strip():
+                patch["theme_color"] = q.get("theme_color", "#7fcfc7")
+            if not (existing_q.get("character_focus") or "").strip():
+                patch["character_focus"] = q.get("character_focus", "all")
+            if not existing_q.get("position"):
+                patch["position"] = q.get("position", 99)
             if existing_q.get("status") not in ("ready", "coming-soon"):
                 patch["status"] = q.get("status", "coming-soon")
             await db.story_quests.update_one({"slug": q["slug"]}, {"$set": patch})
