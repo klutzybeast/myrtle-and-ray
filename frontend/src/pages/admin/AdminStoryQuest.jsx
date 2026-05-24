@@ -137,8 +137,12 @@ export default function AdminStoryQuest() {
           <h1 className="font-accent text-3xl font-bold flex items-center gap-2"><Sparkles className="w-7 h-7 text-[#5a8a6f]" /> Story Quest</h1>
           <p className="text-sm text-[#6b7280] mt-1">{scenes.length} scene{scenes.length === 1 ? "" : "s"} · {analytics?.total ?? 0} completions ({analytics?.today ?? 0} today)</p>
         </div>
-        <button onClick={() => setEditing(blankScene(scenes.length + 1))} className="btn-primary inline-flex" data-testid="story-quest-new-scene"><Plus className="w-4 h-4" /> New scene</button>
-        <button onClick={backfillAudioFromAssets} className="btn-ghost inline-flex text-xs ml-2" data-testid="story-quest-backfill"><Wand2 className="w-4 h-4" /> Restore scene audio</button>
+        <div className="flex flex-wrap gap-2">
+          <button onClick={backfillAudioFromAssets} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#fff4d6] border-2 border-[#f0a988] text-[#a36b29] font-bold hover:bg-[#ffe9b8]" data-testid="story-quest-backfill">
+            <Wand2 className="w-4 h-4" /> Restore scene audio
+          </button>
+          <button onClick={() => setEditing(blankScene(scenes.length + 1))} className="btn-primary inline-flex" data-testid="story-quest-new-scene"><Plus className="w-4 h-4" /> New scene</button>
+        </div>
       </header>
 
       {/* Quest gallery covers */}
