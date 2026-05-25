@@ -28,6 +28,27 @@ function saveHistory(rows) {
   try { localStorage.setItem(HISTORY_KEY, JSON.stringify(rows.slice(0, 30))); } catch {}
 }
 
+async function forceDownload(url, filename) {
+  // Browsers ignore the `download` attribute when the response is
+  // cross-origin OR served without Content-Disposition. Fetching as a
+  // blob and saving via an object URL guarantees a real download.
+  try {
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const blob = await resp.blob();
+    const dlUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = dlUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(dlUrl), 1000);
+  } catch (err) {
+    toast.error("Download failed");
+  }
+}
+
 const PROMPT_IDEAS = [
   "building a sandcastle on the beach",
   "riding a friendly wave",
@@ -255,9 +276,9 @@ export default function Coloring() {
                 <img src={latest.image_url} alt={latest.prompt} className="w-full rounded-2xl border-2 border-[#f4e4c6] bg-white" data-testid="coloring-result-image" />
                 <p className="text-xs text-[#6b7280] mt-2 italic">"{latest.prompt}"{latest.character_name ? ` · with ${latest.character_name}` : ""}</p>
                 <div className="flex gap-2 mt-3">
-                  <a href={latest.image_url} download={`coloring-${latest.id}.png`} className="btn-secondary flex-1 justify-center" data-testid="coloring-download">
+                  <button onClick={() => forceDownload(latest.image_url, `coloring-${latest.id}.png`)} className="btn-secondary flex-1 justify-center" data-testid="coloring-download">
                     <Download className="w-4 h-4" /> Download
-                  </a>
+                  </button>
                   <button onClick={() => printPage(latest.image_url)} className="btn-primary flex-1 justify-center" data-testid="coloring-print">
                     <Printer className="w-4 h-4" /> Print
                   </button>

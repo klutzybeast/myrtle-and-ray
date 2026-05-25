@@ -69,16 +69,30 @@ export default function AdminThumbnails() {
     );
   }, [thumbs, search]);
 
-  const downloadOne = (t) => {
-    const base = process.env.REACT_APP_BACKEND_URL || "";
-    const link = document.createElement("a");
-    link.href = `${base}${t.url}`;
-    link.download = t.filename || "thumbnail.png";
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const downloadOne = async (t) => {
+    // Force a real download (not a tab-open) by fetching the binary with
+    // the admin token and saving via a blob URL. This bypasses the
+    // browser's "ignore download attr for cross-origin" behaviour and
+    // also works for files served from persistent object storage.
+    try {
+      const base = process.env.REACT_APP_BACKEND_URL || "";
+      const token = localStorage.getItem("mr_admin_token") || "";
+      const resp = await fetch(`${base}/api/admin/thumbnails/${t.id}/download`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const blob = await resp.blob();
+      const dlUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = dlUrl;
+      link.download = t.filename || "thumbnail.png";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(dlUrl), 1000);
+    } catch (err) {
+      toast.error("Download failed");
+    }
   };
 
   const downloadZip = async () => {

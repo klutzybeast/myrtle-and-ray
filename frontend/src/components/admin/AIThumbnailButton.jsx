@@ -107,17 +107,27 @@ export default function AIThumbnailButton({
     reset();
   };
 
-  const downloadPng = () => {
+  const downloadPng = async () => {
     if (!result) return;
-    const base = process.env.REACT_APP_BACKEND_URL || "";
-    const link = document.createElement("a");
-    link.href = `${base}${result.url}`;
-    link.download = result.filename || "thumbnail.png";
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // Fetch as blob → force-save. Cross-origin browsers ignore the
+    // `download` attribute when the response lacks Content-Disposition,
+    // so we have to materialise the bytes ourselves.
+    try {
+      const base = process.env.REACT_APP_BACKEND_URL || "";
+      const resp = await fetch(`${base}${result.url}`);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const blob = await resp.blob();
+      const dlUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = dlUrl;
+      link.download = result.filename || "thumbnail.png";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(dlUrl), 1000);
+    } catch {
+      toast.error("Download failed");
+    }
   };
 
   return (

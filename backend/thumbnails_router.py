@@ -267,6 +267,75 @@ def make_thumbnails_router(db, require_admin):
         await db.thumbnails.delete_one({"id": thumb_id})
         return {"ok": True}
 
+    @router.get("/{thumb_id}/download")
+    async def download_thumb(thumb_id: str):
+        """Stream a single thumbnail with Content-Disposition: attachment so the
+        browser always saves to disk instead of opening in a new tab.
+
+        Works for files stored on local disk OR in Emergent persistent storage.
+        """
+        row = await db.thumbnails.find_one({"id": thumb_id}, {"_id": 0})
+        if not row:
+            raise HTTPException(status_code=404, detail="Thumbnail not found")
+
+        url = row.get("url", "") or ""
+        filename = row.get("filename") or "thumbnail.png"
+        # Sanitize filename for header.
+        safe_name = filename.replace('"', "").replace("\n", "").replace("\r", "")
+        # Resolve the on-disk path. `url` is of the form `/api/uploads/<...>` or
+        # `/uploads/<...>` (seed assets). Strip the URL prefix to find the file.
+        rel = url
+        if rel.startswith("/api/uploads/"):
+            rel = rel[len("/api/uploads/"):]
+        elif rel.startswith("/uploads/"):
+            rel = rel[len("/uploads/"):]
+        local_path = UPLOAD_ROOT / rel
+        data: Optional[bytes] = None
+        content_type = "image/png"
+        if local_path.exists() and local_path.is_file():
+            try:
+                data = local_path.read_bytes()
+            except Exception as exc:
+                log.warning("read %s failed: %s", local_path, exc)
+        if data is None:
+            # Try persistent storage by object key (everything after /uploads/).
+            try:
+                import storage as _storage
+                if _storage.is_enabled():
+                    obj = _storage.get_object(rel)
+                    if obj is not None:
+                        data, ct = obj
+                        content_type = ct or content_type
+            except Exception as exc:
+                log.warning("storage.get_object %s failed: %s", rel, exc)
+        if data is None:
+            raise HTTPException(status_code=404, detail="File not found on disk or in storage.")
+
+        # Guess content type from filename if we still don't have one.
+        ext = safe_name.rsplit(".", 1)[-1].lower() if "." in safe_name else ""
+        ct_by_ext = {
+            "png": "image/png", "jpg": "image/jpeg", "jpeg": "image/jpeg",
+            "webp": "image/webp", "gif": "image/gif", "svg": "image/svg+xml",
+        }
+        content_type = ct_by_ext.get(ext, content_type)
+
+        return Response(
+            content=data,
+            media_type=content_type,
+            headers={
+                "Content-Disposition": f'attachment; filename="{safe_name}"',
+                "Cache-Control": "no-store",
+            },
+        )
+
+    @router.post("/purge-uploads")
+    async def purge_upload_rows():
+        """Remove any legacy `media`/`upload` rows that snuck into the
+        thumbnails library before we restricted it to AI-only. The actual
+        files in the Media Library are untouched."""
+        result = await db.thumbnails.delete_many({"source": {"$in": ["media", "upload"]}})
+        return {"ok": True, "removed": result.deleted_count}
+
     @router.get("/zip")
     async def download_zip(kind: Optional[str] = None, character: Optional[str] = None):
         q: dict = {}
@@ -410,15 +479,9 @@ def make_thumbnails_router(db, require_admin):
                        scene_prompt=col.get("prompt", ""),
                        character_slugs=slugs, source="coloring")
 
-        # Media library (admin manual uploads — pre-mirror)
-        async for m in db.media.find(
-            {"mime": {"$regex": "^image/"}},
-            {"_id": 0, "url": 1, "filename": 1, "tags": 1},
-        ):
-            await _add(m.get("url", ""), "general",
-                       title=m.get("filename", "Upload"),
-                       scene_prompt=", ".join(m.get("tags") or []),
-                       character_slugs=[], source="media")
+        # Media library uploads — INTENTIONALLY EXCLUDED. The Thumbnails
+        # library is for AI-generated images only. Manual uploads live in
+        # the Media Library (/admin/media).
 
         # Custom pages — hero image + OG image
         async for cp in db.custom_pages.find({}, {"_id": 0, "title": 1, "hero_image_url": 1, "og_image_url": 1, "slug": 1}):

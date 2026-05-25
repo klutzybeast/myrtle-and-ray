@@ -806,29 +806,9 @@ def make_admin_router(db, require_admin):
         await db.media.insert_one(dict(doc))
         doc.pop("_id", None)
 
-        # Mirror image uploads into db.thumbnails so the unified AI
-        # Thumbnails library shows ALL admin images (uploaded OR generated).
-        if ext in {"jpg", "jpeg", "png", "webp", "gif"}:
-            try:
-                await db.thumbnails.update_one(
-                    {"url": url},
-                    {"$setOnInsert": {
-                        "id": uuid.uuid4().hex,
-                        "filename": safe_name,
-                        "url": url,
-                        "kind": "general",
-                        "title": file.filename or safe_name,
-                        "scene_prompt": "Uploaded image",
-                        "aspect": "square",
-                        "character_slugs": [],
-                        "size_bytes": len(contents),
-                        "source": "upload",
-                        "created_at": _now(),
-                    }},
-                    upsert=True,
-                )
-            except Exception:
-                pass
+        # NOTE: We intentionally do NOT mirror uploads into db.thumbnails.
+        # The Thumbnails library is reserved for AI-generated images only.
+        # Manual uploads live in the Media Library (this collection).
         return doc
 
     @router.delete("/media/{media_id}")
