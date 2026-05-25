@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../../lib/api";
 import { toast } from "sonner";
-import { Download, Trash2, Wand2, Search, Package, RefreshCw } from "lucide-react";
+import { Download, Trash2, Wand2, Search, Package, RefreshCw, EyeOff, Eye, Scissors } from "lucide-react";
 import AIThumbnailButton from "../../components/admin/AIThumbnailButton";
 import { characterFirstName } from "../../lib/characterName";
 
@@ -24,6 +24,8 @@ export default function AdminThumbnails() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [health, setHealth] = useState(null);
+  const [showHidden, setShowHidden] = useState(false);
+  const [hiddenCount, setHiddenCount] = useState(0);
 
   const load = async () => {
     setLoading(true);
@@ -45,10 +47,12 @@ export default function AdminThumbnails() {
       const params = new URLSearchParams();
       if (filterKind !== "all") params.set("kind", filterKind);
       if (filterCharacter !== "all") params.set("character", filterCharacter);
+      if (showHidden) params.set("show_hidden", "true");
       params.set("limit", "200");
       const { data } = await api.get(`/admin/thumbnails?${params.toString()}`);
       setThumbs(data.thumbnails || []);
       setTotal(data.total || 0);
+      setHiddenCount(data.hidden || 0);
     } catch {
       toast.error("Failed to load thumbnails");
     } finally {
@@ -56,7 +60,7 @@ export default function AdminThumbnails() {
     }
   };
 
-  useEffect(() => { load(); }, [filterKind, filterCharacter]);
+  useEffect(() => { load(); }, [filterKind, filterCharacter, showHidden]);
   useEffect(() => { api.get("/characters").then(({ data }) => setCharacters(data || [])).catch(() => {}); }, []);
 
   const filtered = useMemo(() => {
@@ -130,6 +134,31 @@ export default function AdminThumbnails() {
     }
   };
 
+  const hideOne = async (id) => {
+    try {
+      await api.post(`/admin/thumbnails/${id}/hide`);
+      toast.success("Hidden from library");
+      load();
+    } catch { toast.error("Hide failed"); }
+  };
+
+  const unhideOne = async (id) => {
+    try {
+      await api.post(`/admin/thumbnails/${id}/unhide`);
+      toast.success("Restored");
+      load();
+    } catch { toast.error("Restore failed"); }
+  };
+
+  const dedupeCharacters = async () => {
+    if (!window.confirm("For every Sea Star with multiple AI portraits, keep only the newest and hide the older ones. Nothing is deleted — you can restore any hidden image later. Continue?")) return;
+    try {
+      const { data } = await api.post("/admin/thumbnails/dedupe-characters");
+      toast.success(`Hid ${data.hidden} older character versions`);
+      load();
+    } catch { toast.error("Dedupe failed"); }
+  };
+
   return (
     <div className="space-y-4" data-testid="admin-thumbnails-page">
       <header className="flex items-center justify-between flex-wrap gap-3">
@@ -138,6 +167,22 @@ export default function AdminThumbnails() {
           <p className="text-sm text-[#5a6b76]">Every AI thumbnail ever generated, in one place. Filter, preview, download high-res PNG, or grab them all as a zip.</p>
         </div>
         <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={dedupeCharacters}
+            className="btn-secondary text-sm"
+            title="Hide older AI portraits of each Sea Star — keeps only the newest"
+            data-testid="thumb-dedupe-btn"
+          >
+            <Scissors className="w-4 h-4" /> Dedupe characters
+          </button>
+          <button
+            onClick={() => setShowHidden((v) => !v)}
+            className={`text-sm inline-flex items-center gap-1.5 px-4 py-2 rounded-full border-2 font-bold ${showHidden ? "bg-[#fff4d6] border-[#f0a988] text-[#a36b29]" : "bg-white border-[#f4e4c6] text-[#5a6b76]"}`}
+            data-testid="thumb-show-hidden"
+          >
+            {showHidden ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+            {showHidden ? `Hiding (${hiddenCount})` : `Show hidden${hiddenCount ? ` (${hiddenCount})` : ""}`}
+          </button>
           <button
             onClick={async () => {
               if (!window.confirm("Scan sing-along covers, character portraits, coloring pages, story quest art, and product images and import them all into your library? Existing entries are skipped.")) return;
@@ -217,6 +262,9 @@ export default function AdminThumbnails() {
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-white/85 text-[10px] font-bold text-[#3a4a55] uppercase tracking-wider">{KIND_LABELS[t.kind] || t.kind}</div>
+                {t.hidden && (
+                  <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-[#a36b29] text-[10px] font-bold text-white uppercase tracking-wider">Hidden</div>
+                )}
               </div>
               <div className="p-3 space-y-1">
                 {t.title && <div className="text-sm font-bold text-[#2e3a3a] line-clamp-1">{t.title}</div>}
@@ -228,6 +276,15 @@ export default function AdminThumbnails() {
                   <button onClick={() => downloadOne(t)} className="btn-ghost text-xs flex-1 justify-center" data-testid={`thumb-dl-${t.id}`}>
                     <Download className="w-3 h-3" /> PNG
                   </button>
+                  {t.hidden ? (
+                    <button onClick={() => unhideOne(t.id)} title="Restore to library" className="text-xs px-2 py-1.5 rounded-full text-[#236f6b] hover:bg-[#eef9fb]" data-testid={`thumb-unhide-${t.id}`}>
+                      <Eye className="w-3 h-3" />
+                    </button>
+                  ) : (
+                    <button onClick={() => hideOne(t.id)} title="Hide from library (reversible)" className="text-xs px-2 py-1.5 rounded-full text-[#a36b29] hover:bg-[#fff4d6]" data-testid={`thumb-hide-${t.id}`}>
+                      <EyeOff className="w-3 h-3" />
+                    </button>
+                  )}
                   <button onClick={() => deleteOne(t.id)} className="text-xs px-2 py-1.5 rounded-full text-red-700 hover:bg-red-50" data-testid={`thumb-del-${t.id}`}>
                     <Trash2 className="w-3 h-3" />
                   </button>

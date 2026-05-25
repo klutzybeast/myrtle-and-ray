@@ -1922,6 +1922,19 @@ async def seed_database(db) -> None:
     # --- Stingray Cay map image (bundled asset → /api/uploads/map/...) ---
     _seed_map_image()
 
+    # --- Tag legacy AI thumbnails so the admin library can filter them ---
+    # Any thumbnail with no `source` tag whose URL lives under
+    # /api/uploads/thumbnails/ was produced by Nano Banana before we
+    # introduced the source field. Mark them so the AI Thumbnails page
+    # can group them correctly. No data loss — just adds a field.
+    try:
+        await db.thumbnails.update_many(
+            {"source": None, "url": {"$regex": "^/api/uploads/thumbnails/"}},
+            {"$set": {"source": "ai-generated"}},
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("ai-thumbnail source tag backfill failed: %s", exc)
+
 
 READALOUD_PAGES = [
     (1,  "myrtle",

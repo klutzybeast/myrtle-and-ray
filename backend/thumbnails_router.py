@@ -250,15 +250,57 @@ def make_thumbnails_router(db, require_admin):
 
     @router.get("")
     async def list_thumbnails(kind: Optional[str] = None, character: Optional[str] = None,
-                              limit: int = 200):
+                              show_hidden: bool = False, limit: int = 200):
         q: dict = {}
         if kind and kind.lower() != "all":
             q["kind"] = kind.lower()
         if character and character.lower() != "all":
             q["character_slugs"] = character
+        if not show_hidden:
+            q["hidden"] = {"$ne": True}
         cur = db.thumbnails.find(q, {"_id": 0}).sort("created_at", -1).limit(min(500, max(1, int(limit))))
         rows = await cur.to_list(500)
-        return {"thumbnails": rows, "total": await db.thumbnails.count_documents({})}
+        total_visible = await db.thumbnails.count_documents({"hidden": {"$ne": True}})
+        total_hidden = await db.thumbnails.count_documents({"hidden": True})
+        return {"thumbnails": rows, "total": total_visible, "hidden": total_hidden}
+
+    @router.post("/{thumb_id}/hide")
+    async def hide_thumb(thumb_id: str):
+        r = await db.thumbnails.update_one({"id": thumb_id}, {"$set": {"hidden": True}})
+        if r.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Thumbnail not found")
+        return {"ok": True}
+
+    @router.post("/{thumb_id}/unhide")
+    async def unhide_thumb(thumb_id: str):
+        r = await db.thumbnails.update_one({"id": thumb_id}, {"$set": {"hidden": False}})
+        if r.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Thumbnail not found")
+        return {"ok": True}
+
+    @router.post("/dedupe-characters")
+    async def dedupe_character_thumbnails():
+        """For every character that has multiple thumbnails, keep the newest
+        one visible and hide the older versions. Reversible: just call
+        /{id}/unhide on any row to bring it back. No files are deleted."""
+        # Find all character thumbs grouped by title (Sea Star name).
+        pipeline = [
+            {"$match": {"kind": "character", "hidden": {"$ne": True}}},
+            {"$group": {
+                "_id": "$title",
+                "rows": {"$push": {"id": "$id", "created_at": "$created_at"}},
+                "count": {"$sum": 1},
+            }},
+            {"$match": {"count": {"$gt": 1}}},
+        ]
+        hidden = 0
+        async for grp in db.thumbnails.aggregate(pipeline):
+            rows = sorted(grp["rows"], key=lambda r: r.get("created_at", ""), reverse=True)
+            older_ids = [r["id"] for r in rows[1:]]  # all but newest
+            if older_ids:
+                r = await db.thumbnails.update_many({"id": {"$in": older_ids}}, {"$set": {"hidden": True}})
+                hidden += r.modified_count
+        return {"ok": True, "hidden": hidden}
 
     @router.delete("/{thumb_id}")
     async def delete_thumb(thumb_id: str):
