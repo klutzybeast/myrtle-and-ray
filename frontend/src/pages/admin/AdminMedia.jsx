@@ -1,10 +1,11 @@
 import { useEffect, useState, useRef } from "react";
 import { api } from "../../lib/api";
 import { toast } from "sonner";
-import { Upload, Trash2, Copy } from "lucide-react";
+import { Upload, Trash2, Copy, Wand2 } from "lucide-react";
 
 export default function AdminMedia() {
   const [items, setItems] = useState([]);
+  const [promoting, setPromoting] = useState({});
   const inputRef = useRef(null);
 
   const load = () => api.get("/admin/media").then(({ data }) => setItems(data));
@@ -23,10 +24,23 @@ export default function AdminMedia() {
   const remove = async (id) => { if (!window.confirm("Delete this file?")) return; await api.delete(`/admin/media/${id}`); toast.success("Deleted"); load(); };
   const copyUrl = (url) => { const full = url.startsWith("http") ? url : `${process.env.REACT_APP_BACKEND_URL}${url}`; navigator.clipboard.writeText(full); toast.success("URL copied"); };
 
+  const promote = async (m) => {
+    setPromoting((p) => ({ ...p, [m.id]: true }));
+    try {
+      const { data } = await api.post("/admin/thumbnails/promote-from-media", { media_id: m.id });
+      if (data.already_present) toast.info("Already in the Thumbnails library");
+      else toast.success("Sent to AI Thumbnails");
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Promote failed");
+    } finally {
+      setPromoting((p) => { const c = { ...p }; delete c[m.id]; return c; });
+    }
+  };
+
   return (
     <div data-testid="admin-media">
       <h1 className="font-accent text-3xl font-bold mb-1">Media Library</h1>
-      <p className="text-[#6b7280] mb-4">Upload character portraits, product photos, PDFs, and more. Use the copied URL anywhere on the site.</p>
+      <p className="text-[#6b7280] mb-4">Upload character portraits, product photos, PDFs, and more. Use the copied URL anywhere on the site, or send any image to the AI Thumbnails gallery.</p>
       <div onDrop={(e) => { e.preventDefault(); upload(Array.from(e.dataTransfer.files)); }} onDragOver={(e) => e.preventDefault()} onClick={() => inputRef.current?.click()} className="border-4 border-dashed border-[#f4e4c6] rounded-3xl p-8 text-center cursor-pointer hover:bg-[#fffbf3] mb-6" data-testid="media-dropzone">
         <Upload className="w-8 h-8 mx-auto text-[#7fcfc7]" />
         <div className="font-bold mt-2">Drop files here or click to upload</div>
@@ -34,21 +48,35 @@ export default function AdminMedia() {
         <input ref={inputRef} type="file" multiple hidden onChange={(e) => upload(Array.from(e.target.files))} data-testid="media-input" />
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-        {items.map((m) => (
-          <div key={m.id} className="bg-white rounded-3xl border border-[#f4e4c6] overflow-hidden">
-            <div className="aspect-square bg-[#eef9fb] grid place-items-center">
-              {(m.mime || "").startsWith("image") ? <img src={m.url} alt="" className="w-full h-full object-cover" /> : <div className="text-[#6b7280] text-sm p-3 text-center">{m.filename}</div>}
-            </div>
-            <div className="p-3">
-              <div className="text-xs truncate font-semibold">{m.filename}</div>
-              <div className="text-[10px] text-[#6b7280]">{m.size_kb} KB{m.page_count ? ` · ${m.page_count} pages` : ""}</div>
-              <div className="flex gap-1 mt-2">
-                <button onClick={() => copyUrl(m.url)} className="btn-ghost text-xs flex-1 justify-center"><Copy className="w-3 h-3" />Copy URL</button>
-                <button onClick={() => remove(m.id)} className="text-red-500 p-1"><Trash2 className="w-4 h-4" /></button>
+        {items.map((m) => {
+          const isImage = (m.mime || "").startsWith("image");
+          return (
+            <div key={m.id} className="bg-white rounded-3xl border border-[#f4e4c6] overflow-hidden" data-testid={`media-card-${m.id}`}>
+              <div className="aspect-square bg-[#eef9fb] grid place-items-center">
+                {isImage ? <img src={m.url} alt="" className="w-full h-full object-cover" /> : <div className="text-[#6b7280] text-sm p-3 text-center">{m.filename}</div>}
+              </div>
+              <div className="p-3">
+                <div className="text-xs truncate font-semibold">{m.filename}</div>
+                <div className="text-[10px] text-[#6b7280]">{m.size_kb} KB{m.page_count ? ` · ${m.page_count} pages` : ""}</div>
+                <div className="flex gap-1 mt-2 flex-wrap">
+                  <button onClick={() => copyUrl(m.url)} className="btn-ghost text-xs flex-1 justify-center" data-testid={`media-copy-${m.id}`}><Copy className="w-3 h-3" />Copy URL</button>
+                  {isImage && (
+                    <button
+                      onClick={() => promote(m)}
+                      disabled={!!promoting[m.id]}
+                      title="Send to AI Thumbnails library"
+                      className="text-xs px-2 py-1.5 rounded-full text-[#236f6b] bg-[#eef9fb] hover:bg-[#dff4f0] disabled:opacity-50 inline-flex items-center gap-1"
+                      data-testid={`media-promote-${m.id}`}
+                    >
+                      <Wand2 className="w-3 h-3" /> Send to AI
+                    </button>
+                  )}
+                  <button onClick={() => remove(m.id)} className="text-red-500 p-1" data-testid={`media-delete-${m.id}`}><Trash2 className="w-4 h-4" /></button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

@@ -58,6 +58,13 @@ class ThumbnailGenerate(BaseModel):
     aspect: str = "square"  # "square" | "wide" | "tall"
 
 
+class PromoteFromMediaBody(BaseModel):
+    media_id: str
+    title: Optional[str] = None
+    scene_prompt: Optional[str] = None
+    kind: Optional[str] = "general"
+
+
 def _safe(s: str) -> str:
     s = "".join(c for c in (s or "") if c.isalnum() or c in "-_").lower().strip("-_")
     return s or uuid.uuid4().hex[:10]
@@ -335,6 +342,40 @@ def make_thumbnails_router(db, require_admin):
         files in the Media Library are untouched."""
         result = await db.thumbnails.delete_many({"source": {"$in": ["media", "upload"]}})
         return {"ok": True, "removed": result.deleted_count}
+
+    @router.post("/promote-from-media")
+    async def promote_from_media(body: PromoteFromMediaBody):
+        """Promote a manually-uploaded Media Library image into the
+        Thumbnails gallery. Source is tagged 'promoted' so it's visually
+        distinct from AI-generated rows."""
+        m = await db.media.find_one({"id": body.media_id}, {"_id": 0})
+        if not m:
+            raise HTTPException(status_code=404, detail="Media not found")
+        if not (m.get("mime") or "").startswith("image/"):
+            raise HTTPException(status_code=400, detail="Only image files can be promoted to Thumbnails.")
+        url = m.get("url", "")
+        existing = await db.thumbnails.find_one({"url": url}, {"_id": 1, "id": 1})
+        if existing:
+            return {"ok": True, "already_present": True, "id": existing.get("id")}
+        kind = (body.kind or "general").lower()
+        if kind not in ALLOWED_KINDS:
+            kind = "general"
+        doc = {
+            "id": uuid.uuid4().hex,
+            "filename": m.get("filename") or url.rsplit("/", 1)[-1] or "image",
+            "url": url,
+            "kind": kind,
+            "title": (body.title or m.get("filename") or "Promoted image")[:160],
+            "scene_prompt": (body.scene_prompt or ", ".join(m.get("tags") or []) or "Promoted from Media Library")[:400],
+            "aspect": "square",
+            "character_slugs": [],
+            "size_bytes": int(m.get("size_kb", 0)) * 1024,
+            "source": "promoted",
+            "created_at": _now_iso(),
+        }
+        await db.thumbnails.insert_one(dict(doc))
+        doc.pop("_id", None)
+        return {"ok": True, "already_present": False, "thumbnail": doc}
 
     @router.get("/zip")
     async def download_zip(kind: Optional[str] = None, character: Optional[str] = None):
