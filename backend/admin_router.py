@@ -74,6 +74,17 @@ class DlCatBody(BaseModel):
     visible: Optional[bool] = None
 
 
+class ShopCatBody(BaseModel):
+    name: Optional[str] = None
+    slug: Optional[str] = None
+    icon: Optional[str] = None
+    description: Optional[str] = None
+    color: Optional[str] = None
+    thumbnail_url: Optional[str] = None
+    order: Optional[int] = None
+    visible: Optional[bool] = None
+
+
 class DownloadBody(BaseModel):
     title: Optional[str] = None
     slug: Optional[str] = None
@@ -368,6 +379,39 @@ def make_admin_router(db, require_admin):
     @router.delete("/download-categories/{slug}")
     async def admin_delete_dl_cat(slug: str):
         result = await db.download_categories.delete_one({"slug": slug})
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Not found")
+        return {"ok": True}
+
+    # ---------------- Shop categories ----------------
+    @router.get("/shop-categories")
+    async def admin_list_shop_cats():
+        return await db.shop_categories.find({}, {"_id": 0}).sort("order", 1).to_list(200)
+
+    @router.post("/shop-categories")
+    async def admin_create_shop_cat(body: ShopCatBody):
+        if not body.name:
+            raise HTTPException(status_code=400, detail="Name required")
+        slug = body.slug or slugify(body.name)
+        if await db.shop_categories.find_one({"slug": slug}):
+            raise HTTPException(status_code=400, detail="Slug exists")
+        doc = {k: v for k, v in body.model_dump().items() if v is not None}
+        doc.update({"id": slug, "slug": slug, "visible": doc.get("visible", True), "created_at": _now()})
+        await db.shop_categories.insert_one(dict(doc))
+        doc.pop("_id", None)
+        return doc
+
+    @router.put("/shop-categories/{slug}")
+    async def admin_update_shop_cat(slug: str, body: ShopCatBody):
+        update = {k: v for k, v in body.model_dump().items() if v is not None}
+        result = await db.shop_categories.update_one({"slug": slug}, {"$set": update})
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Not found")
+        return await db.shop_categories.find_one({"slug": slug}, {"_id": 0})
+
+    @router.delete("/shop-categories/{slug}")
+    async def admin_delete_shop_cat(slug: str):
+        result = await db.shop_categories.delete_one({"slug": slug})
         if result.deleted_count == 0:
             raise HTTPException(status_code=404, detail="Not found")
         return {"ok": True}

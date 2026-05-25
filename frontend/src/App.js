@@ -60,6 +60,7 @@ import AdminSingAlong from "@/pages/admin/AdminSingAlong";
 import AdminPrintify from "@/pages/admin/AdminPrintify";
 import AdminEtsy from "@/pages/admin/AdminEtsy";
 import AdminThumbnails from "@/pages/admin/AdminThumbnails";
+import AdminShopCategories from "@/pages/admin/AdminShopCategories";
 import PenPals from "@/pages/PenPals";
 import Coloring from "@/pages/Coloring";
 import SeaStarStudio from "@/pages/SeaStarStudio";
@@ -164,6 +165,7 @@ function App() {
                 <Route path="printify" element={<AdminPrintify />} />
                 <Route path="etsy" element={<AdminEtsy />} />
                 <Route path="thumbnails" element={<AdminThumbnails />} />
+                <Route path="shop-categories" element={<AdminShopCategories />} />
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

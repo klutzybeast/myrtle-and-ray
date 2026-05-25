@@ -16,6 +16,7 @@ const ITEMS = [
   { to: "/admin/printify", label: "Printify Shop", icon: ShoppingBag },
   { to: "/admin/etsy", label: "Etsy Storefront", icon: ShoppingBag },
   { to: "/admin/products", label: "Products", icon: Package },
+  { to: "/admin/shop-categories", label: "Shop Cats", icon: Layers },
   { to: "/admin/characters", label: "Characters", icon: Users },
   { to: "/admin/read-aloud", label: "Read-Aloud Book", icon: BookOpen },
   { to: "/admin/downloads", label: "Downloads", icon: Download },

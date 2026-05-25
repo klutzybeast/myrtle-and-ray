@@ -295,6 +295,10 @@ def make_public_router(db):
         # Legacy docs without the field will still appear.
         return await db.download_categories.find({"visible": {"$ne": False}}, {"_id": 0}).sort("order", 1).to_list(200)
 
+    @router.get("/shop-categories")
+    async def list_shop_categories():
+        return await db.shop_categories.find({"visible": {"$ne": False}}, {"_id": 0}).sort("order", 1).to_list(200)
+
     @router.get("/downloads")
     async def list_downloads(
         category: Optional[str] = None,
