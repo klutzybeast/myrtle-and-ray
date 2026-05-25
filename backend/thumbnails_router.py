@@ -251,7 +251,12 @@ def make_thumbnails_router(db, require_admin):
     @router.get("")
     async def list_thumbnails(kind: Optional[str] = None, character: Optional[str] = None,
                               show_hidden: bool = False, limit: int = 200):
-        q: dict = {}
+        q: dict = {
+            # Only show files that live in the thumbnails directory — that's
+            # where Nano Banana writes. Everything else is a manual upload
+            # or a product mockup mirrored before the AI-only rule existed.
+            "url": {"$regex": "/uploads/thumbnails/"},
+        }
         if kind and kind.lower() != "all":
             q["kind"] = kind.lower()
         if character and character.lower() != "all":
@@ -260,8 +265,14 @@ def make_thumbnails_router(db, require_admin):
             q["hidden"] = {"$ne": True}
         cur = db.thumbnails.find(q, {"_id": 0}).sort("created_at", -1).limit(min(500, max(1, int(limit))))
         rows = await cur.to_list(500)
-        total_visible = await db.thumbnails.count_documents({"hidden": {"$ne": True}})
-        total_hidden = await db.thumbnails.count_documents({"hidden": True})
+        total_visible = await db.thumbnails.count_documents({
+            "url": {"$regex": "/uploads/thumbnails/"},
+            "hidden": {"$ne": True},
+        })
+        total_hidden = await db.thumbnails.count_documents({
+            "url": {"$regex": "/uploads/thumbnails/"},
+            "hidden": True,
+        })
         return {"thumbnails": rows, "total": total_visible, "hidden": total_hidden}
 
     @router.post("/{thumb_id}/hide")
@@ -388,30 +399,56 @@ def make_thumbnails_router(db, require_admin):
     @router.post("/promote-from-media")
     async def promote_from_media(body: PromoteFromMediaBody):
         """Promote a manually-uploaded Media Library image into the
-        Thumbnails gallery. Source is tagged 'promoted' so it's visually
-        distinct from AI-generated rows."""
+        Thumbnails gallery. Physically copies the file into the
+        thumbnails directory so it lives alongside AI-generated images
+        and survives future cleanups."""
         m = await db.media.find_one({"id": body.media_id}, {"_id": 0})
         if not m:
             raise HTTPException(status_code=404, detail="Media not found")
         if not (m.get("mime") or "").startswith("image/"):
             raise HTTPException(status_code=400, detail="Only image files can be promoted to Thumbnails.")
-        url = m.get("url", "")
-        existing = await db.thumbnails.find_one({"url": url}, {"_id": 1, "id": 1})
-        if existing:
-            return {"ok": True, "already_present": True, "id": existing.get("id")}
+
+        # Resolve the source file on disk.
+        src_url = m.get("url", "") or ""
+        rel = src_url
+        if rel.startswith("/api/uploads/"):
+            rel = rel[len("/api/uploads/"):]
+        elif rel.startswith("/uploads/"):
+            rel = rel[len("/uploads/"):]
+        src_path = UPLOAD_ROOT / rel
+        if not src_path.exists():
+            raise HTTPException(status_code=404, detail="Source file missing on disk.")
+
+        ext = (src_path.suffix or ".png").lower()
+        if ext not in {".png", ".jpg", ".jpeg", ".webp", ".gif"}:
+            ext = ".png"
+        thumb_filename = f"promoted-{uuid.uuid4().hex[:12]}{ext}"
+        thumb_path = THUMBS_DIR / thumb_filename
+        THUMBS_DIR.mkdir(parents=True, exist_ok=True)
+        data = src_path.read_bytes()
+        thumb_path.write_bytes(data)
+        # Mirror to persistent storage so it survives redeploys.
+        try:
+            import storage as _storage
+            if _storage.is_enabled():
+                _storage.put_object(f"thumbnails/{thumb_filename}", data, m.get("mime") or "image/png")
+        except Exception:  # noqa: BLE001
+            pass
+
+        new_url = f"/api/uploads/thumbnails/{thumb_filename}"
         kind = (body.kind or "general").lower()
         if kind not in ALLOWED_KINDS:
             kind = "general"
         doc = {
             "id": uuid.uuid4().hex,
-            "filename": m.get("filename") or url.rsplit("/", 1)[-1] or "image",
-            "url": url,
+            "filename": thumb_filename,
+            "url": new_url,
             "kind": kind,
             "title": (body.title or m.get("filename") or "Promoted image")[:160],
             "scene_prompt": (body.scene_prompt or ", ".join(m.get("tags") or []) or "Promoted from Media Library")[:400],
             "aspect": "square",
             "character_slugs": [],
-            "size_bytes": int(m.get("size_kb", 0)) * 1024,
+            "size_bytes": len(data),
             "source": "promoted",
             "created_at": _now_iso(),
         }
@@ -492,6 +529,12 @@ def make_thumbnails_router(db, require_admin):
                        character_slugs: List[str], source: str):
             nonlocal inserted, skipped
             if not url:
+                return
+            # AI Thumbnails is reserved for files that live in the
+            # thumbnails directory. Skip anything from /uploads/products/,
+            # /uploads/media/, /uploads/sing_along/, etc. so we never
+            # re-pollute the library with product mockups or covers.
+            if "/uploads/thumbnails/" not in url:
                 return
             existing = await db.thumbnails.find_one({"url": url}, {"_id": 1})
             if existing:

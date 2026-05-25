@@ -1935,6 +1935,22 @@ async def seed_database(db) -> None:
     except Exception as exc:  # noqa: BLE001
         logger.warning("ai-thumbnail source tag backfill failed: %s", exc)
 
+    # --- Purge non-AI rows from the thumbnails collection ---
+    # The thumbnails library is reserved for AI-generated images (everything
+    # in /uploads/thumbnails/). Product mockups, manual uploads, and any
+    # other URL was mirrored there by an older version of the upload code
+    # and should be removed so the library reflects only what AI made.
+    # The actual files (in /uploads/media/, /uploads/products/, etc.) are
+    # NOT touched — they remain in the Media Library / Products admin.
+    try:
+        purge = await db.thumbnails.delete_many({
+            "url": {"$not": {"$regex": "/uploads/thumbnails/"}},
+        })
+        if purge.deleted_count:
+            logger.info("thumbnails seed: removed %d non-AI rows", purge.deleted_count)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("thumbnails non-AI purge failed: %s", exc)
+
 
 READALOUD_PAGES = [
     (1,  "myrtle",
