@@ -109,15 +109,13 @@ export default function AIThumbnailButton({
 
   const downloadPng = async () => {
     if (!result) return;
-    // Fetch as blob → force-save. Cross-origin browsers ignore the
-    // `download` attribute when the response lacks Content-Disposition,
-    // so we have to materialise the bytes ourselves.
+    // Route through the authenticated admin download endpoint so we
+    // get a proper Content-Disposition + reliable cross-origin save.
     try {
-      const base = process.env.REACT_APP_BACKEND_URL || "";
-      const resp = await fetch(`${base}${result.url}`);
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const blob = await resp.blob();
-      const dlUrl = URL.createObjectURL(blob);
+      const { data } = await api.get(`/admin/thumbnails/${result.id}/download`, {
+        responseType: "blob",
+      });
+      const dlUrl = URL.createObjectURL(data);
       const link = document.createElement("a");
       link.href = dlUrl;
       link.download = result.filename || "thumbnail.png";

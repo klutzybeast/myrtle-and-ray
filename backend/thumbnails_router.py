@@ -396,6 +396,19 @@ def make_thumbnails_router(db, require_admin):
         result = await db.thumbnails.delete_many({"source": {"$in": ["media", "upload"]}})
         return {"ok": True, "removed": result.deleted_count}
 
+    @router.post("/purge-non-ai")
+    async def purge_non_ai_rows():
+        """Aggressive cleanup: delete every thumbnail whose URL does NOT
+        live under /uploads/thumbnails/. These are product mockups,
+        media uploads, or external Printify/Etsy images that were
+        mirrored into the thumbnails collection by older code. Their
+        files remain in /uploads/media/, /uploads/products/, etc. —
+        we're only removing the rogue DB entries."""
+        result = await db.thumbnails.delete_many({
+            "url": {"$not": {"$regex": "/uploads/thumbnails/"}},
+        })
+        return {"ok": True, "removed": result.deleted_count}
+
     @router.post("/promote-from-media")
     async def promote_from_media(body: PromoteFromMediaBody):
         """Promote a manually-uploaded Media Library image into the

@@ -74,19 +74,14 @@ export default function AdminThumbnails() {
   }, [thumbs, search]);
 
   const downloadOne = async (t) => {
-    // Force a real download (not a tab-open) by fetching the binary with
-    // the admin token and saving via a blob URL. This bypasses the
-    // browser's "ignore download attr for cross-origin" behaviour and
-    // also works for files served from persistent object storage.
+    // Use the shared axios client so the Authorization header is set
+    // identically to every other admin call. Asking for `blob` makes
+    // axios resolve to the binary file directly.
     try {
-      const base = process.env.REACT_APP_BACKEND_URL || "";
-      const token = localStorage.getItem("mr_admin_token") || "";
-      const resp = await fetch(`${base}/api/admin/thumbnails/${t.id}/download`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const { data } = await api.get(`/admin/thumbnails/${t.id}/download`, {
+        responseType: "blob",
       });
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const blob = await resp.blob();
-      const dlUrl = URL.createObjectURL(blob);
+      const dlUrl = URL.createObjectURL(data);
       const link = document.createElement("a");
       link.href = dlUrl;
       link.download = t.filename || "thumbnail.png";
@@ -95,7 +90,7 @@ export default function AdminThumbnails() {
       document.body.removeChild(link);
       setTimeout(() => URL.revokeObjectURL(dlUrl), 1000);
     } catch (err) {
-      toast.error("Download failed");
+      toast.error(err.response?.status === 401 ? "Session expired — please sign in again." : "Download failed");
     }
   };
 
@@ -104,22 +99,20 @@ export default function AdminThumbnails() {
       const params = new URLSearchParams();
       if (filterKind !== "all") params.set("kind", filterKind);
       if (filterCharacter !== "all") params.set("character", filterCharacter);
-      const base = process.env.REACT_APP_BACKEND_URL || "";
-      const url = `${base}/api/admin/thumbnails/zip?${params.toString()}`;
-      // Trigger download via auth-protected fetch
-      const token = localStorage.getItem("mr_admin_token") || "";
-      const resp = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const blob = await resp.blob();
-      const dlUrl = URL.createObjectURL(blob);
+      const { data } = await api.get(`/admin/thumbnails/zip?${params.toString()}`, {
+        responseType: "blob",
+      });
+      const dlUrl = URL.createObjectURL(data);
       const link = document.createElement("a");
       link.href = dlUrl;
       link.download = `thumbnails-${new Date().toISOString().slice(0, 10)}.zip`;
+      document.body.appendChild(link);
       link.click();
-      URL.revokeObjectURL(dlUrl);
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(dlUrl), 1000);
       toast.success(`Downloaded ${filtered.length} thumbnails`);
     } catch (err) {
-      toast.error("Zip download failed");
+      toast.error(err.response?.status === 401 ? "Session expired — please sign in again." : "Zip download failed");
     }
   };
 
@@ -159,6 +152,15 @@ export default function AdminThumbnails() {
     } catch { toast.error("Dedupe failed"); }
   };
 
+  const purgeNonAi = async () => {
+    if (!window.confirm("PERMANENTLY DELETE every thumbnail entry that wasn't AI-generated (product mockups, manually uploaded photos, external images). The actual files in your Media Library and Products admin are NOT touched — only the duplicate entries in the AI Thumbnails library. Continue?")) return;
+    try {
+      const { data } = await api.post("/admin/thumbnails/purge-non-ai");
+      toast.success(`Removed ${data.removed} non-AI entries`);
+      load();
+    } catch { toast.error("Cleanup failed"); }
+  };
+
   return (
     <div className="space-y-4" data-testid="admin-thumbnails-page">
       <header className="flex items-center justify-between flex-wrap gap-3">
@@ -167,6 +169,14 @@ export default function AdminThumbnails() {
           <p className="text-sm text-[#5a6b76]">Every AI thumbnail ever generated, in one place. Filter, preview, download high-res PNG, or grab them all as a zip.</p>
         </div>
         <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={purgeNonAi}
+            className="text-sm inline-flex items-center gap-1.5 px-4 py-2 rounded-full border-2 bg-red-50 border-red-300 text-red-700 hover:bg-red-100 font-bold"
+            title="Permanently remove every non-AI entry (uploaded product photos, etc.)"
+            data-testid="thumb-purge-non-ai"
+          >
+            <Trash2 className="w-4 h-4" /> Remove uploaded photos
+          </button>
           <button
             onClick={dedupeCharacters}
             className="btn-secondary text-sm"
