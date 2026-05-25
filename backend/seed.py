@@ -236,6 +236,13 @@ async def seed_database(db) -> None:
             "updated_at": _now_iso(),
         })
 
+    # --- Character portraits (committed AI-generated PNGs) ---
+    # Copies seed_assets/characters/<slug>.png into local uploads + persistent
+    # storage, then patches db.characters.image_url so production picks up
+    # the same portraits the admin saw in preview. Idempotent: skips if the
+    # current image_url already points at the committed asset.
+    await _seed_character_portraits(db)
+
     # --- Wave cards as a page ---
     if not await db.pages.find_one({"key": "wave_values"}):
         await db.pages.insert_one({
@@ -2172,6 +2179,78 @@ def _seed_map_image() -> None:
                 pass
     except Exception:  # noqa: BLE001
         pass
+
+
+async def _seed_character_portraits(db) -> None:
+    """Promote the 13 committed character PNGs in seed_assets/characters/
+    into local uploads + persistent Object Storage, then patch each
+    character row's `image_url` so it serves from /api/uploads/characters/.
+
+    This is how preview-side AI portrait generations make it to production:
+    once they're baked into seed_assets and we redeploy, every fresh
+    backend boot (preview OR prod) copies them in and updates the DB.
+
+    Idempotent: skips file copy when the target already exists with the
+    same size, and skips DB patch when image_url already points at the
+    committed path.
+    """
+    try:
+        import json as _json
+        import storage as _storage
+        asset_dir = os.path.join(os.path.dirname(__file__), "seed_assets", "characters")
+        manifest_path = os.path.join(asset_dir, "manifest.json")
+        if not os.path.exists(manifest_path):
+            return
+        try:
+            manifest = _json.loads(open(manifest_path).read())
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("character portraits seed: manifest parse failed: %s", exc)
+            return
+        entries = manifest.get("characters") or []
+        if not entries:
+            return
+
+        upload_dir = os.environ.get("UPLOAD_DIR", "/app/backend/uploads")
+        target_dir = os.path.join(upload_dir, "characters")
+        os.makedirs(target_dir, exist_ok=True)
+
+        promoted = 0
+        for e in entries:
+            slug = e.get("slug")
+            fname = e.get("filename")
+            if not slug or not fname:
+                continue
+            src = os.path.join(asset_dir, fname)
+            if not os.path.exists(src):
+                continue
+            with open(src, "rb") as fh:
+                data = fh.read()
+            target_path = os.path.join(target_dir, fname)
+            if not os.path.exists(target_path) or os.path.getsize(target_path) != len(data):
+                with open(target_path, "wb") as fh:
+                    fh.write(data)
+            storage_name = f"characters/{fname}"
+            if _storage.is_enabled():
+                try:
+                    if _storage.get_object(storage_name) is None:
+                        _storage.put_object(storage_name, data, "image/png")
+                except Exception:  # noqa: BLE001
+                    pass
+
+            new_url = f"/api/uploads/characters/{fname}"
+            existing = await db.characters.find_one({"slug": slug}, {"_id": 0, "image_url": 1})
+            if not existing:
+                continue
+            if existing.get("image_url") != new_url:
+                await db.characters.update_one(
+                    {"slug": slug},
+                    {"$set": {"image_url": new_url, "updated_at": _now_iso()}},
+                )
+                promoted += 1
+        if promoted:
+            logger.info("character portraits seed: promoted %d portraits to /uploads/characters/", promoted)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("character portraits seed failed: %s", exc)
 
 
 

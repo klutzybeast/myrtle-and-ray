@@ -1,0 +1,95 @@
+{
+  "characters": [
+    {
+      "slug": "ray",
+      "name": "Ray the Manta Ray",
+      "filename": "ray.png",
+      "size": 780702,
+      "source_url": "/api/uploads/thumbnails/character-7888fab53998.png"
+    },
+    {
+      "slug": "myrtle",
+      "name": "Myrtle the Turtle",
+      "filename": "myrtle.png",
+      "size": 968922,
+      "source_url": "/api/uploads/thumbnails/character-ecb84c15a521.png"
+    },
+    {
+      "slug": "ms-bluegill",
+      "name": "Ms Bluegill",
+      "filename": "ms-bluegill.png",
+      "size": 875161,
+      "source_url": "/api/uploads/thumbnails/character-2b5b37dc8ce7.png"
+    },
+    {
+      "slug": "ollie",
+      "name": "Ollie the Octopus",
+      "filename": "ollie.png",
+      "size": 889017,
+      "source_url": "/api/uploads/thumbnails/character-0021b4f2dcd8.png"
+    },
+    {
+      "slug": "sally",
+      "name": "Sally the Seahorse",
+      "filename": "sally.png",
+      "size": 892716,
+      "source_url": "/api/uploads/thumbnails/character-c2c2d090baa4.png"
+    },
+    {
+      "slug": "jessie",
+      "name": "Jessie the Jellyfish",
+      "filename": "jessie.png",
+      "size": 880433,
+      "source_url": "/api/uploads/thumbnails/character-b939aea9a077.png"
+    },
+    {
+      "slug": "casey",
+      "name": "Casey the Crab",
+      "filename": "casey.png",
+      "size": 774095,
+      "source_url": "/api/uploads/thumbnails/character-ba0a2445f870.png"
+    },
+    {
+      "slug": "dani",
+      "name": "Dani the Dolphin",
+      "filename": "dani.png",
+      "size": 766621,
+      "source_url": "/api/uploads/thumbnails/character-ac67d1bf91f7.png"
+    },
+    {
+      "slug": "sami",
+      "name": "Sami the Shark",
+      "filename": "sami.png",
+      "size": 842163,
+      "source_url": "/api/uploads/thumbnails/character-8ae92d38ce78.png"
+    },
+    {
+      "slug": "izzy",
+      "name": "Izzy the Iguana",
+      "filename": "izzy.png",
+      "size": 890435,
+      "source_url": "/api/uploads/thumbnails/character-b391df47b026.png"
+    },
+    {
+      "slug": "louie",
+      "name": "Louie the Lobster",
+      "filename": "louie.png",
+      "size": 996928,
+      "source_url": "/api/uploads/thumbnails/character-e9be1ae68a7b.png"
+    },
+    {
+      "slug": "billy",
+      "name": "Billy the Beluga",
+      "filename": "billy.png",
+      "size": 776603,
+      "source_url": "/api/uploads/thumbnails/character-6a36f831b55c.png"
+    },
+    {
+      "slug": "frankie",
+      "name": "Frankie the Flamingo",
+      "filename": "frankie.png",
+      "size": 785775,
+      "source_url": "/api/uploads/thumbnails/character-504e62db7f1d.png"
+    }
+  ]
+}
